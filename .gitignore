@@ -1,0 +1,9 @@
+/target/
+/lib/
+.project
+.classpath
+.settings/
+/bin/
+**/*.orig
+.idea
+

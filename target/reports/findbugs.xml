@@ -1,0 +1,2 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<BugCollection version='3.0.1' threshold='' effort='max'><Error></Error><Project><SrcDir>/Users/froemberg/Documents/GeRDI/Prototype/oaipmh_harvester_java/src/main/java</SrcDir><SrcDir>/Users/froemberg/Documents/GeRDI/Prototype/oaipmh_harvester_java/target/generated-sources/annotations</SrcDir><SrcDir>/Users/froemberg/Documents/GeRDI/Prototype/oaipmh_harvester_java/src/test/java</SrcDir></Project></BugCollection>
