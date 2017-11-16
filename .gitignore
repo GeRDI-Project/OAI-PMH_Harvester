@@ -6,4 +6,4 @@
 /bin/
 **/*.orig
 .idea
-
+.DS_Store
