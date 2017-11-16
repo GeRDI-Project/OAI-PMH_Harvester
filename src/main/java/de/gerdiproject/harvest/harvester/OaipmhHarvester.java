@@ -48,12 +48,12 @@ import java.util.*;
  */
 public class OaipmhHarvester extends AbstractListHarvester<Element>
 {
-    private enum METADATA_FORMATS {oai_dc, ore, mets}
+    private enum METADATA_FORMATS {oai_dc, ore, mets, datacite3}
 
-    private final static String BASE_URL = "https://depositonce.tu-berlin.de/oai/request?verb=ListRecords&resumptionToken=%s";
-    private final static String BASE_URL_FILTERED = "https://depositonce.tu-berlin.de/oai/request?verb=ListRecords%s%s&metadataPrefix=" + METADATA_FORMATS.oai_dc.toString();
+    private final static String BASE_URL =  "%s?verb=ListRecords&resumptionToken=%s";
+    private final static String BASE_URL_FILTERED = "%s?verb=ListRecords%s%s&metadataPrefix=%s";
 
-    private static final String PROVIDER = "DepositOnce TU Berlin";
+    private static final String PROVIDER = "PANGAEA";
     //private static final String PROVIDER_URL = "https://depositonce.tu-berlin.de";
 
     //private static final List<String> FORMATS = Collections.unmodifiableList(Arrays.asList("application/pdf"));
@@ -64,7 +64,7 @@ public class OaipmhHarvester extends AbstractListHarvester<Element>
 
     //private static final String DOWNLOAD_URL_FILE = "https://depositonce.tu-berlin.de/bitstream/11303/7055/5/mazoun_redha_de.pdf";
 
-    private static final String LOGO_URL = "https://depositonce.tu-berlin.de/image/logo-do.png";
+    private static final String LOGO_URL = "https://www.pangaea.de/assets/v.4af174c00225b228e260e809f8eff22b/layout-images/pangaea-logo.png";
 
     private final SimpleDateFormat dateFormat;
 
@@ -100,10 +100,13 @@ public class OaipmhHarvester extends AbstractListHarvester<Element>
     protected Collection<Element> loadEntries()
     {
         Collection<Element> docs = new LinkedList<>();
+        String hostUrl = getProperty(OaipmhContextListener.PROPERTY_HOST_URL);
         String domainsUrl = String.format(
         		BASE_URL_FILTERED, 
+        		hostUrl,
         		getProperty(OaipmhContextListener.PROPERTY_FROM), 
-        		getProperty(OaipmhContextListener.PROPERTY_TO));
+        		getProperty(OaipmhContextListener.PROPERTY_TO),
+        		getProperty(OaipmhContextListener.PROPERTY_METADATA_PREFIX));
 
         //logger.info("from " + getProperty(OaipmhContextListener.PROPERTY_FROM));
         //logger.info("until " + getProperty(OaipmhContextListener.PROPERTY_TO));
@@ -119,7 +122,7 @@ public class OaipmhHarvester extends AbstractListHarvester<Element>
         while (token != null) {
             rtoken = token.text();
             //logger.info(rtoken);
-            domainsUrlresumption = String.format(BASE_URL, rtoken);
+            domainsUrlresumption = String.format(BASE_URL, hostUrl, rtoken);
             //logger.info("ResumptionToken: " + rtoken);
             //logger.info("URL: " + domainsUrlresumption);
            

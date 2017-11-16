@@ -39,6 +39,10 @@ public class OaipmhContextListener extends ContextListener<OaipmhHarvester>
     private final static String ENTRY_DEFAULT_TO = "&until=2017-12-31";
     public final static String PROPERTY_FROM = "from"; //e.g. 2017-11-01
     public final static String PROPERTY_TO = "until";
+    public final static String PROPERTY_HOST_URL = "hostUrl";
+    public final static String PROPERTY_METADATA_PREFIX = "metadataPrefix";
+    public final static String ENTRY_DEFAULT_HOST_URL = "http://ws.pangaea.de/oai/provider";
+    public final static String ENTRY_DEFAULT_METADATA_PREFIX = "datacite3";
 	
     @Override
     protected List<AbstractParameter<?>> getHarvesterSpecificParameters()
@@ -47,7 +51,13 @@ public class OaipmhContextListener extends ContextListener<OaipmhHarvester>
         //StringParameter languageParam = new StringParameter("language", "de");
         StringParameter propertyFrom = new StringParameter(PROPERTY_FROM, ENTRY_DEFAULT_FROM);
         StringParameter propertyTo = new StringParameter(PROPERTY_TO, ENTRY_DEFAULT_TO);
+        StringParameter propertyHostUrl = new StringParameter(PROPERTY_HOST_URL, ENTRY_DEFAULT_HOST_URL);
+        StringParameter propertyMetadataPrefix = new StringParameter(PROPERTY_METADATA_PREFIX, ENTRY_DEFAULT_METADATA_PREFIX);
 
-        return Arrays.asList(propertyFrom, propertyTo);
+        return Arrays.asList(
+        		propertyFrom, 
+        		propertyTo,
+        		propertyHostUrl,
+        		propertyMetadataPrefix);
     }
 }
