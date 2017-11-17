@@ -16,17 +16,18 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package de.gerdiproject.harvest.oaipmh.enums;
+package de.gerdiproject.harvest.oaipmh.strategies;
+
+import org.jsoup.nodes.Element;
+
+import de.gerdiproject.harvest.IDocument;
 
 /**
- * This enumeration represents possible metadata prefixes that are used as Query parameters
- * for OAI-PMH compliant URLs.
+ * This interface represents a strategy for harvesting a document from an OAI-PMH record.
  *
- * @author Jan Frömberg
+ * @author Robin Weiss
  */
-public enum MetaDataPrefixType {
-    oai_dc,
-    ore,
-    mets,
-    datacite3
+public interface IStrategy
+{
+    IDocument harvestRecord(Element record);
 }

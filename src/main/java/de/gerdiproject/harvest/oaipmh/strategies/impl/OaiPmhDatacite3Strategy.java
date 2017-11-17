@@ -16,10 +16,28 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+package de.gerdiproject.harvest.oaipmh.strategies.impl;
+
+import org.jsoup.nodes.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import de.gerdiproject.harvest.IDocument;
+import de.gerdiproject.harvest.oaipmh.strategies.IStrategy;
+
 /**
- * This package contains enumerations used for harvesting
- * OAI-PMH compliant data providers.
- *
  * @author Robin Weiss
+ *
  */
-package de.gerdiproject.harvest.oaipmh.enums;
+public class OaiPmhDatacite3Strategy implements IStrategy
+{
+    private static final Logger LOGGER = LoggerFactory.getLogger(OaiPmhDatacite3Strategy.class);
+
+    @Override
+    public IDocument harvestRecord(Element record)
+    {
+        // TODO
+        return null;
+    }
+
+}
