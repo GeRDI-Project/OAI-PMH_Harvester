@@ -33,7 +33,7 @@ import java.security.NoSuchAlgorithmException;
 /**
  * A harvester
  *
- * @author Jan Frömberg
+ * @author Jan Frömberg, Robin Weiss
  */
 public class OaipmhHarvester extends AbstractHarvester
 {
