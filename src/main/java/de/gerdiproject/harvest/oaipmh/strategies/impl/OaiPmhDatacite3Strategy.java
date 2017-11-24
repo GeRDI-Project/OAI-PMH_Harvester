@@ -79,11 +79,13 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         List<RelatedIdentifier> relatedIdentifiers = new LinkedList<>();
         List<AbstractDate> dates = new LinkedList<>();
         List<Title> titles = new LinkedList<>();
-        //List<Description> descriptions = new LinkedList<>();
+        List<Description> descriptions = new LinkedList<>();
         List<Subject> subjects = new LinkedList<>();
         //List<ResourceType> rtypes = new LinkedList<>();
         List<Creator> creators = new LinkedList<>();
         //List<Contributor> contributors = new LinkedList<>();
+        List<String> formats = new LinkedList<>();
+        List<Rights> docrights = new LinkedList<>();
 
         // get identifier and date stamp
         Element identifier = headers.select("identifier").first();
@@ -147,6 +149,7 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         			sub.setSubjectScheme(scheme);
         		subjects.add(sub);
         }
+        document.setSubjects(subjects);
         
         // get dates
         Elements edates = metadata.select("date");
@@ -154,46 +157,100 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         		String datetype = e.attr("dateType");
         		Date edate;
         		switch (datetype) {
-        			case "Updated" :		edate = new Date(e.text(), DateType.Updated);
-        								break;
-        			case "Collected" : 	edate = new Date(e.text(), DateType.Collected);
-        								break;
-        			case "Created" : 	edate = new Date(e.text(), DateType.Created);
-									break;
-        			case "Submitted" : 	edate = new Date(e.text(), DateType.Submitted);
-									break;
-        			default : 	edate = new Date(e.text(), DateType.Collected);
-        						break;
+        			case "Updated" :	
+        				edate = new Date(e.text(), DateType.Updated);
+        				break;
+        				
+        			case "Collected" :
+        				edate = new Date(e.text(), DateType.Collected);
+        				break;
+        				
+        			case "Created" :
+        				edate = new Date(e.text(), DateType.Created);
+					break;
+					
+        			case "Submitted" :
+        				edate = new Date(e.text(), DateType.Submitted);
+					break;
+					
+        			default :
+        				edate = new Date(e.text(), DateType.Collected);
+        				break;
         		}
         		dates.add(edate);
         }
         
         // get language
-        document.setLanguage(metadata.select("language").first().text());
-        
+        Elements elang = metadata.select("language");
+        if (!elang.equals(null)) {
+        		document.setLanguage(elang.first().text());
+        }
         // get resourceType
-        ResourceType restype = new ResourceType(metadata.select("resourceType").first().text(), ResourceTypeGeneral.Dataset);
-        document.setResourceType(restype);
+        Elements erest = metadata.select("resourceType");
+        if (!erest.equals(null)) {
+        		ResourceType restype = new ResourceType(erest.first().text(), ResourceTypeGeneral.Dataset);
+        		document.setResourceType(restype);
+        }
         
         // get relatedIdentifiers
-        RelatedIdentifier rident = new RelatedIdentifier(metadata.select("relatedIdentifier").first().text(), RelatedIdentifierType.Handle, RelationType.IsSupplementTo);
-        relatedIdentifiers.add(rident);
-        document.setRelatedIdentifiers(relatedIdentifiers);
+        Elements eidents = metadata.select("relatedIdentifiers");
+        // TODO: create Typed method for that and return type? or better let all that stuff be done automatically
+        for (Element e : eidents) {
+        	    Elements erel = e.children();
+        	    
+        	    for (Element ei : erel) {
+        	    		String relident = ei.text();
+            		RelatedIdentifier rident = new RelatedIdentifier(relident, RelatedIdentifierType.Handle, RelationType.IsSupplementTo);
+            		relatedIdentifiers.add(rident);
+            		document.setRelatedIdentifiers(relatedIdentifiers);
+        	    }
+     
+        }
         
         // get sizes
-        document.setSizes(Arrays.asList(metadata.select("size").first().text()));
-
+        Elements esize = metadata.select("size");
+        if (!esize.equals(null)) {
+        		document.setSizes(Arrays.asList(esize.first().text()));
+        }
+        
         // get formats
-        document.setFormats(Arrays.asList(metadata.select("format").first().text()));
+        Elements eformats = metadata.select("format");
+        for (Element e : eformats) {
+        	
+        		Elements ef = e.children();
+        		for (Element ei : ef) {
+    	    			String temp = ei.text();
+    	    			formats.add(temp);
+        		}
+        }
+        document.setFormats(formats);
         
         // get rightsList
-        Rights rights =  new Rights(metadata.select("rights").first().text());
-        rights.setURI(metadata.select("rights").first().attr("rightsURI"));
-        document.setRightsList(Arrays.asList(rights));
+        Elements elements = metadata.select("rights");
+        for (Element e : elements) {
+        	
+        		Elements ef = e.children();
+        		for (Element ei : ef) {
+    	    			String temp = ei.text();
+    	    			Rights rights =  new Rights(temp);
+    	    			rights.setURI(ei.attr("rightsURI"));
+    	    			docrights.add(rights);
+        		}
+        }
+        document.setRightsList(docrights);
         
         // get descriptions
-        Description desc = new Description(metadata.select("description").first().text(), DescriptionType.Abstract);
-        document.setDescriptions(Arrays.asList(desc));
+        Elements edesc = metadata.select("descriptions");
+        for (Element e : edesc) {
+        	
+        		Elements ef = e.children();
+        		for (Element ei : ef) {
+    	    			String temp = ei.text();
+    	    			Description desc = new Description(temp, DescriptionType.Abstract);
+    	    			descriptions.add(desc);
+        		}
+        }
+        document.setDescriptions(descriptions);
         
         // get geoLocations
         //new GeoJson(metadata.select("geoLocationPoint").first().text())
@@ -203,9 +260,10 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         Calendar cal = Calendar.getInstance();
         Elements pubdates = metadata.select("publicationYear");
         String pubyear = pubdates.first().text();
-        
+        //TODO: nothing to parse? fix this: 0 is always the output
         try {
             cal.setTime(dateFormat.parse(pubyear));
+           
             document.setPublicationYear((short) cal.get(Calendar.YEAR));
 
         } catch (ParseException e) { //NOPMD do nothing. just do not add the date if it does not exist
