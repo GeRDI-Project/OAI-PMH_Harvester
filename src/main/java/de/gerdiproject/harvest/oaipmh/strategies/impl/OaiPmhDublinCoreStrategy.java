@@ -120,13 +120,15 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         Calendar cal = Calendar.getInstance();
         Elements pubdate = metadata.select("dc|date");
 
-        try {
-            cal.setTime(dateFormat.parse(pubdate.first().text()));
-            document.setPublicationYear((short) cal.get(Calendar.YEAR));
-
-            Date publicationDate = new Date(pubdate.first().text(), DateType.Available);
-            dates.add(publicationDate);
-        } catch (ParseException e) { //NOPMD do nothing. just do not add the date if it does not exist
+        for (Element e : pubdate) {
+	        try {//TODO: Nullp exception at line 124 : element not existing: repo: http://intr2dok.vifa-recht.de/servlets/OAIDataProvider
+	            cal.setTime(dateFormat.parse(e.text()));
+	            document.setPublicationYear((short) cal.get(Calendar.YEAR));
+	
+	            Date publicationDate = new Date(e.text(), DateType.Available);
+	            dates.add(publicationDate);
+	        } catch (ParseException ex) { //NOPMD do nothing. just do not add the date if it does not exist
+	        }
         }
 
         // get resource types

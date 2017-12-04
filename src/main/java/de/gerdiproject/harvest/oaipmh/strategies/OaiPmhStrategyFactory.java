@@ -50,6 +50,10 @@ public class OaiPmhStrategyFactory
         IStrategy strategy;
 
         switch (strategyName) {
+        		case "oai_datacite":
+                strategy = new OaiPmhDatacite3Strategy();
+                break;
+                    
             case "datacite3":
                 strategy = new OaiPmhDatacite3Strategy();
                 break;
@@ -60,6 +64,7 @@ public class OaiPmhStrategyFactory
 
             //case "ore":
             //case "mets":
+
             default:
                 strategy = null;
         }
