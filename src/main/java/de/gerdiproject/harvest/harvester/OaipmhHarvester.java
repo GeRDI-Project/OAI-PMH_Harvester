@@ -113,18 +113,21 @@ public class OaipmhHarvester extends AbstractHarvester
         String host = getProperty(OaiPmhParameterConstants.HOST_URL_KEY);
 
         if (host != null) {
-            String from = getProperty(OaiPmhParameterConstants.DATE_FROM_KEY);
-            String until = getProperty(OaiPmhParameterConstants.DATE_TO_KEY);
-            String metadataPrefix = getProperty(OaiPmhParameterConstants.METADATA_PREFIX_KEY);
-
             StringBuilder queryBuilder = new StringBuilder();
 
-            if (from != null && until != null) {
-                queryBuilder.append(OaiPmhUrlConstants.DATE_FROM_QUERY).append(from);
-                queryBuilder.append(OaiPmhUrlConstants.DATE_TO_QUERY).append(until);
-            }
+            String from = getProperty(OaiPmhParameterConstants.DATE_FROM_KEY);
 
-            if (metadataPrefix != null)
+            if (from != null && !from.isEmpty())
+                queryBuilder.append(OaiPmhUrlConstants.DATE_FROM_QUERY).append(from);
+
+            String until = getProperty(OaiPmhParameterConstants.DATE_TO_KEY);
+
+            if (until != null && !until.isEmpty())
+                queryBuilder.append(OaiPmhUrlConstants.DATE_TO_QUERY).append(until);
+
+            String metadataPrefix = getProperty(OaiPmhParameterConstants.METADATA_PREFIX_KEY);
+
+            if (metadataPrefix != null && !metadataPrefix.isEmpty())
                 queryBuilder.append(OaiPmhUrlConstants.METADATA_PREFIX_QUERY).append(metadataPrefix);
 
             mainUrl = String.format(OaiPmhUrlConstants.BASE_URL, host, queryBuilder.toString());
