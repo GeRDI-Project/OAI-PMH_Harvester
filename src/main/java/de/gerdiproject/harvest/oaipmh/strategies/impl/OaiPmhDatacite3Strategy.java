@@ -68,6 +68,8 @@ public class OaiPmhDatacite3Strategy implements IStrategy
     public IDocument harvestRecord(Element record)
     {
     		//Example: http://ws.pangaea.de/oai/provider?verb=GetRecord&metadataPrefix=datacite3&identifier=oai:pangaea.de:doi:10.1594/PANGAEA.52726
+    		// TODO: to calculate the estimated time use completeListsize-Attr : <resumptionToken expirationDate="2017-12-02T11:36:43Z" completeListSize="2668" cursor="0">-tx48nw43halhjanu1yzz@100</resumptionToken>
+    		//but does not exists in every case <resumptionToken expirationDate="2017-12-01T11:59:23Z" cursor="0">c083409c-38a3-49b8-97d8-98d2102db016</resumptionToken>
         DataCiteJson document = new DataCiteJson();
         
         List<RelatedIdentifier> relatedIdentifiers = new LinkedList<>();
