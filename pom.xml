@@ -14,6 +14,23 @@
     <name>OAI-PMH Harvester Service</name>
     <description>This is a Harvester implementation for OAI-PMH Databases.</description>
 
+	<!--  start with ./mvn -Djetty.http.port=9090 jetty:run  -->
+	<build>
+		<plugins>
+			<plugin>
+  			<groupId>org.eclipse.jetty</groupId>
+  			<artifactId>jetty-maven-plugin</artifactId>
+  			<version>9.4.8.v20171121</version>
+  			  <configuration>
+			    <scanIntervalSeconds>50</scanIntervalSeconds>
+			    <webApp>
+			      <contextPath>/harvester</contextPath>
+			    </webApp>
+			  </configuration>
+			</plugin>
+		</plugins>
+	</build>
+
     <developers>
         <developer>
             <name>Jan Frömberg</name>
