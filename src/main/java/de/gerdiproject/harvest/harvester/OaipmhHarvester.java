@@ -31,28 +31,13 @@ import org.jsoup.select.Elements;
 import java.security.NoSuchAlgorithmException;
 
 /**
- * A harvester
+ * An OAI-PMH Abstract-Harvester
  *
  * @author Jan Frömberg, Robin Weiss
  */
 public class OaipmhHarvester extends AbstractHarvester
 {
-    //private static final String PROVIDER = "PANGAEA";
-    //private static final String PROVIDER_URL = "https://depositonce.tu-berlin.de";
-
-    //private static final List<String> FORMATS = Collections.unmodifiableList(Arrays.asList("application/pdf"));
-    //private static final ResourceType RESOURCE_TYPE = createResourceType();
-
-    //private static final String VIEW_URL = "https://depositonce.tu-berlin.de/handle/%s";
-    //private static final String VIEW_URL_DOI = "http://dx.doi.org/10.14279/depositonce-%s";
-
-    //private static final String DOWNLOAD_URL_FILE = "https://depositonce.tu-berlin.de/bitstream/11303/7055/5/mazoun_redha_de.pdf";
-
-    //private static final String LOGO_URL = "https://www.pangaea.de/assets/v.4af174c00225b228e260e809f8eff22b/layout-images/pangaea-logo.png";
-
     protected boolean isAborting;
-
-
 
     @Override
     protected boolean harvestInternal(int startIndex, int endIndex) throws Exception
@@ -106,7 +91,10 @@ public class OaipmhHarvester extends AbstractHarvester
         return -1;
     }
 
-
+    /**
+     * Assemble an OAI-PMH complaint Query-URL. Harvester preconfigured parameters are used.
+     * But can also be manually configured via REST.
+     */
     private String assembleMainUrl()
     {
         String mainUrl = null;
@@ -136,7 +124,11 @@ public class OaipmhHarvester extends AbstractHarvester
         return mainUrl;
     }
 
-
+    /**
+     * To fully support the OAI-PMH resumption Token for very large data-query answers,
+     * an URL has to be compiled with an specific URL and an automatically generated token.
+     * @return a url-string to get the next items
+     */
     private String assembleResumptionUrl(String resumptionToken)
     {
         String host = getProperty(OaiPmhParameterConstants.HOST_URL_KEY);
