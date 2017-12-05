@@ -56,6 +56,8 @@ import de.gerdiproject.json.geo.GeoJson;
 import de.gerdiproject.json.geo.Point;
 
 /**
+ * A harvesting strategy for the Datacite3 metadata standard
+ * 
  * @author Jan Frömberg, Robin Weiss
  *
  */
@@ -67,9 +69,6 @@ public class OaiPmhDatacite3Strategy implements IStrategy
     @Override
     public IDocument harvestRecord(Element record)
     {
-    		//Example: http://ws.pangaea.de/oai/provider?verb=GetRecord&metadataPrefix=datacite3&identifier=oai:pangaea.de:doi:10.1594/PANGAEA.52726
-    		// TODO: to calculate the estimated time use completeListsize-Attr : <resumptionToken expirationDate="2017-12-02T11:36:43Z" completeListSize="2668" cursor="0">-tx48nw43halhjanu1yzz@100</resumptionToken>
-    		//but does not exists in every case <resumptionToken expirationDate="2017-12-01T11:59:23Z" cursor="0">c083409c-38a3-49b8-97d8-98d2102db016</resumptionToken>
         DataCiteJson document = new DataCiteJson();
 
         List<RelatedIdentifier> relatedIdentifiers = new LinkedList<>();
@@ -87,8 +86,7 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         Elements children = record.children();
 
         Boolean deleted = children.first().attr("status").equals("deleted") ? true : false;
-        //LOGGER.info("Identifier deleted?: " + deleted.toString() + " (" + children.first().attr("status") + ")");
-
+   
         Elements headers = children.select("header");
         Elements metadata = children.select("metadata");
 
@@ -96,10 +94,8 @@ public class OaiPmhDatacite3Strategy implements IStrategy
 
 
         // get identifier and date stamp
-        Element identifier = headers.select("identifier").first();
-        //String identifier_handle = identifier.text().split(":")[3];
-        //LOGGER.info("Identifier Handle (Header): " + identifier_handle);
-        document.setRepositoryIdentifier(identifier.text());
+        String identifier = headers.select("identifier").first().text();
+        document.setRepositoryIdentifier(identifier);
 
         // get last updated
         String recorddate = headers.select("datestamp").first().text();
@@ -124,17 +120,24 @@ public class OaiPmhDatacite3Strategy implements IStrategy
 
 
         // ****** Metadata Infos ******
-        // get publication year
-        try {
-            short pubyear = Short.parseShort(metadata.select("publicationYear").first().text());
-            document.setPublicationYear(pubyear);
-        } catch (NumberFormatException e) {//NOPMD do nothing.
-        }
+        // get publication year (a required field which is pardly not given by every source)
+        Elements pubYears = metadata.select("publicationYear");
 
-        // get identifiers (normally one element/identifier
+        for (Element year : pubYears) {
+        	
+		    try {
+		        short pubyear = Short.parseShort(year.text());
+		        document.setPublicationYear(pubyear);
+		    } catch (NumberFormatException e) {//NOPMD do nothing.
+		    }
+    		}
+
+        // get identifiers (normally one element/identifier)
         Element docident = metadata.select("identifier").first();
         Identifier i = new Identifier(docident.text());
-        //.valueOf(docident.attr("identifierType")) Type URL Error?!
+        //<xs:documentation>Currently, only DOI is allowed.</xs:documentation>
+        //<xs:extension base="doiType"><xs:attribute name="identifierType" use="required" fixed="DOI"/></xs:extension>
+        //.valueOf(docident.attr("identifierType"))
         i.setType(IdentifierType.DOI);
         document.setIdentifier(i);
 
@@ -316,7 +319,6 @@ public class OaiPmhDatacite3Strategy implements IStrategy
                 for (Element gle : eigeo) {
 
                     String geoTag = gle.tagName().toLowerCase();
-                    //LOGGER.info("Geo tag Name: " + geoTag);
                     GeoLocation gl = new GeoLocation();
                     String[] temp;
 
@@ -336,6 +338,9 @@ public class OaiPmhDatacite3Strategy implements IStrategy
                             GeoJson geoPoint = new GeoJson(new Point(Double.parseDouble(temp[0]), Double.parseDouble(temp[1])));
                             gl.setPoint(geoPoint);
                             geoLocations.add(gl);
+                            break;
+                            
+                        case "geolocationplace":
                             break;
 
                         default :
