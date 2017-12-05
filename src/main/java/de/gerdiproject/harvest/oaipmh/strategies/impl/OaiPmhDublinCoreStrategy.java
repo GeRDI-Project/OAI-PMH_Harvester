@@ -36,19 +36,19 @@ import de.gerdiproject.json.datacite.Date;
 import de.gerdiproject.json.datacite.Description;
 import de.gerdiproject.json.datacite.Identifier;
 import de.gerdiproject.json.datacite.RelatedIdentifier;
+import de.gerdiproject.json.datacite.Rights;
 import de.gerdiproject.json.datacite.Subject;
 import de.gerdiproject.json.datacite.Title;
 import de.gerdiproject.json.datacite.abstr.AbstractDate;
 import de.gerdiproject.json.datacite.enums.ContributorType;
 import de.gerdiproject.json.datacite.enums.DateType;
 import de.gerdiproject.json.datacite.enums.DescriptionType;
-import de.gerdiproject.json.datacite.enums.RelatedIdentifierType;
-import de.gerdiproject.json.datacite.enums.RelationType;
 import de.gerdiproject.json.datacite.extension.WebLink;
 import de.gerdiproject.json.datacite.extension.enums.WebLinkType;
 
 /**
- * TODO
+ * An OAI-PMH DublinCore metadata strategy for harvested elements
+ * 
  * @author Jan Frömberg
  */
 public class OaiPmhDublinCoreStrategy implements IStrategy
@@ -58,14 +58,14 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
     @Override
     public IDocument harvestRecord(Element record)
     {
-        //each entry-node starts with record subelements are header and metadata
-        //Example: https://www.cancerdata.org/oai?verb=ListRecords&from=2017-11-01&metadataPrefix=oai_dc
+        // each entry-node starts with a record element. 
+    		// sub-elements are header and metadata
         DataCiteJson document = new DataCiteJson();
+        
         // get header and meta data stuff for each record
         Elements children = record.children();
         Elements headers = children.select("header");
         Boolean deleted = children.first().attr("status").equals("deleted") ? true : false;
-        //logger.info("Identifier deleted?: " + deleted.toString() + " (" + children.first().attr("status") + ")");
         Elements metadata = children.select("metadata");
 
         List<WebLink> links = new LinkedList<>();
@@ -74,29 +74,15 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         List<Title> titles = new LinkedList<>();
         List<Description> descriptions = new LinkedList<>();
         List<Subject> subjects = new LinkedList<>();
-        //List<ResourceType> rtypes = new LinkedList<>();
         List<Creator> creators = new LinkedList<>();
         List<Contributor> contributors = new LinkedList<>();
         List<String> dctype = new LinkedList<>();
-
-        // set document overhead
-        //Attributes attributes = entry.attributes();
-        //String version = attributes.get("version");
-        //document.setVersion(version);
-        //document.setResourceType(RESOURCE_TYPE);
-        // TODO document.setPublisher(PROVIDER);
-        //document.setFormats(FORMATS);
+        List<String> formats = new LinkedList<>();
+        List<Rights> rightslist = new LinkedList<>();
 
         // get identifier and datestamp
         Element identifier = headers.select("identifier").first();
-        //String identifier_handle = identifier.text().split(":")[2];
-        //logger.info("Identifier Handle (Header): " + identifier_handle);
         Identifier mainIdentifier = new Identifier(identifier.text());
-
-        // get source
-        //Source source = new Source(String.format(VIEW_URL, identifier_handle), PROVIDER);
-        //source.setProviderURI(PROVIDER_URL);
-        //document.setSources(source);
 
         // get last updated
         String recorddate = headers.select("datestamp").first().text();
@@ -115,13 +101,12 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
             return document;
         }
 
-
         // get publication date
         Calendar cal = Calendar.getInstance();
         Elements pubdate = metadata.select("dc|date");
 
         for (Element e : pubdate) {
-	        try {//TODO: Nullp exception at line 124 : element not existing: repo: http://intr2dok.vifa-recht.de/servlets/OAIDataProvider
+	        try {
 	            cal.setTime(dateFormat.parse(e.text()));
 	            document.setPublicationYear((short) cal.get(Calendar.YEAR));
 	
@@ -178,12 +163,24 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         }
 
         document.setDescriptions(descriptions);
+        
+        // get publisher
+        Elements pubElem = metadata.select("dc|publisher");
 
-        // get web links
-        // TODO WebLink logoLink = new WebLink(LOGO_URL);
-        //logoLink.setName("Logo");
-        //logoLink.setType(WebLinkType.ProviderLogoURL);
-        //links.add(logoLink);
+        for (Element e : pubElem) {
+            String pub = e.text();
+            document.setPublisher(pub);
+        }
+        
+        // get formats
+        Elements fmts = metadata.select("dc|format");
+
+        for (Element e : fmts) {
+            String fmt = e.text();
+            formats.add(fmt);
+        }
+        
+        document.setFormats(formats);
 
         // get identifier URLs
         Elements identEles = metadata.select("dc|identifier");
@@ -206,16 +203,36 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         }
 
         document.setSubjects(subjects);
+        
+        // get rights
+        Elements rgs = metadata.select("dc|rights");
 
-        // parse references
-        Elements referenceElements = metadata.select("DOI");
+        for (Element e : rgs) {
+        		Rights rg = new Rights(e.text());
+          	rightslist.add(rg);
+        }
+
+        document.setRightsList(rightslist);
+        
+        // get source, relation, coverage
+
+        // get language
+        Elements langs = metadata.select("dc|language");
+
+        for (Element e : langs) {
+            String lang = e.text();
+            document.setLanguage(lang);
+        }
+
+        // parse references; DOI is no dublin core item
+        /*Elements referenceElements = metadata.select("DOI");
 
         for (Element doiRef : referenceElements) {
             relatedIdentifiers.add(new RelatedIdentifier(
                                        doiRef.text(),
                                        RelatedIdentifierType.DOI,
                                        RelationType.IsReferencedBy));
-        }
+        }*/
 
         // compile a document
         document.setIdentifier(mainIdentifier);
@@ -231,12 +248,4 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
 
         return document;
     }
-
-
-    /*private static ResourceType createResourceType() //TODO: how to deal with that and other meta data formats like ore, mets, etc
-    {
-        ResourceType resourceType = new ResourceType("Whatever Data", ResourceTypeGeneral.Dataset);
-
-        return resourceType;
-    }*/
 }
