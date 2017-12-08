@@ -29,5 +29,13 @@ import de.gerdiproject.harvest.IDocument;
  */
 public interface IStrategy
 {
+	/**
+	 * Reads an HTML record from an OAI-PMH record list and generates a single document
+	 * out of it.
+	 * 
+	 * @param record the HTML element that represents the OAI-PMH record
+	 * 
+	 * @return a searchable document
+	 */
     IDocument harvestRecord(Element record);
 }
