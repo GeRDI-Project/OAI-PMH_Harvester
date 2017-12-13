@@ -21,14 +21,9 @@ package de.gerdiproject.harvest.oaipmh.strategies.impl;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-//import java.util.Calendar;
-//import java.text.ParseException;
-//import java.text.SimpleDateFormat;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
 
 import de.gerdiproject.harvest.IDocument;
 import de.gerdiproject.harvest.oaipmh.strategies.IStrategy;
@@ -48,7 +43,6 @@ import de.gerdiproject.json.datacite.abstr.AbstractDate;
 import de.gerdiproject.json.datacite.enums.ContributorType;
 import de.gerdiproject.json.datacite.enums.DateType;
 import de.gerdiproject.json.datacite.enums.DescriptionType;
-import de.gerdiproject.json.datacite.enums.IdentifierType;
 import de.gerdiproject.json.datacite.enums.RelatedIdentifierType;
 import de.gerdiproject.json.datacite.enums.RelationType;
 import de.gerdiproject.json.datacite.enums.ResourceTypeGeneral;
@@ -56,16 +50,13 @@ import de.gerdiproject.json.geo.GeoJson;
 import de.gerdiproject.json.geo.Point;
 
 /**
- * A harvesting strategy for the Datacite3 metadata standard
+ * A harvesting strategy for the Datacite3 metadata standard.
  * 
- * @author Jan Frömberg, Robin Weiss
+ * @author Jan Frömberg
  *
  */
 public class OaiPmhDatacite3Strategy implements IStrategy
 {
-    //private static final Logger LOGGER = LoggerFactory.getLogger(OaiPmhDatacite3Strategy.class);
-    //private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy'-'MM'-'dd");
-
     @Override
     public IDocument harvestRecord(Element record)
     {
@@ -120,7 +111,7 @@ public class OaiPmhDatacite3Strategy implements IStrategy
 
 
         // ****** Metadata Infos ******
-        // get publication year (a required field which is pardly not given by every source)
+        // get publication year (a required field which is not always provided)
         Elements pubYears = metadata.select("publicationYear");
 
         for (Element year : pubYears) {
@@ -135,10 +126,6 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         // get identifiers (normally one element/identifier)
         Element docident = metadata.select("identifier").first();
         Identifier i = new Identifier(docident.text());
-        //<xs:documentation>Currently, only DOI is allowed.</xs:documentation>
-        //<xs:extension base="doiType"><xs:attribute name="identifierType" use="required" fixed="DOI"/></xs:extension>
-        //.valueOf(docident.attr("identifierType"))
-        i.setType(IdentifierType.DOI);
         document.setIdentifier(i);
 
         // get creators
