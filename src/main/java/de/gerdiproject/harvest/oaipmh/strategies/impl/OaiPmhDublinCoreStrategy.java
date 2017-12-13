@@ -47,7 +47,7 @@ import de.gerdiproject.json.datacite.extension.WebLink;
 import de.gerdiproject.json.datacite.extension.enums.WebLinkType;
 
 /**
- * An OAI-PMH DublinCore metadata strategy for harvested elements
+ * An OAI-PMH DublinCore metadata strategy for harvesting documents from records
  * 
  * @author Jan Frömberg
  */
@@ -223,16 +223,6 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
             String lang = e.text();
             document.setLanguage(lang);
         }
-
-        // parse references; DOI is no dublin core item
-        /*Elements referenceElements = metadata.select("DOI");
-
-        for (Element doiRef : referenceElements) {
-            relatedIdentifiers.add(new RelatedIdentifier(
-                                       doiRef.text(),
-                                       RelatedIdentifierType.DOI,
-                                       RelationType.IsReferencedBy));
-        }*/
 
         // compile a document
         document.setIdentifier(mainIdentifier);
