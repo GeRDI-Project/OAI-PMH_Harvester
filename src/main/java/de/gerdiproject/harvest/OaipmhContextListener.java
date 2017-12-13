@@ -29,15 +29,13 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * This class initializes the ENA harvester and a logger
+ * This class initializes the OAI-PMH harvester and a logger.
  *
  * @author Jan Frömberg
  */
 @WebListener
 public class OaipmhContextListener extends ContextListener<OaipmhHarvester>
 {
-
-
     @Override
     protected List<AbstractParameter<?>> getHarvesterSpecificParameters()
     {
