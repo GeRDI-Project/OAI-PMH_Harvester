@@ -31,8 +31,11 @@ import org.jsoup.select.Elements;
 import java.security.NoSuchAlgorithmException;
 
 /**
- * An OAI-PMH Abstract-Harvester
- *
+ * An OAI-PMH-Protocol Harvester capable to harvest oai_dc, oai_datacite and datacite3 documents through a strategy pattern.
+ * Each meta data standard is implemented in a strategy.
+ * It supports OAI-PMH functionality like from and to date stamps to filter the result set.
+ * Furthermore a so called Resumption-Token is implemented to get all records of a repository.
+ * 
  * @author Jan Frömberg, Robin Weiss
  */
 public class OaipmhHarvester extends AbstractHarvester
@@ -40,7 +43,7 @@ public class OaipmhHarvester extends AbstractHarvester
     protected boolean isAborting;
 
     @Override
-    protected boolean harvestInternal(int startIndex, int endIndex) throws Exception
+    protected boolean harvestInternal(int startIndex, int endIndex) throws Exception //NOPMD
     {
         String metadataPrefix = getProperty(OaiPmhParameterConstants.METADATA_PREFIX_KEY);
         IStrategy strategy = OaiPmhStrategyFactory.createStrategy(metadataPrefix);
@@ -54,8 +57,6 @@ public class OaipmhHarvester extends AbstractHarvester
                 currentHarvestingProcess.cancel(false);
                 return false;
             }
-
-            //logger.info("resumptionUrl: " + url);
 
             Document doc = httpRequester.getHtmlFromUrl(url);
 
@@ -88,12 +89,13 @@ public class OaipmhHarvester extends AbstractHarvester
     @Override
     protected int initMaxNumberOfDocuments()
     {
+    		//Returns -1, because it is not feasible to count the maximum number of documents before harvesting.
         return -1;
     }
 
     /**
-     * Assemble an OAI-PMH complaint Query-URL. Harvester preconfigured parameters are used.
-     * But can also be manually configured via REST.
+     * Assemble an OAI-PMH compliant Query-URL. Harvester preconfigured parameters are used,
+     * but can also be manually configured via REST.
      */
     private String assembleMainUrl()
     {
@@ -126,8 +128,8 @@ public class OaipmhHarvester extends AbstractHarvester
 
     /**
      * To fully support the OAI-PMH resumption Token for very large data-query answers,
-     * an URL has to be compiled with an specific URL and an automatically generated token.
-     * @return a url-string to get the next items
+     * a URL-string has to be compiled with a specific URL and an automatically generated token.
+     * @return an URL-string to retrieve the next batch of records
      */
     private String assembleResumptionUrl(String resumptionToken)
     {
@@ -139,7 +141,7 @@ public class OaipmhHarvester extends AbstractHarvester
     @Override
     protected String initHash() throws NoSuchAlgorithmException, NullPointerException
     {
-        // TODO Auto-generated method stub
+        // TODO the hash cannot be calculated over such a large amount of records, a solution needs to be found once it becomes relevant
         return null;
     }
 
