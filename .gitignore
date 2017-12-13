@@ -7,4 +7,5 @@
 **/*.orig
 .idea
 .DS_Store
-*.iml
+**/*.iml
+/scripts/
