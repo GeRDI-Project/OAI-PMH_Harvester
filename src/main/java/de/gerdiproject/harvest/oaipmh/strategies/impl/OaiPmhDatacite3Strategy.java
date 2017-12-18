@@ -26,6 +26,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import de.gerdiproject.harvest.IDocument;
+import de.gerdiproject.harvest.oaipmh.constants.DataCiteStrategyConstants;
 import de.gerdiproject.harvest.oaipmh.strategies.IStrategy;
 import de.gerdiproject.json.datacite.Contributor;
 import de.gerdiproject.json.datacite.Creator;
@@ -46,6 +47,7 @@ import de.gerdiproject.json.datacite.enums.DescriptionType;
 import de.gerdiproject.json.datacite.enums.RelatedIdentifierType;
 import de.gerdiproject.json.datacite.enums.RelationType;
 import de.gerdiproject.json.datacite.enums.ResourceTypeGeneral;
+import de.gerdiproject.json.datacite.nested.NameIdentifier;
 import de.gerdiproject.json.geo.GeoJson;
 import de.gerdiproject.json.geo.Point;
 
@@ -72,35 +74,30 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         List<Rights> docrights = new LinkedList<>();
         List<GeoLocation> geoLocations = new LinkedList<>();
         List<Contributor> contributors = new LinkedList<>();
+		List<NameIdentifier> nameIdentifiers = new LinkedList<>();
+		List<String> affiliations = new LinkedList<>();
 
         // get header and meta data stuff for each record
         Elements children = record.children();
 
-        Boolean deleted = children.first().attr("status").equals("deleted") ? true : false;
+        Boolean deleted = children.first().attr(DataCiteStrategyConstants.RECORD_STATUS).equals(DataCiteStrategyConstants.RECORD_STATUS_DEL) ? true : false;
    
-        Elements headers = children.select("header");
-        Elements metadata = children.select("metadata");
-
-        // ****** HEADER INFOS *******
-
+        Elements headers = children.select(DataCiteStrategyConstants.RECORD_HEADER);
+        Elements metadata = children.select(DataCiteStrategyConstants.RECORD_METADATA);
 
         // get identifier and date stamp
-        String identifier = headers.select("identifier").first().text();
+        String identifier = headers.select(DataCiteStrategyConstants.IDENTIFIER).first().text();
         document.setRepositoryIdentifier(identifier);
 
         // get last updated
-        String recorddate = headers.select("datestamp").first().text();
+        String recorddate = headers.select(DataCiteStrategyConstants.DATESTAMP).first().text();
         Date updatedDate = new Date(recorddate, DateType.Updated);
         dates.add(updatedDate);
 
-
-        // ****** HEADER INFOS *******
-
-
         // check if entry/record is "deleted" from repository
-        // stop crawling and create empty doc; maybe jumpover?
+        // stop crawling and create empty doc; maybe left out?
         if (deleted) {
-            document.setVersion("deleted");
+            document.setVersion(DataCiteStrategyConstants.RECORD_STATUS_DEL);
 
             // add dates if there are any
             if (!dates.isEmpty())
@@ -109,10 +106,8 @@ public class OaiPmhDatacite3Strategy implements IStrategy
             return document;
         }
 
-
-        // ****** Metadata Infos ******
         // get publication year (a required field which is not always provided)
-        Elements pubYears = metadata.select("publicationYear");
+        Elements pubYears = metadata.select(DataCiteStrategyConstants.PUB_YEAR);
 
         for (Element year : pubYears) {
         	
@@ -124,24 +119,46 @@ public class OaiPmhDatacite3Strategy implements IStrategy
     		}
 
         // get identifiers (normally one element/identifier)
-        Element docident = metadata.select("identifier").first();
+        Element docident = metadata.select(DataCiteStrategyConstants.IDENTIFIER).first();
         Identifier i = new Identifier(docident.text());
         document.setIdentifier(i);
 
         // get creators
-        Elements ecreators = metadata.select("creators");
+        Elements ecreators = metadata.select(DataCiteStrategyConstants.DOC_CREATORS);
 
         for (Element e : ecreators) {
             Elements ccreator = e.children();
+            Creator creator;
 
-            for (Element ec : ccreator)
-                creators.add(new Creator(ec.select("creatorName").text()));
+            for (Element ec : ccreator) {
+                	creator = new Creator(ec.select(DataCiteStrategyConstants.DOC_CREATORNAME).text());
+            	    Elements nameIds = ec.select(DataCiteStrategyConstants.DOC_CREATOR_NAMEIDENT);
+            	    NameIdentifier nameIdent;
+            		
+            		for (Element enids : nameIds) {
+            			nameIdent = new NameIdentifier(enids.text(), enids.attr(DataCiteStrategyConstants.DOC_CREATOR_NAMEIDENTSCHEME));
+            			nameIdent.setSchemeURI(enids.attr(DataCiteStrategyConstants.DOC_CREATOR_NAMEIDENTSCHEMEURI));
+            			nameIdentifiers.add(nameIdent);
+            		} 		
+            		
+            		if (!nameIdentifiers.equals(null))
+            			creator.setNameIdentifiers(nameIdentifiers);            		
+                
+            		Elements ecaffils = ec.select(DataCiteStrategyConstants.DOC_CREATOR_AFFILIATION);
+            		for (Element eaffil : ecaffils)
+            			affiliations.add(eaffil.text());
+            		
+            		if (!affiliations.equals(null))
+            			creator.setAffiliations(affiliations);
+            		
+            		creators.add(creator);
+            }
         }
 
         document.setCreators(creators);
 
         // get contributors
-        Elements contribs = metadata.select("contributors");
+        Elements contribs = metadata.select(DataCiteStrategyConstants.CONTRIBUTORS);
         Contributor contrib;
 
         for (Element ec : contribs) {
@@ -150,7 +167,7 @@ public class OaiPmhDatacite3Strategy implements IStrategy
 
             for (Element ci : c) {
 
-                String cType = ci.attr("contributorType");
+                String cType = ci.attr(DataCiteStrategyConstants.CONTRIB_TYPE);
                 //LOGGER.info("ContibutorsType: " + cType);
                 Elements cns = ci.children();
 
@@ -165,7 +182,7 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         document.setContributors(contributors);
 
         // get titles
-        Elements etitles = metadata.select("title");
+        Elements etitles = metadata.select(DataCiteStrategyConstants.DOC_TITLE);
 
         for (Element e : etitles)
             titles.add(new Title(e.text()));
@@ -173,16 +190,16 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         document.setTitles(titles);
 
         // get publisher
-        Elements epubs = metadata.select("publisher");
+        Elements epubs = metadata.select(DataCiteStrategyConstants.PUBLISHER);
 
         for (Element e : epubs)
             document.setPublisher(e.text());
 
         // get subjects
-        Elements esubj = metadata.select("subject");
+        Elements esubj = metadata.select(DataCiteStrategyConstants.SUBJECT);
 
         for (Element e : esubj) {
-            String scheme = e.attr("subjectScheme");
+            String scheme = e.attr(DataCiteStrategyConstants.SUBJECT_SCHEME);
             Subject sub = new Subject(e.text());
 
             if (!scheme.equals(""))
@@ -194,10 +211,10 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         document.setSubjects(subjects);
 
         // get dates
-        Elements edates = metadata.select("date");
+        Elements edates = metadata.select(DataCiteStrategyConstants.METADATA_DATE);
 
         for (Element e : edates) {
-            String datetype = e.attr("dateType");
+            String datetype = e.attr(DataCiteStrategyConstants.METADATA_DATETYPE);
             Date edate = new Date(e.text(), DateType.valueOf(datetype));
             dates.add(edate);
         }
@@ -205,28 +222,28 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         document.setDates(dates);
 
         // get language
-        Elements elang = metadata.select("language");
+        Elements elang = metadata.select(DataCiteStrategyConstants.LANG);
 
         if (!elang.isEmpty())
             document.setLanguage(elang.first().text());
 
         // get resourceType
-        Elements erest = metadata.select("resourceType");
+        Elements erest = metadata.select(DataCiteStrategyConstants.RES_TYPE);
 
         if (!erest.isEmpty()) {
-            ResourceType restype = new ResourceType(erest.first().text(), ResourceTypeGeneral.valueOf(erest.attr("resourceTypeGeneral")));
+            ResourceType restype = new ResourceType(erest.first().text(), ResourceTypeGeneral.valueOf(erest.attr(DataCiteStrategyConstants.RES_TYPE_GENERAL)));
             document.setResourceType(restype);
         }
 
         // get relatedIdentifiers
-        Elements erelidents = metadata.select("relatedIdentifiers");
+        Elements erelidents = metadata.select(DataCiteStrategyConstants.REL_IDENTIFIERS);
 
         for (Element e : erelidents) {
             Elements erel = e.children();
 
             for (Element ei : erel) {
-                String itype = ei.attr("relatedIdentifierType");
-                String reltype = ei.attr("relationType");
+                String itype = ei.attr(DataCiteStrategyConstants.REL_IDENT_TYPE);
+                String reltype = ei.attr(DataCiteStrategyConstants.REL_TYPE);
                 String relatedident = ei.text();
                 RelatedIdentifier rident = new RelatedIdentifier(relatedident, RelatedIdentifierType.valueOf(itype), RelationType.valueOf(reltype));
                 relatedIdentifiers.add(rident);
@@ -236,13 +253,13 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         document.setRelatedIdentifiers(relatedIdentifiers);
 
         // get sizes
-        Elements esize = metadata.select("size");
+        Elements esize = metadata.select(DataCiteStrategyConstants.SIZE);
 
         if (!esize.isEmpty())
             document.setSizes(Arrays.asList(esize.first().text()));
 
         // get formats
-        Elements eformats = metadata.select("formats");
+        Elements eformats = metadata.select(DataCiteStrategyConstants.METADATA_FORMATS);
 
         for (Element e : eformats) {
 
@@ -257,7 +274,7 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         document.setFormats(formats);
 
         // get rightsList
-        Elements elements = metadata.select("rightsList");
+        Elements elements = metadata.select(DataCiteStrategyConstants.RIGHTS_LIST);
 
         for (Element e : elements) {
 
@@ -266,7 +283,7 @@ public class OaiPmhDatacite3Strategy implements IStrategy
             for (Element ei : ef) {
                 String temp = ei.text();
                 Rights rights =  new Rights(temp);
-                rights.setURI(ei.attr("rightsURI"));
+                rights.setURI(ei.attr(DataCiteStrategyConstants.RIGHTS_URI));
                 docrights.add(rights);
             }
         }
@@ -274,7 +291,7 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         document.setRightsList(docrights);
 
         // get descriptions
-        Elements edesc = metadata.select("descriptions");
+        Elements edesc = metadata.select(DataCiteStrategyConstants.DESCRIPTIONS);
 
         for (Element e : edesc) {
 
@@ -282,7 +299,7 @@ public class OaiPmhDatacite3Strategy implements IStrategy
 
             for (Element ei : ef) {
                 String tmp = ei.text();
-                String desct = ei.attr("descriptionType");
+                String desct = ei.attr(DataCiteStrategyConstants.DESC_TYPE);
                 Description desc = new Description(tmp, DescriptionType.valueOf(desct));
                 descriptions.add(desc);
             }
@@ -291,7 +308,7 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         document.setDescriptions(descriptions);
 
         // get geoLocations
-        Elements egeolocs = metadata.select("geoLocations");
+        Elements egeolocs = metadata.select(DataCiteStrategyConstants.GEOLOCS);
 
         for (Element e : egeolocs) {
 
@@ -311,7 +328,7 @@ public class OaiPmhDatacite3Strategy implements IStrategy
 
                     switch (geoTag) {
 
-                        case "geolocationbox" :
+                        case DataCiteStrategyConstants.GEOLOC_BOX:
                             temp = gle.text().split(" ");
                             gl.setBox(Double.parseDouble(temp[0]),
                                       Double.parseDouble(temp[1]),
@@ -320,14 +337,16 @@ public class OaiPmhDatacite3Strategy implements IStrategy
                             geoLocations.add(gl);
                             break;
 
-                        case "geolocationpoint":
+                        case DataCiteStrategyConstants.GEOLOC_POINT:
                             temp = gle.text().split(" ");
                             GeoJson geoPoint = new GeoJson(new Point(Double.parseDouble(temp[0]), Double.parseDouble(temp[1])));
                             gl.setPoint(geoPoint);
                             geoLocations.add(gl);
                             break;
                             
-                        case "geolocationplace":
+                        case DataCiteStrategyConstants.GEOLOC_PLACE:
+                        		gl.setPlace(gle.text());
+                        		geoLocations.add(gl);
                             break;
 
                         default :
