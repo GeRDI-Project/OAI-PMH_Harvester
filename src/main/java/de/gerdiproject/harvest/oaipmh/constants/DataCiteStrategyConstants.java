@@ -37,6 +37,10 @@ public class DataCiteStrategyConstants {
 	public static final String DOC_TITLE = "title";
 	public static final String DOC_CREATORS = "creators";
 	public static final String DOC_CREATORNAME = "creatorName";
+	public static final String DOC_CREATOR_NAMEIDENT = "nameIdentifier";
+	public static final String DOC_CREATOR_NAMEIDENTSCHEME = "nameIdentifierScheme";
+	public static final String DOC_CREATOR_NAMEIDENTSCHEMEURI = "schemeURI";
+	public static final String DOC_CREATOR_AFFILIATION = "affiliation";
 	
 	public static final String CONTRIBUTORS = "contributors";
 	public static final String CONTRIB_TYPE = "contributorType";
