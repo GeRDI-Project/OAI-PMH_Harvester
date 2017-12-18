@@ -141,14 +141,14 @@ public class OaiPmhDatacite3Strategy implements IStrategy
             			nameIdentifiers.add(nameIdent);
             		} 		
             		
-            		if (!nameIdentifiers.equals(null))
+            		if (!nameIdentifiers.isEmpty())
             			creator.setNameIdentifiers(nameIdentifiers);            		
                 
             		Elements ecaffils = ec.select(DataCiteStrategyConstants.DOC_CREATOR_AFFILIATION);
             		for (Element eaffil : ecaffils)
             			affiliations.add(eaffil.text());
             		
-            		if (!affiliations.equals(null))
+            		if (!affiliations.isEmpty())
             			creator.setAffiliations(affiliations);
             		
             		creators.add(creator);
