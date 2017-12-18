@@ -28,6 +28,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import de.gerdiproject.harvest.IDocument;
+import de.gerdiproject.harvest.oaipmh.constants.DublinCoreStrategyConstants;
 import de.gerdiproject.harvest.oaipmh.strategies.IStrategy;
 import de.gerdiproject.json.datacite.Contributor;
 import de.gerdiproject.json.datacite.Creator;
@@ -59,14 +60,14 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
     public IDocument harvestRecord(Element record)
     {
         // each entry-node starts with a record element. 
-    		// sub-elements are header and metadata
+    		// sub-elements are header and metadata.
         DataCiteJson document = new DataCiteJson();
         
         // get header and meta data stuff for each record
         Elements children = record.children();
-        Elements headers = children.select("header");
-        Boolean deleted = children.first().attr("status").equals("deleted") ? true : false;
-        Elements metadata = children.select("metadata");
+        Elements headers = children.select(DublinCoreStrategyConstants.RECORD_HEADER);
+        Boolean deleted = children.first().attr(DublinCoreStrategyConstants.RECORD_STATUS).equals(DublinCoreStrategyConstants.RECORD_STATUS_DEL) ? true : false;
+        Elements metadata = children.select(DublinCoreStrategyConstants.RECORD_METADATA);
 
         List<WebLink> links = new LinkedList<>();
         List<RelatedIdentifier> relatedIdentifiers = new LinkedList<>();
@@ -81,17 +82,17 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         List<Rights> rightslist = new LinkedList<>();
 
         // get identifier and datestamp
-        Element identifier = headers.select("identifier").first();
+        Element identifier = headers.select(DublinCoreStrategyConstants.IDENTIFIER).first();
         Identifier mainIdentifier = new Identifier(identifier.text());
 
         // get last updated
-        String recorddate = headers.select("datestamp").first().text();
+        String recorddate = headers.select(DublinCoreStrategyConstants.RECORD_DATESTAMP).first().text();
         Date updatedDate = new Date(recorddate, DateType.Updated);
         dates.add(updatedDate);
 
         //check if Entry is "deleted"
         if (deleted) {
-            document.setVersion("deleted");
+            document.setVersion(DublinCoreStrategyConstants.RECORD_STATUS_DEL);
             document.setIdentifier(mainIdentifier);
 
             // add dates if there are any
@@ -103,7 +104,7 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
 
         // get publication date
         Calendar cal = Calendar.getInstance();
-        Elements pubdate = metadata.select("dc|date");
+        Elements pubdate = metadata.select(DublinCoreStrategyConstants.METADATA_DATE);
 
         for (Element e : pubdate) {
 	        try {
@@ -117,7 +118,7 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         }
 
         // get resource types
-        Elements dctypes = metadata.select("dc|type");
+        Elements dctypes = metadata.select(DublinCoreStrategyConstants.RES_TYPE);
 
         for (Element e : dctypes)
             dctype.add(e.text());
@@ -125,7 +126,7 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         document.setFormats(dctype);
 
         // get creators
-        Elements creatorElements = metadata.select("dc|creator");
+        Elements creatorElements = metadata.select(DublinCoreStrategyConstants.DOC_CREATORS);
 
         for (Element e : creatorElements) {
             Creator creator = new Creator(e.text());
@@ -135,7 +136,7 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         document.setCreators(creators);
 
         // get contributors
-        Elements contribElements = metadata.select("dc|contributor");
+        Elements contribElements = metadata.select(DublinCoreStrategyConstants.DOC_CONTRIBUTORS);
 
         for (Element e : contribElements) {
             Contributor contrib = new Contributor(e.text(), ContributorType.ContactPerson);
@@ -145,7 +146,7 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         document.setContributors(contributors);
 
         // get titles
-        Elements dctitles = metadata.select("dc|title");
+        Elements dctitles = metadata.select(DublinCoreStrategyConstants.DOC_TITLE);
 
         for (Element title : dctitles) {
             Title dctitle = new Title(title.text());
@@ -155,7 +156,7 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         document.setTitles(titles);
 
         // get descriptions
-        Elements descriptionElements = metadata.select("dc|description");
+        Elements descriptionElements = metadata.select(DublinCoreStrategyConstants.DOC_DESCRIPTIONS);
 
         for (Element descElement : descriptionElements) {
             Description description = new Description(descElement.text(), DescriptionType.Abstract);
@@ -165,7 +166,7 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         document.setDescriptions(descriptions);
         
         // get publisher
-        Elements pubElem = metadata.select("dc|publisher");
+        Elements pubElem = metadata.select(DublinCoreStrategyConstants.PUBLISHER);
 
         for (Element e : pubElem) {
             String pub = e.text();
@@ -173,7 +174,7 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         }
         
         // get formats
-        Elements fmts = metadata.select("dc|format");
+        Elements fmts = metadata.select(DublinCoreStrategyConstants.METADATA_FORMATS);
 
         for (Element e : fmts) {
             String fmt = e.text();
@@ -183,7 +184,7 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         document.setFormats(formats);
 
         // get identifier URLs
-        Elements identEles = metadata.select("dc|identifier");
+        Elements identEles = metadata.select(DublinCoreStrategyConstants.IDENTIFIER);
         int numidents = identEles.size();
 
         for (Element identElement : identEles) {
@@ -195,7 +196,7 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         }
 
         // get keyword subjects
-        Elements dcsubjects = metadata.select("dc|subject");
+        Elements dcsubjects = metadata.select(DublinCoreStrategyConstants.SUBJECTS);
 
         for (Element subject : dcsubjects) {
             Subject dcsubject = new Subject(subject.text());
@@ -205,7 +206,7 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         document.setSubjects(subjects);
         
         // get rights
-        Elements rgs = metadata.select("dc|rights");
+        Elements rgs = metadata.select(DublinCoreStrategyConstants.RIGHTS);
 
         for (Element e : rgs) {
         		Rights rg = new Rights(e.text());
@@ -217,7 +218,7 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         // get source, relation, coverage
 
         // get language
-        Elements langs = metadata.select("dc|language");
+        Elements langs = metadata.select(DublinCoreStrategyConstants.LANG);
 
         for (Element e : langs) {
             String lang = e.text();
