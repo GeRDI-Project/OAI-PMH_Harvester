@@ -20,55 +20,56 @@ package de.gerdiproject.harvest.oaipmh.constants;
 
 /**
  * A static collection of constant parameters for configuring the DataCite3 strategy.
- * 
+ *
  * @author Jan Frömberg
  *
  */
-public class DataCiteStrategyConstants {
-	
-	public static final String RECORD_STATUS = "status";
-	public static final String RECORD_STATUS_DEL = "deleted";
-	public static final String RECORD_HEADER = "header";
-	public static final String RECORD_METADATA = "metadata";
-	
-	public static final String IDENTIFIER = "identifier";
-	public static final String DATESTAMP = "datestamp";
-	public static final String PUB_YEAR = "publicationYear";
-	public static final String DOC_TITLE = "title";
-	public static final String DOC_CREATORS = "creators";
-	public static final String DOC_CREATORNAME = "creatorName";
-	public static final String DOC_CREATOR_NAMEIDENT = "nameIdentifier";
-	public static final String DOC_CREATOR_NAMEIDENTSCHEME = "nameIdentifierScheme";
-	public static final String DOC_CREATOR_NAMEIDENTSCHEMEURI = "schemeURI";
-	public static final String DOC_CREATOR_AFFILIATION = "affiliation";
-	
-	public static final String CONTRIBUTORS = "contributors";
-	public static final String CONTRIB_TYPE = "contributorType";
-	public static final String PUBLISHER = "publisher";
-	public static final String SUBJECT = "subject";
-	public static final String SUBJECT_SCHEME = "subjectScheme";
-	public static final String METADATA_DATE = "date";
-	public static final String METADATA_DATETYPE = "dateType";
-	public static final String LANG = "language";
-	public static final String RES_TYPE = "resourceType";
-	public static final String RES_TYPE_GENERAL = "resourceTypeGeneral";
-	
-	public static final String REL_IDENTIFIERS = "relatedIdentifiers";
-	public static final String REL_IDENT_TYPE = "relatedIdentifierType";
-	public static final String REL_TYPE = "relationType";
-	
-	public static final String SIZE = "size";
-	public static final String METADATA_FORMATS = "formats";
-	public static final String RIGHTS_LIST = "rightsList";
-	public static final String RIGHTS_URI = "rightsURI";
-	public static final String DESCRIPTIONS = "descriptions";
-	public static final String DESC_TYPE = "descriptionsType";
-	
-	public static final String GEOLOCS = "geoLocations";
-	public static final String GEOLOC_BOX = "geolocationbox";
-	public static final String GEOLOC_POINT = "geolocationpoint";
-	public static final String GEOLOC_PLACE = "geolocationplace";
-	
+public class DataCiteStrategyConstants
+{
+
+    public static final String RECORD_STATUS = "status";
+    public static final String RECORD_STATUS_DEL = "deleted";
+    public static final String RECORD_HEADER = "header";
+    public static final String RECORD_METADATA = "metadata";
+
+    public static final String IDENTIFIER = "identifier";
+    public static final String DATESTAMP = "datestamp";
+    public static final String PUB_YEAR = "publicationYear";
+    public static final String DOC_TITLE = "title";
+    public static final String DOC_CREATORS = "creators";
+    public static final String DOC_CREATORNAME = "creatorName";
+    public static final String DOC_CREATOR_NAMEIDENT = "nameIdentifier";
+    public static final String DOC_CREATOR_NAMEIDENTSCHEME = "nameIdentifierScheme";
+    public static final String DOC_CREATOR_NAMEIDENTSCHEMEURI = "schemeURI";
+    public static final String DOC_CREATOR_AFFILIATION = "affiliation";
+
+    public static final String CONTRIBUTORS = "contributors";
+    public static final String CONTRIB_TYPE = "contributorType";
+    public static final String PUBLISHER = "publisher";
+    public static final String SUBJECT = "subject";
+    public static final String SUBJECT_SCHEME = "subjectScheme";
+    public static final String METADATA_DATE = "date";
+    public static final String METADATA_DATETYPE = "dateType";
+    public static final String LANG = "language";
+    public static final String RES_TYPE = "resourceType";
+    public static final String RES_TYPE_GENERAL = "resourceTypeGeneral";
+
+    public static final String REL_IDENTIFIERS = "relatedIdentifiers";
+    public static final String REL_IDENT_TYPE = "relatedIdentifierType";
+    public static final String REL_TYPE = "relationType";
+
+    public static final String SIZE = "size";
+    public static final String METADATA_FORMATS = "formats";
+    public static final String RIGHTS_LIST = "rightsList";
+    public static final String RIGHTS_URI = "rightsURI";
+    public static final String DESCRIPTIONS = "descriptions";
+    public static final String DESC_TYPE = "descriptionsType";
+
+    public static final String GEOLOCS = "geoLocations";
+    public static final String GEOLOC_BOX = "geolocationbox";
+    public static final String GEOLOC_POINT = "geolocationpoint";
+    public static final String GEOLOC_PLACE = "geolocationplace";
+
     /**
      * Private Constructor, because this is a static class.
      */

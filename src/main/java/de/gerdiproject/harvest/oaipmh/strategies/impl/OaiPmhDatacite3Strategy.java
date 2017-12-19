@@ -53,7 +53,7 @@ import de.gerdiproject.json.geo.Point;
 
 /**
  * A harvesting strategy for the Datacite3 metadata standard.
- * 
+ *
  * @author Jan Frömberg
  *
  */
@@ -74,14 +74,14 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         List<Rights> docrights = new LinkedList<>();
         List<GeoLocation> geoLocations = new LinkedList<>();
         List<Contributor> contributors = new LinkedList<>();
-		List<NameIdentifier> nameIdentifiers = new LinkedList<>();
-		List<String> affiliations = new LinkedList<>();
+        List<NameIdentifier> nameIdentifiers = new LinkedList<>();
+        List<String> affiliations = new LinkedList<>();
 
         // get header and meta data stuff for each record
         Elements children = record.children();
 
         Boolean deleted = children.first().attr(DataCiteStrategyConstants.RECORD_STATUS).equals(DataCiteStrategyConstants.RECORD_STATUS_DEL) ? true : false;
-   
+
         Elements headers = children.select(DataCiteStrategyConstants.RECORD_HEADER);
         Elements metadata = children.select(DataCiteStrategyConstants.RECORD_METADATA);
 
@@ -110,13 +110,13 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         Elements pubYears = metadata.select(DataCiteStrategyConstants.PUB_YEAR);
 
         for (Element year : pubYears) {
-        	
-		    try {
-		        short pubyear = Short.parseShort(year.text());
-		        document.setPublicationYear(pubyear);
-		    } catch (NumberFormatException e) {//NOPMD do nothing.
-		    }
-    		}
+
+            try {
+                short pubyear = Short.parseShort(year.text());
+                document.setPublicationYear(pubyear);
+            } catch (NumberFormatException e) {//NOPMD do nothing.
+            }
+        }
 
         // get identifiers (normally one element/identifier)
         Element docident = metadata.select(DataCiteStrategyConstants.IDENTIFIER).first();
@@ -131,27 +131,28 @@ public class OaiPmhDatacite3Strategy implements IStrategy
             Creator creator;
 
             for (Element ec : ccreator) {
-                	creator = new Creator(ec.select(DataCiteStrategyConstants.DOC_CREATORNAME).text());
-            	    Elements nameIds = ec.select(DataCiteStrategyConstants.DOC_CREATOR_NAMEIDENT);
-            	    NameIdentifier nameIdent;
-            		
-            		for (Element enids : nameIds) {
-            			nameIdent = new NameIdentifier(enids.text(), enids.attr(DataCiteStrategyConstants.DOC_CREATOR_NAMEIDENTSCHEME));
-            			nameIdent.setSchemeURI(enids.attr(DataCiteStrategyConstants.DOC_CREATOR_NAMEIDENTSCHEMEURI));
-            			nameIdentifiers.add(nameIdent);
-            		} 		
-            		
-            		if (!nameIdentifiers.isEmpty())
-            			creator.setNameIdentifiers(nameIdentifiers);            		
-                
-            		Elements ecaffils = ec.select(DataCiteStrategyConstants.DOC_CREATOR_AFFILIATION);
-            		for (Element eaffil : ecaffils)
-            			affiliations.add(eaffil.text());
-            		
-            		if (!affiliations.isEmpty())
-            			creator.setAffiliations(affiliations);
-            		
-            		creators.add(creator);
+                creator = new Creator(ec.select(DataCiteStrategyConstants.DOC_CREATORNAME).text());
+                Elements nameIds = ec.select(DataCiteStrategyConstants.DOC_CREATOR_NAMEIDENT);
+                NameIdentifier nameIdent;
+
+                for (Element enids : nameIds) {
+                    nameIdent = new NameIdentifier(enids.text(), enids.attr(DataCiteStrategyConstants.DOC_CREATOR_NAMEIDENTSCHEME));
+                    nameIdent.setSchemeURI(enids.attr(DataCiteStrategyConstants.DOC_CREATOR_NAMEIDENTSCHEMEURI));
+                    nameIdentifiers.add(nameIdent);
+                }
+
+                if (!nameIdentifiers.isEmpty())
+                    creator.setNameIdentifiers(nameIdentifiers);
+
+                Elements ecaffils = ec.select(DataCiteStrategyConstants.DOC_CREATOR_AFFILIATION);
+
+                for (Element eaffil : ecaffils)
+                    affiliations.add(eaffil.text());
+
+                if (!affiliations.isEmpty())
+                    creator.setAffiliations(affiliations);
+
+                creators.add(creator);
             }
         }
 
@@ -343,10 +344,10 @@ public class OaiPmhDatacite3Strategy implements IStrategy
                             gl.setPoint(geoPoint);
                             geoLocations.add(gl);
                             break;
-                            
+
                         case DataCiteStrategyConstants.GEOLOC_PLACE:
-                        		gl.setPlace(gle.text());
-                        		geoLocations.add(gl);
+                            gl.setPlace(gle.text());
+                            geoLocations.add(gl);
                             break;
 
                         default :

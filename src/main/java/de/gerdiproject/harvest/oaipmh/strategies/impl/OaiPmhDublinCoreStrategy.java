@@ -49,7 +49,7 @@ import de.gerdiproject.json.datacite.extension.enums.WebLinkType;
 
 /**
  * An OAI-PMH DublinCore metadata strategy for harvesting documents from records
- * 
+ *
  * @author Jan Frömberg
  */
 public class OaiPmhDublinCoreStrategy implements IStrategy
@@ -59,10 +59,10 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
     @Override
     public IDocument harvestRecord(Element record)
     {
-        // each entry-node starts with a record element. 
-    		// sub-elements are header and metadata.
+        // each entry-node starts with a record element.
+        // sub-elements are header and metadata.
         DataCiteJson document = new DataCiteJson();
-        
+
         // get header and meta data stuff for each record
         Elements children = record.children();
         Elements headers = children.select(DublinCoreStrategyConstants.RECORD_HEADER);
@@ -107,14 +107,14 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         Elements pubdate = metadata.select(DublinCoreStrategyConstants.METADATA_DATE);
 
         for (Element e : pubdate) {
-	        try {
-	            cal.setTime(dateFormat.parse(e.text()));
-	            document.setPublicationYear((short) cal.get(Calendar.YEAR));
-	
-	            Date publicationDate = new Date(e.text(), DateType.Available);
-	            dates.add(publicationDate);
-	        } catch (ParseException ex) { //NOPMD do nothing. just do not add the date if it does not exist
-	        }
+            try {
+                cal.setTime(dateFormat.parse(e.text()));
+                document.setPublicationYear((short) cal.get(Calendar.YEAR));
+
+                Date publicationDate = new Date(e.text(), DateType.Available);
+                dates.add(publicationDate);
+            } catch (ParseException ex) { //NOPMD do nothing. just do not add the date if it does not exist
+            }
         }
 
         // get resource types
@@ -164,7 +164,7 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         }
 
         document.setDescriptions(descriptions);
-        
+
         // get publisher
         Elements pubElem = metadata.select(DublinCoreStrategyConstants.PUBLISHER);
 
@@ -172,7 +172,7 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
             String pub = e.text();
             document.setPublisher(pub);
         }
-        
+
         // get formats
         Elements fmts = metadata.select(DublinCoreStrategyConstants.METADATA_FORMATS);
 
@@ -180,7 +180,7 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
             String fmt = e.text();
             formats.add(fmt);
         }
-        
+
         document.setFormats(formats);
 
         // get identifier URLs
@@ -204,17 +204,17 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         }
 
         document.setSubjects(subjects);
-        
+
         // get rights
         Elements rgs = metadata.select(DublinCoreStrategyConstants.RIGHTS);
 
         for (Element e : rgs) {
-        		Rights rg = new Rights(e.text());
-          	rightslist.add(rg);
+            Rights rg = new Rights(e.text());
+            rightslist.add(rg);
         }
 
         document.setRightsList(rightslist);
-        
+
         // get source, relation, coverage
 
         // get language

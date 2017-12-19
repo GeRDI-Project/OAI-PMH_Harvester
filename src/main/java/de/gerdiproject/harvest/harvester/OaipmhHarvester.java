@@ -35,7 +35,7 @@ import java.security.NoSuchAlgorithmException;
  * Each meta data standard is implemented in a strategy.
  * It supports OAI-PMH functionality like from and to date stamps to filter the result set.
  * Furthermore a so called Resumption-Token is implemented to get all records of a repository.
- * 
+ *
  * @author Jan Frömberg, Robin Weiss
  */
 public class OaipmhHarvester extends AbstractHarvester
@@ -89,7 +89,7 @@ public class OaipmhHarvester extends AbstractHarvester
     @Override
     protected int initMaxNumberOfDocuments()
     {
-    		//Returns -1, because it is not feasible to count the maximum number of documents before harvesting.
+        //Returns -1, because it is not feasible to count the maximum number of documents before harvesting.
         return -1;
     }
 
