@@ -1,11 +1,26 @@
+# Maven and misc. files
 /target/
 /lib/
+/bin/
+/build/
+
+# Eclipse project files
+/.settings/
 .project
 .classpath
-.settings/
-/bin/
-**/*.orig
-.idea
-.DS_Store
+
+# NetBeans project files
+/project/
+project.xml
+
+# IntelliJ project files
+/.idea/
 **/*.iml
+.DS_Store
+
+# AStyle
+**/*.orig
+
+# Harvester Utilities
 /scripts/
+/bamboo-specs/
