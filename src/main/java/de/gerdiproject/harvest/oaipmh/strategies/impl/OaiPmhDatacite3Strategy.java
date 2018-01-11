@@ -82,15 +82,15 @@ public class OaiPmhDatacite3Strategy implements IStrategy
 
         Boolean deleted = children.first().attr(DataCiteStrategyConstants.RECORD_STATUS).equals(DataCiteStrategyConstants.RECORD_STATUS_DEL) ? true : false;
 
-        Elements headers = children.select(DataCiteStrategyConstants.RECORD_HEADER);
+        Elements header = children.select(DataCiteStrategyConstants.RECORD_HEADER);
         Elements metadata = children.select(DataCiteStrategyConstants.RECORD_METADATA);
 
         // get identifier and date stamp
-        String identifier = headers.select(DataCiteStrategyConstants.IDENTIFIER).first().text();
+        String identifier = header.select(DataCiteStrategyConstants.IDENTIFIER).first().text();
         document.setRepositoryIdentifier(identifier);
 
         // get last updated
-        String recorddate = headers.select(DataCiteStrategyConstants.DATESTAMP).first().text();
+        String recorddate = header.select(DataCiteStrategyConstants.DATESTAMP).first().text();
         Date updatedDate = new Date(recorddate, DateType.Updated);
         dates.add(updatedDate);
 
@@ -106,23 +106,13 @@ public class OaiPmhDatacite3Strategy implements IStrategy
             return document;
         }
 
-        // get publication year (a required field which is not always provided)
-        Elements pubYears = metadata.select(DataCiteStrategyConstants.PUB_YEAR);
-
-        for (Element year : pubYears) {
-
-            try {
-                short pubyear = Short.parseShort(year.text());
-                document.setPublicationYear(pubyear);
-            } catch (NumberFormatException e) {//NOPMD do nothing.
-            }
-        }
+        // based DataCite3 schema -> http://schema.datacite.org/meta/kernel-3.0/metadata.xsd
 
         // get identifiers (normally one element/identifier)
         Element docident = metadata.select(DataCiteStrategyConstants.IDENTIFIER).first();
         Identifier i = new Identifier(docident.text());
         document.setIdentifier(i);
-
+ 
         // get creators
         Elements ecreators = metadata.select(DataCiteStrategyConstants.DOC_CREATORS);
 
@@ -158,6 +148,47 @@ public class OaiPmhDatacite3Strategy implements IStrategy
 
         document.setCreators(creators);
 
+        // get titles
+        Elements etitles = metadata.select(DataCiteStrategyConstants.DOC_TITLE);
+
+        for (Element e : etitles)
+            titles.add(new Title(e.text()));
+
+        document.setTitles(titles);
+
+        // get publisher
+        Elements epubs = metadata.select(DataCiteStrategyConstants.PUBLISHER);
+
+        for (Element e : epubs)
+            document.setPublisher(e.text());
+
+        // get publication year (a required field which is not always provided)
+        Elements pubYears = metadata.select(DataCiteStrategyConstants.PUB_YEAR);
+
+        for (Element year : pubYears) {
+
+            try {
+                short pubyear = Short.parseShort(year.text());
+                document.setPublicationYear(pubyear);
+            } catch (NumberFormatException e) {//NOPMD do nothing.
+            }
+        }
+
+        // get subjects
+        Elements esubj = metadata.select(DataCiteStrategyConstants.SUBJECT);
+
+        for (Element e : esubj) {
+            String scheme = e.attr(DataCiteStrategyConstants.SUBJECT_SCHEME);
+            Subject sub = new Subject(e.text());
+
+            if (!scheme.equals(""))
+                sub.setSubjectScheme(scheme);
+
+            subjects.add(sub);
+        }
+
+        document.setSubjects(subjects);
+
         // get contributors
         Elements contribs = metadata.select(DataCiteStrategyConstants.CONTRIBUTORS);
         Contributor contrib;
@@ -181,36 +212,7 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         }
 
         document.setContributors(contributors);
-
-        // get titles
-        Elements etitles = metadata.select(DataCiteStrategyConstants.DOC_TITLE);
-
-        for (Element e : etitles)
-            titles.add(new Title(e.text()));
-
-        document.setTitles(titles);
-
-        // get publisher
-        Elements epubs = metadata.select(DataCiteStrategyConstants.PUBLISHER);
-
-        for (Element e : epubs)
-            document.setPublisher(e.text());
-
-        // get subjects
-        Elements esubj = metadata.select(DataCiteStrategyConstants.SUBJECT);
-
-        for (Element e : esubj) {
-            String scheme = e.attr(DataCiteStrategyConstants.SUBJECT_SCHEME);
-            Subject sub = new Subject(e.text());
-
-            if (!scheme.equals(""))
-                sub.setSubjectScheme(scheme);
-
-            subjects.add(sub);
-        }
-
-        document.setSubjects(subjects);
-
+        
         // get dates
         Elements edates = metadata.select(DataCiteStrategyConstants.METADATA_DATE);
 
@@ -273,6 +275,11 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         }
 
         document.setFormats(formats);
+        
+        // get version (min occ. 0, type string)
+        Elements versions = metadata.select(DataCiteStrategyConstants.VERSION);
+        for (Element version : versions)
+        	    document.setVersion(version.text());
 
         // get rightsList
         Elements elements = metadata.select(DataCiteStrategyConstants.RIGHTS_LIST);

@@ -33,6 +33,7 @@ public class DataCiteStrategyConstants
     public static final String RECORD_METADATA = "metadata";
 
     public static final String IDENTIFIER = "identifier";
+    public static final String VERSION = "version";
     public static final String DATESTAMP = "datestamp";
     public static final String PUB_YEAR = "publicationYear";
     public static final String DOC_TITLE = "title";
