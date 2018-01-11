@@ -65,7 +65,7 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
 
         // get header and meta data stuff for each record
         Elements children = record.children();
-        Elements headers = children.select(DublinCoreStrategyConstants.RECORD_HEADER);
+        Elements header = children.select(DublinCoreStrategyConstants.RECORD_HEADER);
         Boolean deleted = children.first().attr(DublinCoreStrategyConstants.RECORD_STATUS).equals(DublinCoreStrategyConstants.RECORD_STATUS_DEL) ? true : false;
         Elements metadata = children.select(DublinCoreStrategyConstants.RECORD_METADATA);
 
@@ -82,11 +82,11 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         List<Rights> rightslist = new LinkedList<>();
 
         // get identifier and datestamp
-        Element identifier = headers.select(DublinCoreStrategyConstants.IDENTIFIER).first();
+        Element identifier = header.select(DublinCoreStrategyConstants.IDENTIFIER).first();
         Identifier mainIdentifier = new Identifier(identifier.text());
 
         // get last updated
-        String recorddate = headers.select(DublinCoreStrategyConstants.RECORD_DATESTAMP).first().text();
+        String recorddate = header.select(DublinCoreStrategyConstants.RECORD_DATESTAMP).first().text();
         Date updatedDate = new Date(recorddate, DateType.Updated);
         dates.add(updatedDate);
 
@@ -102,6 +102,7 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
             return document;
         }
 
+        // based XSD schema -> http://dublincore.org/schemas/xmls/simpledc20021212.xsd
         // get publication date
         Calendar cal = Calendar.getInstance();
         Elements pubdate = metadata.select(DublinCoreStrategyConstants.METADATA_DATE);
@@ -195,6 +196,8 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
             numidents--;
         }
 
+        document.setWebLinks(links);
+        
         // get keyword subjects
         Elements dcsubjects = metadata.select(DublinCoreStrategyConstants.SUBJECTS);
 
@@ -215,7 +218,7 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
 
         document.setRightsList(rightslist);
 
-        // get source, relation, coverage
+        // get source, relation, coverage -> missing in document-Class
 
         // get language
         Elements langs = metadata.select(DublinCoreStrategyConstants.LANG);
@@ -227,7 +230,6 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
 
         // compile a document
         document.setIdentifier(mainIdentifier);
-        document.setWebLinks(links);
 
         // add dates if there are any
         if (!dates.isEmpty())
