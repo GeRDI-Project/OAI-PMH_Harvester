@@ -21,6 +21,7 @@ package de.gerdiproject.harvest;
 import de.gerdiproject.harvest.config.parameters.AbstractParameter;
 import de.gerdiproject.harvest.config.parameters.StringParameter;
 import de.gerdiproject.harvest.harvester.OaipmhHarvester;
+import de.gerdiproject.harvest.oaipmh.constants.OaiPmhParameterConstants;
 
 import javax.servlet.annotation.WebListener;
 
@@ -28,26 +29,36 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * This class initializes the ENA harvester and a logger
+ * This class initializes the OAI-PMH harvester and a logger.
  *
  * @author Jan Frömberg
  */
 @WebListener
 public class OaipmhContextListener extends ContextListener<OaipmhHarvester>
 {
-	private final static String ENTRY_DEFAULT_FROM = "&from=2017-01-01";
-    private final static String ENTRY_DEFAULT_TO = "&until=2017-12-31";
-    public final static String PROPERTY_FROM = "from"; //e.g. 2017-11-01
-    public final static String PROPERTY_TO = "until";
-	
     @Override
     protected List<AbstractParameter<?>> getHarvesterSpecificParameters()
     {
-        //StringParameter versionParam = new StringParameter("version", "v1");
-        //StringParameter languageParam = new StringParameter("language", "de");
-        StringParameter propertyFrom = new StringParameter(PROPERTY_FROM, ENTRY_DEFAULT_FROM);
-        StringParameter propertyTo = new StringParameter(PROPERTY_TO, ENTRY_DEFAULT_TO);
+        StringParameter propertyFrom = new StringParameter(
+            OaiPmhParameterConstants.DATE_FROM_KEY,
+            OaiPmhParameterConstants.DATE_FROM_DEFAULT);
 
-        return Arrays.asList(propertyFrom, propertyTo);
+        StringParameter propertyTo = new StringParameter(
+            OaiPmhParameterConstants.DATE_TO_KEY,
+            OaiPmhParameterConstants.DATE_TO_DEFAULT);
+
+        StringParameter propertyHostUrl = new StringParameter(
+            OaiPmhParameterConstants.HOST_URL_KEY,
+            OaiPmhParameterConstants.HOST_URL_DEFAULT);
+
+        StringParameter propertyMetadataPrefix = new StringParameter(
+            OaiPmhParameterConstants.METADATA_PREFIX_KEY,
+            OaiPmhParameterConstants.METADATA_PREFIX_DEFAULT);
+
+        return Arrays.asList(
+                   propertyFrom,
+                   propertyTo,
+                   propertyHostUrl,
+                   propertyMetadataPrefix);
     }
 }
