@@ -64,7 +64,7 @@ public class DataCiteStrategyConstants
     public static final String RIGHTS_LIST = "rightsList";
     public static final String RIGHTS_URI = "rightsURI";
     public static final String DESCRIPTIONS = "descriptions";
-    public static final String DESC_TYPE = "descriptionsType";
+    public static final String DESC_TYPE = "descriptionType";
 
     public static final String GEOLOCS = "geoLocations";
     public static final String GEOLOC_BOX = "geolocationbox";

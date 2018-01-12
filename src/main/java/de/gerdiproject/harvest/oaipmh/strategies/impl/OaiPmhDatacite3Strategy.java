@@ -24,6 +24,8 @@ import java.util.List;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
 
 import de.gerdiproject.harvest.IDocument;
 import de.gerdiproject.harvest.oaipmh.constants.DataCiteStrategyConstants;
@@ -59,6 +61,8 @@ import de.gerdiproject.json.geo.Point;
  */
 public class OaiPmhDatacite3Strategy implements IStrategy
 {
+	//private static final Logger LOGGER = LoggerFactory.getLogger(OaiPmhDatacite3Strategy.class);
+	
     @Override
     public IDocument harvestRecord(Element record)
     {
@@ -308,7 +312,14 @@ public class OaiPmhDatacite3Strategy implements IStrategy
             for (Element ei : ef) {
                 String tmp = ei.text();
                 String desct = ei.attr(DataCiteStrategyConstants.DESC_TYPE);
-                Description desc = new Description(tmp, DescriptionType.valueOf(desct));
+                Description desc;
+                try {
+                    desc = new Description(tmp, DescriptionType.valueOf(desct));
+                } catch (Exception e2) {
+                	    //LOGGER.info("Desc Type Error on ("+ desct +") : " + e2.toString());
+                	    desc = new Description(tmp, DescriptionType.Other);
+                }
+                
                 descriptions.add(desc);
             }
         }
@@ -327,7 +338,7 @@ public class OaiPmhDatacite3Strategy implements IStrategy
 
                 Elements eigeo = ei.children();
 
-                //for each geobox, point ...
+                //for each geobox, point, place ...
                 for (Element gle : eigeo) {
 
                     String geoTag = gle.tagName().toLowerCase();
