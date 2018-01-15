@@ -1,8 +1,8 @@
 # An OAI-PMH Harvester
 
-This is an OAI-PMH capable harvester build by Jan Frömberg ([jan.froemberg@tu-dresden.de](jan.froemberg@tu-dresden.de)).
+This is an OAI-PMH capable harvester build by Jan Frömberg ([jan.froemberg@tu-dresden.de](mailto:jan.froemberg@tu-dresden.de)).
 It supports the metadata standards DublinCore and DataCite3.1.
-This harvester was build on top of a [RESTful-Harvester Library][5] provided by the University of Kiel ([Robin Weiss](row@informatik.uni-kiel.de)).
+This harvester was build on top of a [RESTful-Harvester Library][5] provided by the University of Kiel ([Robin Weiss](mailto:row@informatik.uni-kiel.de)).
 It is a first build-release to support a harvesting use case for the [PANGAEA Metadata-Repository][6].
 
 ## Prerequisites
@@ -46,7 +46,7 @@ released under the Apache license.
 
 Enjoy!
 
-[1]: www.docker.com
+[1]: https://www.docker.com
 [2]: https://javaee.github.io/glassfish/
 [3]: https://tomcat.apache.org/
 [4]: https://www.eclipse.org/jetty/
