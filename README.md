@@ -1,7 +1,9 @@
 # An OAI-PMH Harvester
 
-This is an OAI-PMH capable harvester build by Jan Frömberg ([jan.froemberg@tu-dresden.de](jan.froemberg@tu-dresden.de)). It supports the metadata standards DublinCore and DataCite3.1.
+This is an OAI-PMH capable harvester build by Jan Frömberg ([jan.froemberg@tu-dresden.de](jan.froemberg@tu-dresden.de)).
+It supports the metadata standards DublinCore and DataCite3.1.
 This harvester was build on top of a [RESTful-Harvester Library][5] provided by the University of Kiel ([Robin Weiss](row@informatik.uni-kiel.de)).
+It is a first build-release to support a harvesting use case for the [PANGAEA Metadata-Repository][6].
 
 ## Prerequisites
 
@@ -36,8 +38,8 @@ Request on Resource : /harvest/config
     * GET		Overview
     * POST		Saves the current configuration to disk.
     * PUT 		Sets x-www-form-urlencoded parameters for the harvester.
-	(PUT) Valid values: harvestFrom, harvestTo, from, until, hostUrl, metadataPrefix, autoSave, autoSubmit, submissionUrl,
-  submissionUserName, submissionPassword, submissionSize, readFromDisk, writeToDisk, keepCachedDocuments, deleteFailedSaves.
+    (PUT) Valid values: harvestFrom, harvestTo, from, until, hostUrl, metadataPrefix, autoSave, autoSubmit, submissionUrl,
+    submissionUserName, submissionPassword, submissionSize, readFromDisk, writeToDisk, keepCachedDocuments, deleteFailedSaves.
 
 All libraries and bundles included in this build are
 released under the Apache license.
@@ -49,3 +51,4 @@ Enjoy!
 [3]: https://tomcat.apache.org/
 [4]: https://www.eclipse.org/jetty/
 [5]: https://code.gerdi-project.de/projects/HAR/repos/harvesterbaselibrary
+[6]: http://ws.pangaea.de/oai/provider
