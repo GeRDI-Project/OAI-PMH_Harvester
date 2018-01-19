@@ -197,7 +197,7 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         }
 
         document.setWebLinks(links);
-        
+
         // get keyword subjects
         Elements dcsubjects = metadata.select(DublinCoreStrategyConstants.SUBJECTS);
 

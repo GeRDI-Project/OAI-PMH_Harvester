@@ -6,9 +6,10 @@
     <parent>
         <groupId>de.gerdi-project</groupId>
         <artifactId>GeRDI-parent-harvester</artifactId>
-        <version>5.2.3-SNAPSHOT</version>
+        <version>5.2.5-SNAPSHOT</version>
     </parent>
 
+    <version>5.2.5-SNAPSHOT</version>
     <artifactId>OAIPMH-HarvesterService</artifactId>
     <packaging>war</packaging>
     <name>OAI-PMH Harvester Service</name>
