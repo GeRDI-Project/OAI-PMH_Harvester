@@ -61,8 +61,8 @@ import de.gerdiproject.json.geo.Point;
  */
 public class OaiPmhDatacite3Strategy implements IStrategy
 {
-	//private static final Logger LOGGER = LoggerFactory.getLogger(OaiPmhDatacite3Strategy.class);
-	
+    //private static final Logger LOGGER = LoggerFactory.getLogger(OaiPmhDatacite3Strategy.class);
+
     @Override
     public IDocument harvestRecord(Element record)
     {
@@ -116,7 +116,7 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         Element docident = metadata.select(DataCiteStrategyConstants.IDENTIFIER).first();
         Identifier i = new Identifier(docident.text());
         document.setIdentifier(i);
- 
+
         // get creators
         Elements ecreators = metadata.select(DataCiteStrategyConstants.DOC_CREATORS);
 
@@ -216,7 +216,7 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         }
 
         document.setContributors(contributors);
-        
+
         // get dates
         Elements edates = metadata.select(DataCiteStrategyConstants.METADATA_DATE);
 
@@ -279,11 +279,12 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         }
 
         document.setFormats(formats);
-        
+
         // get version (min occ. 0, type string)
         Elements versions = metadata.select(DataCiteStrategyConstants.VERSION);
+
         for (Element version : versions)
-        	    document.setVersion(version.text());
+            document.setVersion(version.text());
 
         // get rightsList
         Elements elements = metadata.select(DataCiteStrategyConstants.RIGHTS_LIST);
@@ -313,13 +314,14 @@ public class OaiPmhDatacite3Strategy implements IStrategy
                 String tmp = ei.text();
                 String desct = ei.attr(DataCiteStrategyConstants.DESC_TYPE);
                 Description desc;
+
                 try {
                     desc = new Description(tmp, DescriptionType.valueOf(desct));
                 } catch (Exception e2) {
-                	    //LOGGER.info("Desc Type Error on ("+ desct +") : " + e2.toString());
-                	    desc = new Description(tmp, DescriptionType.Other);
+                    //LOGGER.info("Desc Type Error on ("+ desct +") : " + e2.toString());
+                    desc = new Description(tmp, DescriptionType.Other);
                 }
-                
+
                 descriptions.add(desc);
             }
         }
