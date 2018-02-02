@@ -2,13 +2,13 @@
 
 This is an OAI-PMH capable harvester build by Jan Frömberg ([jan.froemberg@tu-dresden.de](mailto:jan.froemberg@tu-dresden.de)).
 It supports the metadata standards DublinCore and DataCite3.1.
-This harvester was build on top of a [RESTful-Harvester Library][5] provided by the University of Kiel ([Robin Weiss](mailto:row@informatik.uni-kiel.de)).
+This harvester was build on top of a [RESTful-Harvester Library][1] provided by the University of Kiel ([Robin Weiss](mailto:row@informatik.uni-kiel.de)).
 It is a first build-release to support a harvesting use case for the [PANGAEA Metadata-Repository][6].
 
 ## Prerequisites
 
-[Docker][1] if you plan to build the harvester within a Docker-Image.
-Otherwise you need a Java Application Server like [Glassfish][2], [Tomcat][3] or [Jetty][4]
+[Docker][3] if you plan to build the harvester within a Docker-Image.
+Otherwise you need a Java Application Server like [Glassfish][2], [Tomcat][5] or [Jetty][4]
 There you have to deploy the created war-File.
 
 ## How to build?
@@ -46,9 +46,9 @@ released under the Apache license.
 
 Enjoy!
 
-[1]: https://www.docker.com
-[2]: https://javaee.github.io/glassfish/
-[3]: https://tomcat.apache.org/
-[4]: https://www.eclipse.org/jetty/
-[5]: https://code.gerdi-project.de/projects/HAR/repos/harvesterbaselibrary
+[1]: https://code.gerdi-project.de/projects/HAR/repos/harvesterbaselibrary
+[2]: https://javaee.github.io/glassfish
+[3]: https://www.docker.com
+[4]: https://www.eclipse.org/jetty
+[5]: https://tomcat.apache.org
 [6]: http://ws.pangaea.de/oai/provider
