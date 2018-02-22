@@ -15,11 +15,11 @@ There you have to deploy the created war-File.
 
 You can easily build a docker image by using the terminal and typing:
 
-    $ mvn clean verify -PdockerBuild
+    $ mvn clean verify -DdockerBuild
 
 There is also a utility script for building and running a Jetty docker container via:
 
-    $ mvn clean verify -PdockerRun
+    $ mvn clean verify -DdockerRun
 
 ## How to run?
 
