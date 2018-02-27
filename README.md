@@ -15,11 +15,11 @@ There you have to deploy the created war-File.
 
 You can easily build a docker image by using the terminal and typing:
 
-    $ mvn clean verify -PdockerBuild
+    $ mvn clean verify -DdockerBuild
 
 There is also a utility script for building and running a Jetty docker container via:
 
-    $ mvn clean verify -PdockerRun
+    $ mvn clean verify -DdockerRun
 
 ## How to run?
 
@@ -29,8 +29,8 @@ Requests on Resource : /harvest
 
     * GET			Overview
     * POST			Starts the harvest
-    * POST/abort		Aborts an ongoing harvest
-    * POST/submit		Submits harvested documents to a DataBase
+    * POST/abort	Aborts an ongoing harvest, save, or submission
+    * POST/submit	Submits harvested documents to a DataBase
     * POST/save		Saves harvested documents to disk
 
 Request on Resource : /harvest/config
