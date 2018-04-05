@@ -30,6 +30,7 @@ public class OaiPmhUrlConstants
     // URLs
     public static final String BASE_URL = "%s?verb=ListRecords%s";
     public static final String RESUMPTION_URL =  "%s?verb=ListRecords&resumptionToken=%s";
+    public static final String DOI_URL = "https://doi.org/%s";
 
     /**
      * Private Constructor, because this is a static class.

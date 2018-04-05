@@ -16,7 +16,7 @@
 package de.gerdiproject.harvest.oaipmh.constants;
 
 /**
- * A static collection of constant parameters for configuring the DataCite3 strategy.
+ * A static collection of constant parameters for configuring the Dublin Core strategy.
  *
  * @author Jan Frömberg
  *

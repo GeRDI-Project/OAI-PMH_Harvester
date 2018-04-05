@@ -26,6 +26,7 @@ import org.jsoup.select.Elements;
 
 import de.gerdiproject.harvest.IDocument;
 import de.gerdiproject.harvest.oaipmh.constants.DataCiteStrategyConstants;
+import de.gerdiproject.harvest.oaipmh.constants.OaiPmhUrlConstants;
 import de.gerdiproject.harvest.oaipmh.strategies.IStrategy;
 import de.gerdiproject.json.datacite.Contributor;
 import de.gerdiproject.json.datacite.Creator;
@@ -40,6 +41,8 @@ import de.gerdiproject.json.datacite.Rights;
 import de.gerdiproject.json.datacite.Subject;
 import de.gerdiproject.json.datacite.Title;
 import de.gerdiproject.json.datacite.abstr.AbstractDate;
+import de.gerdiproject.json.datacite.extension.WebLink;
+import de.gerdiproject.json.datacite.extension.enums.WebLinkType;
 import de.gerdiproject.json.datacite.enums.ContributorType;
 import de.gerdiproject.json.datacite.enums.DateType;
 import de.gerdiproject.json.datacite.enums.DescriptionType;
@@ -89,7 +92,7 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         // get identifier and date stamp
         String identifier = header.select(DataCiteStrategyConstants.IDENTIFIER).first().text();
         document.setRepositoryIdentifier(identifier);
-
+       
         // get last updated
         String recorddate = header.select(DataCiteStrategyConstants.DATESTAMP).first().text();
         Date updatedDate = new Date(recorddate, DateType.Updated);
@@ -113,6 +116,12 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         Element docident = metadata.select(DataCiteStrategyConstants.IDENTIFIER).first();
         Identifier i = new Identifier(docident.text());
         document.setIdentifier(i);
+
+        List<WebLink> links = new LinkedList<>();
+        WebLink viewLink = new WebLink(String.format(OaiPmhUrlConstants.DOI_URL, i.getValue()));
+        viewLink.setType(WebLinkType.ViewURL);
+        links.add(viewLink);
+      	document.setWebLinks(links);
 
         // get creators
         Elements ecreators = metadata.select(DataCiteStrategyConstants.DOC_CREATORS);
