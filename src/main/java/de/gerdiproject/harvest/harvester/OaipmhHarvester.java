@@ -28,10 +28,11 @@ import org.jsoup.select.Elements;
 import java.security.NoSuchAlgorithmException;
 
 /**
- * An OAI-PMH-Protocol Harvester capable to harvest oai_dc, oai_datacite and datacite3 documents through a strategy pattern.
- * Each meta data standard is implemented in a strategy.
- * It supports OAI-PMH functionality like from and to date stamps to filter the result set.
- * Furthermore a so called Resumption-Token is implemented to get all records of a repository.
+ * An OAI-PMH-Protocol Harvester capable to harvest oai_dc, oai_datacite and
+ * datacite3 documents through a strategy pattern. Each meta data standard is
+ * implemented in a strategy. It supports OAI-PMH functionality like from and to
+ * date stamps to filter the result set. Furthermore a so called
+ * Resumption-Token is implemented to get all records of a repository.
  *
  * @author Jan Frömberg, Robin Weiss
  */
@@ -40,7 +41,7 @@ public class OaipmhHarvester extends AbstractHarvester
     protected boolean isAborting;
 
     @Override
-    protected boolean harvestInternal(int startIndex, int endIndex) throws Exception //NOPMD
+    protected boolean harvestInternal(int startIndex, int endIndex) throws Exception // NOPMD
     {
         String metadataPrefix = getProperty(OaiPmhParameterConstants.METADATA_PREFIX_KEY);
         IStrategy strategy = OaiPmhStrategyFactory.createStrategy(metadataPrefix);
@@ -74,25 +75,23 @@ public class OaipmhHarvester extends AbstractHarvester
 
             // get next URL
             Element token = doc.select("resumptionToken").first();
-            url = (token != null)
-                  ? assembleResumptionUrl(token.text())
-                  : null;
+            url = (token != null) ? assembleResumptionUrl(token.text()) : null;
         }
 
         return true;
     }
 
-
     @Override
     protected int initMaxNumberOfDocuments()
     {
-        //Returns -1, because it is not feasible to count the maximum number of documents before harvesting.
+        // Returns -1, because it is not feasible to count the maximum number of
+        // documents before harvesting.
         return -1;
     }
 
     /**
-     * Assemble an OAI-PMH compliant Query-URL. Harvester preconfigured parameters are used,
-     * but can also be manually configured via REST.
+     * Assemble an OAI-PMH compliant Query-URL. Harvester preconfigured parameters
+     * are used, but can also be manually configured via REST.
      */
     private String assembleMainUrl()
     {
@@ -124,8 +123,10 @@ public class OaipmhHarvester extends AbstractHarvester
     }
 
     /**
-     * To fully support the OAI-PMH resumption Token for very large data-query answers,
-     * a URL-string has to be compiled with a specific URL and an automatically generated token.
+     * To fully support the OAI-PMH resumption Token for very large data-query
+     * answers, a URL-string has to be compiled with a specific URL and an
+     * automatically generated token.
+     *
      * @return an URL-string to retrieve the next batch of records
      */
     private String assembleResumptionUrl(String resumptionToken)
@@ -134,14 +135,13 @@ public class OaipmhHarvester extends AbstractHarvester
         return String.format(OaiPmhUrlConstants.RESUMPTION_URL, host, resumptionToken);
     }
 
-
     @Override
     protected String initHash() throws NoSuchAlgorithmException, NullPointerException
     {
-        // TODO the hash cannot be calculated over such a large amount of records, a solution needs to be found once it becomes relevant
+        // TODO the hash cannot be calculated over such a large amount of records, a
+        // solution needs to be found once it becomes relevant
         return null;
     }
-
 
     @Override
     protected void abortHarvest()
@@ -149,7 +149,6 @@ public class OaipmhHarvester extends AbstractHarvester
         if (currentHarvestingProcess != null)
             isAborting = true;
     }
-
 
     @Override
     protected void onHarvestAborted()

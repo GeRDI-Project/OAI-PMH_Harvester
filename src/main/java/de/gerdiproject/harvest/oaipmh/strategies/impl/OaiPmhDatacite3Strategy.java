@@ -92,7 +92,7 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         // get identifier and date stamp
         String identifier = header.select(DataCiteStrategyConstants.IDENTIFIER).first().text();
         document.setRepositoryIdentifier(identifier);
-       
+
         // get last updated
         String recorddate = header.select(DataCiteStrategyConstants.DATESTAMP).first().text();
         Date updatedDate = new Date(recorddate, DateType.Updated);
@@ -121,7 +121,7 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         WebLink viewLink = new WebLink(String.format(OaiPmhUrlConstants.DOI_URL, i.getValue()));
         viewLink.setType(WebLinkType.ViewURL);
         links.add(viewLink);
-      	document.setWebLinks(links);
+        document.setWebLinks(links);
 
         // get creators
         Elements ecreators = metadata.select(DataCiteStrategyConstants.DOC_CREATORS);
