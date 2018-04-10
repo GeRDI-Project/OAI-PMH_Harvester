@@ -80,6 +80,7 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         List<Contributor> contributors = new LinkedList<>();
         List<NameIdentifier> nameIdentifiers = new LinkedList<>();
         List<String> affiliations = new LinkedList<>();
+        List<WebLink> links = new LinkedList<>();
 
         // get header and meta data stuff for each record
         Elements children = record.children();
@@ -116,12 +117,6 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         Element docident = metadata.select(DataCiteStrategyConstants.IDENTIFIER).first();
         Identifier i = new Identifier(docident.text());
         document.setIdentifier(i);
-
-        List<WebLink> links = new LinkedList<>();
-        WebLink viewLink = new WebLink(String.format(OaiPmhUrlConstants.DOI_URL, i.getValue()));
-        viewLink.setType(WebLinkType.ViewURL);
-        links.add(viewLink);
-        document.setWebLinks(links);
 
         // get creators
         Elements ecreators = metadata.select(DataCiteStrategyConstants.DOC_CREATORS);
@@ -165,6 +160,13 @@ public class OaiPmhDatacite3Strategy implements IStrategy
             titles.add(new Title(e.text()));
 
         document.setTitles(titles);
+
+        // set URL of the article
+        WebLink viewLink = new WebLink(String.format(OaiPmhUrlConstants.DOI_URL, i.getValue()));
+        viewLink.setType(WebLinkType.ViewURL);
+        viewLink.setName("View URL");
+        links.add(viewLink);
+        document.setWebLinks(links);
 
         // get publisher
         Elements epubs = metadata.select(DataCiteStrategyConstants.PUBLISHER);
