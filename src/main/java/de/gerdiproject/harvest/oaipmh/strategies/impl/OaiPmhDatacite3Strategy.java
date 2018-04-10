@@ -26,6 +26,7 @@ import org.jsoup.select.Elements;
 
 import de.gerdiproject.harvest.IDocument;
 import de.gerdiproject.harvest.oaipmh.constants.DataCiteStrategyConstants;
+import de.gerdiproject.harvest.oaipmh.constants.OaiPmhUrlConstants;
 import de.gerdiproject.harvest.oaipmh.strategies.IStrategy;
 import de.gerdiproject.json.datacite.Contributor;
 import de.gerdiproject.json.datacite.Creator;
@@ -40,6 +41,8 @@ import de.gerdiproject.json.datacite.Rights;
 import de.gerdiproject.json.datacite.Subject;
 import de.gerdiproject.json.datacite.Title;
 import de.gerdiproject.json.datacite.abstr.AbstractDate;
+import de.gerdiproject.json.datacite.extension.WebLink;
+import de.gerdiproject.json.datacite.extension.enums.WebLinkType;
 import de.gerdiproject.json.datacite.enums.ContributorType;
 import de.gerdiproject.json.datacite.enums.DateType;
 import de.gerdiproject.json.datacite.enums.DescriptionType;
@@ -77,6 +80,7 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         List<Contributor> contributors = new LinkedList<>();
         List<NameIdentifier> nameIdentifiers = new LinkedList<>();
         List<String> affiliations = new LinkedList<>();
+        List<WebLink> links = new LinkedList<>();
 
         // get header and meta data stuff for each record
         Elements children = record.children();
@@ -156,6 +160,13 @@ public class OaiPmhDatacite3Strategy implements IStrategy
             titles.add(new Title(e.text()));
 
         document.setTitles(titles);
+
+        // set URL of the article
+        WebLink viewLink = new WebLink(String.format(OaiPmhUrlConstants.DOI_URL, i.getValue()));
+        viewLink.setType(WebLinkType.ViewURL);
+        viewLink.setName("View URL");
+        links.add(viewLink);
+        document.setWebLinks(links);
 
         // get publisher
         Elements epubs = metadata.select(DataCiteStrategyConstants.PUBLISHER);
