@@ -53,17 +53,18 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
 {
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy'-'MM'-'dd");
 
+
     @Override
     public IDocument harvestRecord(Element record)
     {
         // each entry-node starts with a record element.
         // sub-elements are header and metadata.
-        DataCiteJson document = new DataCiteJson();
 
         // get header and meta data stuff for each record
         Elements children = record.children();
         Elements header = children.select(DublinCoreStrategyConstants.RECORD_HEADER);
-        Boolean deleted = children.first().attr(DublinCoreStrategyConstants.RECORD_STATUS).equals(DublinCoreStrategyConstants.RECORD_STATUS_DEL) ? true : false;
+        Boolean deleted = children.first().attr(DublinCoreStrategyConstants.RECORD_STATUS).equals(
+                              DublinCoreStrategyConstants.RECORD_STATUS_DEL) ? true : false;
         Elements metadata = children.select(DublinCoreStrategyConstants.RECORD_METADATA);
 
         List<WebLink> links = new LinkedList<>();
@@ -80,6 +81,7 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
 
         // get identifier and datestamp
         Element identifier = header.select(DublinCoreStrategyConstants.IDENTIFIER).first();
+        DataCiteJson document = new DataCiteJson(identifier.text());
         Identifier mainIdentifier = new Identifier(identifier.text());
 
         // get last updated
