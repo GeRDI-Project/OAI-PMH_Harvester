@@ -15,17 +15,18 @@
  */
 package de.gerdiproject.harvest.harvester;
 
-import de.gerdiproject.harvest.IDocument;
-import de.gerdiproject.harvest.oaipmh.constants.OaiPmhParameterConstants;
-import de.gerdiproject.harvest.oaipmh.constants.OaiPmhUrlConstants;
-import de.gerdiproject.harvest.oaipmh.strategies.IStrategy;
-import de.gerdiproject.harvest.oaipmh.strategies.OaiPmhStrategyFactory;
+import java.security.NoSuchAlgorithmException;
+
 //import org.jsoup.nodes.Attributes;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.security.NoSuchAlgorithmException;
+import de.gerdiproject.harvest.IDocument;
+import de.gerdiproject.harvest.oaipmh.constants.OaiPmhParameterConstants;
+import de.gerdiproject.harvest.oaipmh.constants.OaiPmhUrlConstants;
+import de.gerdiproject.harvest.oaipmh.strategies.IStrategy;
+import de.gerdiproject.harvest.oaipmh.strategies.OaiPmhStrategyFactory;
 
 /**
  * An OAI-PMH-Protocol Harvester capable to harvest oai_dc, oai_datacite and
@@ -38,8 +39,6 @@ import java.security.NoSuchAlgorithmException;
  */
 public class OaipmhHarvester extends AbstractHarvester
 {
-    protected boolean isAborting;
-
     @Override
     protected boolean harvestInternal(int startIndex, int endIndex) throws Exception // NOPMD
     {
@@ -141,19 +140,5 @@ public class OaipmhHarvester extends AbstractHarvester
         // TODO the hash cannot be calculated over such a large amount of records, a
         // solution needs to be found once it becomes relevant
         return null;
-    }
-
-    @Override
-    protected void abortHarvest()
-    {
-        if (currentHarvestingProcess != null)
-            isAborting = true;
-    }
-
-    @Override
-    protected void onHarvestAborted()
-    {
-        isAborting = false;
-        super.onHarvestAborted();
     }
 }

@@ -41,14 +41,14 @@ import de.gerdiproject.json.datacite.Rights;
 import de.gerdiproject.json.datacite.Subject;
 import de.gerdiproject.json.datacite.Title;
 import de.gerdiproject.json.datacite.abstr.AbstractDate;
-import de.gerdiproject.json.datacite.extension.WebLink;
-import de.gerdiproject.json.datacite.extension.enums.WebLinkType;
 import de.gerdiproject.json.datacite.enums.ContributorType;
 import de.gerdiproject.json.datacite.enums.DateType;
 import de.gerdiproject.json.datacite.enums.DescriptionType;
 import de.gerdiproject.json.datacite.enums.RelatedIdentifierType;
 import de.gerdiproject.json.datacite.enums.RelationType;
 import de.gerdiproject.json.datacite.enums.ResourceTypeGeneral;
+import de.gerdiproject.json.datacite.extension.WebLink;
+import de.gerdiproject.json.datacite.extension.enums.WebLinkType;
 import de.gerdiproject.json.datacite.nested.NameIdentifier;
 import de.gerdiproject.json.geo.GeoJson;
 import de.gerdiproject.json.geo.Point;
@@ -66,7 +66,6 @@ public class OaiPmhDatacite3Strategy implements IStrategy
     @Override
     public IDocument harvestRecord(Element record)
     {
-        DataCiteJson document = new DataCiteJson();
 
         List<RelatedIdentifier> relatedIdentifiers = new LinkedList<>();
         List<AbstractDate> dates = new LinkedList<>();
@@ -85,13 +84,16 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         // get header and meta data stuff for each record
         Elements children = record.children();
 
-        Boolean deleted = children.first().attr(DataCiteStrategyConstants.RECORD_STATUS).equals(DataCiteStrategyConstants.RECORD_STATUS_DEL) ? true : false;
+        Boolean deleted = children.first().attr(DataCiteStrategyConstants.RECORD_STATUS).equals(
+                              DataCiteStrategyConstants.RECORD_STATUS_DEL) ? true : false;
 
         Elements header = children.select(DataCiteStrategyConstants.RECORD_HEADER);
         Elements metadata = children.select(DataCiteStrategyConstants.RECORD_METADATA);
 
         // get identifier and date stamp
         String identifier = header.select(DataCiteStrategyConstants.IDENTIFIER).first().text();
+
+        final DataCiteJson document = new DataCiteJson(identifier);
         document.setRepositoryIdentifier(identifier);
 
         // get last updated
@@ -131,7 +133,9 @@ public class OaiPmhDatacite3Strategy implements IStrategy
                 NameIdentifier nameIdent;
 
                 for (Element enids : nameIds) {
-                    nameIdent = new NameIdentifier(enids.text(), enids.attr(DataCiteStrategyConstants.DOC_CREATOR_NAMEIDENTSCHEME));
+                    nameIdent = new NameIdentifier(
+                        enids.text(),
+                        enids.attr(DataCiteStrategyConstants.DOC_CREATOR_NAMEIDENTSCHEME));
                     nameIdent.setSchemeURI(enids.attr(DataCiteStrategyConstants.DOC_CREATOR_NAMEIDENTSCHEMEURI));
                     nameIdentifiers.add(nameIdent);
                 }
@@ -246,7 +250,9 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         Elements erest = metadata.select(DataCiteStrategyConstants.RES_TYPE);
 
         if (!erest.isEmpty()) {
-            ResourceType restype = new ResourceType(erest.first().text(), ResourceTypeGeneral.valueOf(erest.attr(DataCiteStrategyConstants.RES_TYPE_GENERAL)));
+            ResourceType restype = new ResourceType(
+                erest.first().text(),
+                ResourceTypeGeneral.valueOf(erest.attr(DataCiteStrategyConstants.RES_TYPE_GENERAL)));
             document.setResourceType(restype);
         }
 
@@ -260,7 +266,10 @@ public class OaiPmhDatacite3Strategy implements IStrategy
                 String itype = ei.attr(DataCiteStrategyConstants.REL_IDENT_TYPE);
                 String reltype = ei.attr(DataCiteStrategyConstants.REL_TYPE);
                 String relatedident = ei.text();
-                RelatedIdentifier rident = new RelatedIdentifier(relatedident, RelatedIdentifierType.valueOf(itype), RelationType.valueOf(reltype));
+                RelatedIdentifier rident = new RelatedIdentifier(
+                    relatedident,
+                    RelatedIdentifierType.valueOf(itype),
+                    RelationType.valueOf(reltype));
                 relatedIdentifiers.add(rident);
             }
         }
@@ -303,7 +312,7 @@ public class OaiPmhDatacite3Strategy implements IStrategy
 
             for (Element ei : ef) {
                 String temp = ei.text();
-                Rights rights =  new Rights(temp);
+                Rights rights = new Rights(temp);
                 rights.setURI(ei.attr(DataCiteStrategyConstants.RIGHTS_URI));
                 docrights.add(rights);
             }
@@ -359,16 +368,18 @@ public class OaiPmhDatacite3Strategy implements IStrategy
 
                         case DataCiteStrategyConstants.GEOLOC_BOX:
                             temp = gle.text().split(" ");
-                            gl.setBox(Double.parseDouble(temp[0]),
-                                      Double.parseDouble(temp[1]),
-                                      Double.parseDouble(temp[2]),
-                                      Double.parseDouble(temp[3]));
+                            gl.setBox(
+                                Double.parseDouble(temp[0]),
+                                Double.parseDouble(temp[1]),
+                                Double.parseDouble(temp[2]),
+                                Double.parseDouble(temp[3]));
                             geoLocations.add(gl);
                             break;
 
                         case DataCiteStrategyConstants.GEOLOC_POINT:
                             temp = gle.text().split(" ");
-                            GeoJson geoPoint = new GeoJson(new Point(Double.parseDouble(temp[0]), Double.parseDouble(temp[1])));
+                            GeoJson geoPoint =
+                                new GeoJson(new Point(Double.parseDouble(temp[0]), Double.parseDouble(temp[1])));
                             gl.setPoint(geoPoint);
                             geoLocations.add(gl);
                             break;
@@ -378,7 +389,7 @@ public class OaiPmhDatacite3Strategy implements IStrategy
                             geoLocations.add(gl);
                             break;
 
-                        default :
+                        default:
                             break;
                     }
 
