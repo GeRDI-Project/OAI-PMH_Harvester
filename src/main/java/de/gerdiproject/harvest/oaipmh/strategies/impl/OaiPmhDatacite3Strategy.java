@@ -54,7 +54,8 @@ import de.gerdiproject.json.geo.GeoJson;
 import de.gerdiproject.json.geo.Point;
 
 /**
- * A harvesting strategy for the Datacite3 metadata standard.
+ * A harvesting strategy for the Datacite3 metadata standard.<br>
+ * https://schema.datacite.org/meta/kernel-3.0/doc/DataCite-MetadataKernel_v3.0.pdf
  *
  * @author Jan Frömberg
  *
@@ -368,18 +369,21 @@ public class OaiPmhDatacite3Strategy implements IStrategy
 
                         case DataCiteStrategyConstants.GEOLOC_BOX:
                             temp = gle.text().split(" ");
-                            gl.setBox(
-                                Double.parseDouble(temp[0]),
-                                Double.parseDouble(temp[1]),
-                                Double.parseDouble(temp[2]),
-                                Double.parseDouble(temp[3]));
+                            double latitudeSouthWest = Double.parseDouble(temp[0]);
+                            double longitudeSouthWest = Double.parseDouble(temp[1]);
+                            double latitudeNorthEast = Double.parseDouble(temp[2]);
+                            double longitudeNorthEast = Double.parseDouble(temp[3]);
+                            gl.setBox(longitudeSouthWest, longitudeNorthEast, latitudeSouthWest, latitudeNorthEast);
                             geoLocations.add(gl);
                             break;
 
                         case DataCiteStrategyConstants.GEOLOC_POINT:
                             temp = gle.text().split(" ");
+                            double latitude = Double.parseDouble(temp[0]);
+                            double longitude = Double.parseDouble(temp[1]);
+
                             GeoJson geoPoint =
-                                new GeoJson(new Point(Double.parseDouble(temp[0]), Double.parseDouble(temp[1])));
+                                new GeoJson(new Point(longitude, latitude));
                             gl.setPoint(geoPoint);
                             geoLocations.add(gl);
                             break;
