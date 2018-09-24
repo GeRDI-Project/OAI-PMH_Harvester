@@ -16,11 +16,11 @@
 package de.gerdiproject.harvest.oaipmh.constants;
 
 /**
- * A static collection of constant parameters for assembling OAI-PMH URLs.
+ * A static collection of constant parameters regarding OAI-PMH.
  *
  * @author Robin Weiss
  */
-public class OaiPmhUrlConstants
+public class OaiPmhConstants
 {
     // QUERY
     public static final String DATE_FROM_QUERY = "&from=";
@@ -28,14 +28,24 @@ public class OaiPmhUrlConstants
     public static final String METADATA_PREFIX_QUERY = "&metadataPrefix=";
 
     // URLs
-    public static final String BASE_URL = "%s?verb=ListRecords%s";
+    public static final String LIST_RECORDS_URL = "%s?verb=ListRecords%s";
+    public static final String IDENTIFY_URL = "%s?verb=Identify";
     public static final String RESUMPTION_URL =  "%s?verb=ListRecords&resumptionToken=%s";
     public static final String DOI_URL = "https://doi.org/%s";
+
+    // Elements
+    public static final String REPOSITORY_NAME_ELEMENT = "repositoryName";
+    public static final String RECORD_ELEMENT = "record";
+    public static final String RESUMPTION_TOKEN_ELEMENT = "resumptionToken";
+
+    // Other
+    public static final String DEFAULT_PROVIDER = "Unknown";
+
 
     /**
      * Private Constructor, because this is a static class.
      */
-    private OaiPmhUrlConstants()
+    private OaiPmhConstants()
     {
     }
 }

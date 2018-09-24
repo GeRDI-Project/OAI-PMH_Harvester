@@ -26,7 +26,7 @@ import org.jsoup.select.Elements;
 
 import de.gerdiproject.harvest.IDocument;
 import de.gerdiproject.harvest.oaipmh.constants.DataCiteStrategyConstants;
-import de.gerdiproject.harvest.oaipmh.constants.OaiPmhUrlConstants;
+import de.gerdiproject.harvest.oaipmh.constants.OaiPmhConstants;
 import de.gerdiproject.harvest.oaipmh.strategies.IStrategy;
 import de.gerdiproject.json.datacite.Contributor;
 import de.gerdiproject.json.datacite.Creator;
@@ -109,7 +109,7 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         document.setIdentifier(doiIdentifier);
 
         // set URL of the article
-        WebLink viewLink = new WebLink(String.format(OaiPmhUrlConstants.DOI_URL, doiIdentifier.getValue()));
+        WebLink viewLink = new WebLink(String.format(OaiPmhConstants.DOI_URL, doiIdentifier.getValue()));
         viewLink.setType(WebLinkType.ViewURL);
         viewLink.setName("View URL");
         links.add(viewLink);
