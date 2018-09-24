@@ -58,13 +58,16 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
     public IDocument harvestRecord(Element record)
     {
         // each entry-node starts with a record element.
-        // sub-elements are header and metadata.
-
-        // get header and meta data stuff for each record
         Elements children = record.children();
-        Elements header = children.select(DublinCoreStrategyConstants.RECORD_HEADER);
         Boolean deleted = children.first().attr(DublinCoreStrategyConstants.RECORD_STATUS).equals(
                               DublinCoreStrategyConstants.RECORD_STATUS_DEL) ? true : false;
+        
+        //check if Entry is "deleted"
+        if (deleted)
+            return null;
+
+        // get header and meta data for each record
+        Elements header = children.select(DublinCoreStrategyConstants.RECORD_HEADER);
         Elements metadata = children.select(DublinCoreStrategyConstants.RECORD_METADATA);
 
         List<WebLink> links = new LinkedList<>();
@@ -88,18 +91,6 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         String recorddate = header.select(DublinCoreStrategyConstants.RECORD_DATESTAMP).first().text();
         Date updatedDate = new Date(recorddate, DateType.Updated);
         dates.add(updatedDate);
-
-        //check if Entry is "deleted"
-        if (deleted) {
-            document.setVersion(DublinCoreStrategyConstants.RECORD_STATUS_DEL);
-            document.setIdentifier(mainIdentifier);
-
-            // add dates if there are any
-            if (!dates.isEmpty())
-                document.setDates(dates);
-
-            return document;
-        }
 
         // based XSD schema -> http://dublincore.org/schemas/xmls/simpledc20021212.xsd
         // get publication date
