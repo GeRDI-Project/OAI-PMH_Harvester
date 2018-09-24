@@ -188,6 +188,10 @@ public class OaipmhHarvester extends AbstractHarvester
             case OaiPmhParameterConstants.HOST_URL_KEY:
             case OaiPmhParameterConstants.METADATA_PREFIX_KEY:
                 init();
+                break;
+
+            default:
+                // do nothing
         }
     }
 
