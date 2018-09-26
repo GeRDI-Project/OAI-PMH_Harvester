@@ -109,7 +109,11 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         document.setIdentifier(doiIdentifier);
 
         // set URL of the article
-        WebLink viewLink = new WebLink(String.format(OaiPmhConstants.DOI_URL, doiIdentifier.getValue()));
+        final String doiUrl = doiIdentifier.getValue().startsWith("http")
+                              ? doiIdentifier.getValue()
+                              : String.format(OaiPmhConstants.DOI_URL, doiIdentifier.getValue());
+
+        WebLink viewLink = new WebLink(doiUrl);
         viewLink.setType(WebLinkType.ViewURL);
         viewLink.setName("View URL");
         links.add(viewLink);
