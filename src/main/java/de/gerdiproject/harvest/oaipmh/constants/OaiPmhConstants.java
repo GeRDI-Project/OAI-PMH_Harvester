@@ -40,6 +40,7 @@ public class OaiPmhConstants
 
     // Other
     public static final String DEFAULT_PROVIDER = "Unknown";
+    public static final String LANGUAGE_ATTRIBUTE = "xml:lang";
 
 
     /**
