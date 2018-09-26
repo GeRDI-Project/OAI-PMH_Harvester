@@ -42,7 +42,6 @@ import de.gerdiproject.harvest.utils.HashGenerator;
  */
 public class OaipmhHarvester extends AbstractHarvester
 {
-    private String repositoryName = OaiPmhConstants.DEFAULT_PROVIDER;
     private String repositoryUrl;
     private String queryMetadataPrefix;
     private String queryFrom;
@@ -55,7 +54,6 @@ public class OaipmhHarvester extends AbstractHarvester
         queryUntil = getProperty(OaiPmhParameterConstants.DATE_TO_KEY);
         repositoryUrl = getProperty(OaiPmhParameterConstants.HOST_URL_KEY);
         queryMetadataPrefix = getProperty(OaiPmhParameterConstants.METADATA_PREFIX_KEY);
-        repositoryName = getRepositoryName();
 
         super.init();
     }
@@ -112,25 +110,16 @@ public class OaipmhHarvester extends AbstractHarvester
     @Override
     protected String onGetDataProviderName(GetProviderNameEvent event)
     {
-        return repositoryName;
-    }
-
-
-    /**
-     * Retrieves the name of the provider/repository that is harvested, by parsing
-     * the OAI-PMH identify URL.
-     *
-     * @return the name of the harvested repository
-     */
-    private String getRepositoryName()
-    {
+        String providerName = OaiPmhConstants.DEFAULT_PROVIDER;
 
         if (repositoryUrl != null) {
             Document indentifyDoc = httpRequester.getHtmlFromUrl(String.format(OaiPmhConstants.IDENTIFY_URL, repositoryUrl));
 
-            return indentifyDoc.select(OaiPmhConstants.REPOSITORY_NAME_ELEMENT).first().text();
-        } else
-            return OaiPmhConstants.DEFAULT_PROVIDER;
+            if (indentifyDoc != null)
+                providerName = indentifyDoc.select(OaiPmhConstants.REPOSITORY_NAME_ELEMENT).first().text();
+        }
+
+        return providerName;
     }
 
 
@@ -199,16 +188,22 @@ public class OaipmhHarvester extends AbstractHarvester
     @Override
     protected String initHash() throws NoSuchAlgorithmException, NullPointerException
     {
+        final String baseUrl = getListRecordsUrl();
+
+        if (baseUrl == null)
+            return null;
+
         // retrieve records
-        Document recordsDoc = httpRequester.getHtmlFromUrl(getListRecordsUrl());
-        String hash = null;
+        final Document recordsDoc = httpRequester.getHtmlFromUrl(baseUrl);
 
         // retrieve identifier of the latest record
         if (recordsDoc != null) {
-            Element identifier = recordsDoc.select(DublinCoreStrategyConstants.IDENTIFIER).first();
-            hash = HashGenerator.instance().getShaHash(identifier.toString());
+            final Element identifier = recordsDoc.select(DublinCoreStrategyConstants.IDENTIFIER).first();
+
+            if (identifier != null)
+                return HashGenerator.instance().getShaHash(identifier.text());
         }
 
-        return hash;
+        return null;
     }
 }
