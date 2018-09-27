@@ -21,8 +21,6 @@ import java.util.List;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
 
 import de.gerdiproject.harvest.IDocument;
 import de.gerdiproject.harvest.oaipmh.constants.DataCiteStrategyConstants;
@@ -62,7 +60,6 @@ import de.gerdiproject.json.geo.Point;
  */
 public class OaiPmhDatacite3Strategy implements IStrategy
 {
-    //private static final Logger LOGGER = LoggerFactory.getLogger(OaiPmhDatacite3Strategy.class);
 
     @Override
     public IDocument harvestRecord(Element record)

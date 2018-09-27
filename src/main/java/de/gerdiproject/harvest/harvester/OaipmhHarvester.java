@@ -47,6 +47,7 @@ public class OaipmhHarvester extends AbstractHarvester
     private String queryFrom;
     private String queryUntil;
 
+
     @Override
     public void init()
     {
@@ -58,8 +59,9 @@ public class OaipmhHarvester extends AbstractHarvester
         super.init();
     }
 
+
     @Override
-    protected boolean harvestInternal(int startIndex, int endIndex) throws Exception // NOPMD
+    protected boolean harvestInternal(int startIndex, int endIndex) throws Exception // NOPMD - we want this inheriting class to be able to throw any exception
     {
         final IStrategy harvestingStrategy = OaiPmhStrategyFactory.createStrategy(queryMetadataPrefix);
         String url = getListRecordsUrl();
@@ -113,10 +115,10 @@ public class OaipmhHarvester extends AbstractHarvester
         String providerName = OaiPmhConstants.DEFAULT_PROVIDER;
 
         if (repositoryUrl != null) {
-            Document indentifyDoc = httpRequester.getHtmlFromUrl(String.format(OaiPmhConstants.IDENTIFY_URL, repositoryUrl));
+            Document identifyDoc = httpRequester.getHtmlFromUrl(String.format(OaiPmhConstants.IDENTIFY_URL, repositoryUrl));
 
-            if (indentifyDoc != null)
-                providerName = indentifyDoc.select(OaiPmhConstants.REPOSITORY_NAME_ELEMENT).first().text();
+            if (identifyDoc != null)
+                providerName = identifyDoc.select(OaiPmhConstants.REPOSITORY_NAME_ELEMENT).first().text();
         }
 
         return providerName;

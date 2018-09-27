@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import de.gerdiproject.harvest.oaipmh.constants.OaiPmhConstants;
 import de.gerdiproject.json.datacite.AlternateIdentifier;
@@ -79,11 +80,17 @@ public class DataCite4ElementParser
      * @param ele the HTML element that is to be parsed
      * @param tagName the tag of which the text is to be retrieved
      *
-     * @return the text inside the first occurrence of a specified tag
+     * @return the text inside the first occurrence of a specified tag,
+     *          or null if the tag could not be found
      */
     public static String getString(Element ele, String tagName)
     {
-        final Element stringElement = ele.select(tagName).first();
+        final Elements stringElements = ele.select(tagName);
+
+        if (stringElements == null || stringElements.isEmpty())
+            return null;
+
+        final Element stringElement = stringElements.first();
         return stringElement == null ? null : stringElement.text();
     }
 
@@ -95,10 +102,16 @@ public class DataCite4ElementParser
      * @param tagName the name of the parent {@linkplain Element} of the child tags
      *
      * @return a {@linkplain List} of {@linkplain String}s
+     *          or null if the tag could not be found
      */
     public static List<String> getStrings(Element ele, String tagName)
     {
-        final Element parent = ele.select(tagName).first();
+        final Elements allElements = ele.select(tagName);
+
+        if (allElements == null || allElements.isEmpty())
+            return null;
+
+        final Element parent = allElements.first();
 
         if (parent == null)
             return null;
