@@ -107,44 +107,48 @@ public class OaiPmhDatacite4Strategy implements IStrategy
      */
     private List<WebLink> createWebLinks(Identifier identifier, List<RelatedIdentifier> relatedIdentifiers)
     {
-        List<WebLink> webLinks = new LinkedList<>();
+        final List<WebLink> webLinks = new LinkedList<>();
 
         // get related URLs
-        for (RelatedIdentifier ri : relatedIdentifiers) {
-            final String relatedUrl;
+        if (relatedIdentifiers != null) {
+            for (RelatedIdentifier ri : relatedIdentifiers) {
+                final String relatedUrl;
 
-            switch (ri.getType()) {
-                case DOI:
-                    relatedUrl = ri.getValue().startsWith("http")
-                                 ? ri.getValue()
-                                 : String.format(OaiPmhConstants.DOI_URL, ri.getValue());
-                    break;
+                switch (ri.getType()) {
+                    case DOI:
+                        relatedUrl = ri.getValue().startsWith("http")
+                                     ? ri.getValue()
+                                     : String.format(OaiPmhConstants.DOI_URL, ri.getValue());
+                        break;
 
-                case URL:
-                    relatedUrl = ri.getValue();
-                    break;
+                    case URL:
+                        relatedUrl = ri.getValue();
+                        break;
 
-                default:
-                    relatedUrl = null;
-            }
+                    default:
+                        relatedUrl = null;
+                }
 
-            if (relatedUrl != null) {
-                final WebLink relatedLink = new WebLink(relatedUrl);
-                relatedLink.setType(WebLinkType.Related);
-                relatedLink.setName(ri.getRelationType().toString());
-                webLinks.add(relatedLink);
+                if (relatedUrl != null) {
+                    final WebLink relatedLink = new WebLink(relatedUrl);
+                    relatedLink.setType(WebLinkType.Related);
+                    relatedLink.setName(ri.getRelationType().toString());
+                    webLinks.add(relatedLink);
+                }
             }
         }
 
         // convert identifier to view url
-        final String identifierURL = identifier.getValue().startsWith("http")
-                                     ? identifier.getValue()
-                                     : String.format(OaiPmhConstants.DOI_URL, identifier.getValue());
+        if (identifier != null) {
+            final String identifierURL = identifier.getValue().startsWith("http")
+                                         ? identifier.getValue()
+                                         : String.format(OaiPmhConstants.DOI_URL, identifier.getValue());
 
-        final WebLink viewLink = new WebLink(identifierURL);
-        viewLink.setType(WebLinkType.ViewURL);
-        viewLink.setName("Resource");
-        webLinks.add(viewLink);
+            final WebLink viewLink = new WebLink(identifierURL);
+            viewLink.setType(WebLinkType.ViewURL);
+            viewLink.setName("Resource");
+            webLinks.add(viewLink);
+        }
 
         return webLinks;
     }
