@@ -165,8 +165,6 @@ public class OaipmhHarvester extends AbstractHarvester
     }
 
 
-
-
     @Override
     protected void setProperty(String key, String value)
     {
