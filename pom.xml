@@ -6,11 +6,11 @@
     <parent>
         <groupId>de.gerdi-project</groupId>
         <artifactId>GeRDI-parent-harvester</artifactId>
-        <version>6.9.2-SNAPSHOT</version>
+        <version>6.9.3-SNAPSHOT</version>
     </parent>
 
     <artifactId>OAIPMH-HarvesterService</artifactId>
-    <version>6.9.3-SNAPSHOT</version>
+    <version>6.9.4-SNAPSHOT</version>
     <packaging>war</packaging>
     <name>OAI-PMH Harvester Service</name>
     <description>This is a Harvester implementation for OAI-PMH Databases.</description>
@@ -23,6 +23,12 @@
             <organization>TU Dresden - ZIH</organization>
             <organizationUrl>www.tu-dresden.de/zih</organizationUrl>
         </developer>
+		<developer>
+			<name>Robin Weiss</name>
+			<email>row@informatik.uni-kiel.de</email>
+			<organization>Kiel University</organization>
+			<organizationUrl>http://www.uni-kiel.de/index-e.shtml</organizationUrl>
+		</developer>
     </developers>
 
     <!-- Define Sonatype repository for retrieving SNAPSHOT versions -->

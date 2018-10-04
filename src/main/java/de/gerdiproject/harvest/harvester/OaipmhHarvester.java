@@ -66,6 +66,8 @@ public class OaipmhHarvester extends AbstractHarvester
         final IStrategy harvestingStrategy = OaiPmhStrategyFactory.createStrategy(queryMetadataPrefix);
         String url = getListRecordsUrl();
 
+        int processedRecords = 0;
+
         while (url != null) {
 
             // abort harvest, if it is flagged for cancellation
@@ -74,26 +76,43 @@ public class OaipmhHarvester extends AbstractHarvester
                 return false;
             }
 
-            Document doc = httpRequester.getHtmlFromUrl(url);
+            final Document doc = httpRequester.getHtmlFromUrl(url);
 
             if (doc == null)
                 break;
 
             // add records to list
-            Elements records = doc.select(OaiPmhConstants.RECORD_ELEMENT);
+            final Elements records = doc.select(OaiPmhConstants.RECORD_ELEMENT);
+            final int numberOfRecords = records.size();
 
-            for (Element r : records) {
-                // abort this inner loop if we abort the harvest
-                if (isAborting)
-                    break;
+            // skip records if they are out of range
+            if (startIndex >= processedRecords + numberOfRecords)
+                processedRecords += numberOfRecords;
+            else {
+                final int from = Math.max(0, startIndex - processedRecords);
+                final int until = endIndex == -1
+                                  ? numberOfRecords
+                                  : Math.min(numberOfRecords, endIndex - processedRecords);
 
-                IDocument jsonRecord = harvestingStrategy.harvestRecord(r);
-                addDocument(jsonRecord);
+                processedRecords += from;
+
+                for (int i = from; i < until; i++) {
+                    // abort this inner loop if we abort the harvest
+                    if (isAborting)
+                        break;
+
+                    IDocument jsonRecord = harvestingStrategy.harvestRecord(records.get(i));
+                    addDocument(jsonRecord);
+                    processedRecords++;
+                }
             }
 
-            // get next URL
-            Element token = doc.select(OaiPmhConstants.RESUMPTION_TOKEN_ELEMENT).first();
-            url = (token != null) ? getResumptionUrl(token.text()) : null;
+            // get next URL if we have not reached our max range yet
+            if (!isAborting && endIndex == -1 || processedRecords < endIndex) {
+                final Element token = doc.select(OaiPmhConstants.RESUMPTION_TOKEN_ELEMENT).first();
+                url = (token != null) ? getResumptionUrl(token.text()) : null;
+            } else
+                break;
         }
 
         return true;
