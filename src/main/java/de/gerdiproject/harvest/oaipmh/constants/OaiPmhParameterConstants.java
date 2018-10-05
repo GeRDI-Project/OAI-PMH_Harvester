@@ -29,9 +29,9 @@ public class OaiPmhParameterConstants
     public static final String METADATA_PREFIX_KEY = "metadataPrefix";
 
     // DEFAULT VALUES
-    public static final String DATE_FROM_DEFAULT = "2017-01-01";
-    public static final String DATE_TO_DEFAULT = "2017-12-31";
-    public static final String HOST_URL_DEFAULT = "http://ws.pangaea.de/oai/provider";
+    public static final String DATE_FROM_DEFAULT = "";
+    public static final String DATE_TO_DEFAULT = "";
+    public static final String HOST_URL_DEFAULT = "";
     public static final String METADATA_PREFIX_DEFAULT = "datacite3";
 
 

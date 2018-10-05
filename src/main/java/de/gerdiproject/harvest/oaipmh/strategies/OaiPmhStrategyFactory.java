@@ -16,6 +16,7 @@
 package de.gerdiproject.harvest.oaipmh.strategies;
 
 import de.gerdiproject.harvest.oaipmh.strategies.impl.OaiPmhDatacite3Strategy;
+import de.gerdiproject.harvest.oaipmh.strategies.impl.OaiPmhDatacite4Strategy;
 import de.gerdiproject.harvest.oaipmh.strategies.impl.OaiPmhDublinCoreStrategy;
 
 /**
@@ -47,11 +48,14 @@ public class OaiPmhStrategyFactory
 
         switch (strategyName) {
             case "oai_datacite":
+            case "oai_datacite3":
+            case "datacite3":
                 strategy = new OaiPmhDatacite3Strategy();
                 break;
 
-            case "datacite3":
-                strategy = new OaiPmhDatacite3Strategy();
+            case "datacite":
+            case "datacite4":
+                strategy = new OaiPmhDatacite4Strategy();
                 break;
 
             case "oai_dc":

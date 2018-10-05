@@ -15,6 +15,8 @@
  */
 package de.gerdiproject.harvest.oaipmh.strategies.impl;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -58,16 +60,19 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
     public IDocument harvestRecord(Element record)
     {
         // each entry-node starts with a record element.
-        // sub-elements are header and metadata.
-
-        // get header and meta data stuff for each record
         Elements children = record.children();
-        Elements header = children.select(DublinCoreStrategyConstants.RECORD_HEADER);
         Boolean deleted = children.first().attr(DublinCoreStrategyConstants.RECORD_STATUS).equals(
                               DublinCoreStrategyConstants.RECORD_STATUS_DEL) ? true : false;
+
+        //check if Entry is "deleted"
+        if (deleted)
+            return null;
+
+        // get header and meta data for each record
+        Elements header = children.select(DublinCoreStrategyConstants.RECORD_HEADER);
         Elements metadata = children.select(DublinCoreStrategyConstants.RECORD_METADATA);
 
-        List<WebLink> links = new LinkedList<>();
+        List<WebLink> webLinks = new LinkedList<>();
         List<RelatedIdentifier> relatedIdentifiers = new LinkedList<>();
         List<AbstractDate> dates = new LinkedList<>();
         List<Title> titles = new LinkedList<>();
@@ -89,24 +94,12 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         Date updatedDate = new Date(recorddate, DateType.Updated);
         dates.add(updatedDate);
 
-        //check if Entry is "deleted"
-        if (deleted) {
-            document.setVersion(DublinCoreStrategyConstants.RECORD_STATUS_DEL);
-            document.setIdentifier(mainIdentifier);
-
-            // add dates if there are any
-            if (!dates.isEmpty())
-                document.setDates(dates);
-
-            return document;
-        }
-
         // based XSD schema -> http://dublincore.org/schemas/xmls/simpledc20021212.xsd
         // get publication date
         Calendar cal = Calendar.getInstance();
-        Elements pubdate = metadata.select(DublinCoreStrategyConstants.METADATA_DATE);
+        Elements dateElements = metadata.select(DublinCoreStrategyConstants.METADATA_DATE);
 
-        for (Element e : pubdate) {
+        for (Element e : dateElements) {
             try {
                 cal.setTime(dateFormat.parse(e.text()));
                 document.setPublicationYear((short) cal.get(Calendar.YEAR));
@@ -117,10 +110,29 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
             }
         }
 
-        // get resource types
-        Elements dctypes = metadata.select(DublinCoreStrategyConstants.RES_TYPE);
+        Elements resourceIdentifierElements = metadata.select(DublinCoreStrategyConstants.METADATA_IDENTIFIER);
 
-        for (Element e : dctypes)
+        for (Element e : resourceIdentifierElements) {
+            try {
+                // check if URL is valid
+                new URL(e.text());
+
+                WebLink viewLink = new WebLink(e.text());
+                viewLink.setType(WebLinkType.ViewURL);
+                viewLink.setName("View URL");
+                webLinks.add(viewLink);
+
+            } catch (MalformedURLException e1) {
+                continue;
+            }
+        }
+
+        document.setWebLinks(webLinks);
+
+        // get resource types
+        Elements typeElements = metadata.select(DublinCoreStrategyConstants.RES_TYPE);
+
+        for (Element e : typeElements)
             dctype.add(e.text());
 
         document.setFormats(dctype);
@@ -128,17 +140,15 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         // get creators
         Elements creatorElements = metadata.select(DublinCoreStrategyConstants.DOC_CREATORS);
 
-        for (Element e : creatorElements) {
-            Creator creator = new Creator(e.text());
-            creators.add(creator);
-        }
+        for (Element e : creatorElements)
+            creators.add(new Creator(e.text()));
 
         document.setCreators(creators);
 
         // get contributors
-        Elements contribElements = metadata.select(DublinCoreStrategyConstants.DOC_CONTRIBUTORS);
+        Elements contributorElements = metadata.select(DublinCoreStrategyConstants.DOC_CONTRIBUTORS);
 
-        for (Element e : contribElements) {
+        for (Element e : contributorElements) {
             Contributor contrib = new Contributor(e.text(), ContributorType.ContactPerson);
             contributors.add(contrib);
         }
@@ -146,12 +156,10 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         document.setContributors(contributors);
 
         // get titles
-        Elements dctitles = metadata.select(DublinCoreStrategyConstants.DOC_TITLE);
+        Elements titleElements = metadata.select(DublinCoreStrategyConstants.DOC_TITLE);
 
-        for (Element title : dctitles) {
-            Title dctitle = new Title(title.text());
-            titles.add(dctitle);
-        }
+        for (Element title : titleElements)
+            titles.add(new Title(title.text()));
 
         document.setTitles(titles);
 
@@ -166,41 +174,21 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         document.setDescriptions(descriptions);
 
         // get publisher
-        Elements pubElem = metadata.select(DublinCoreStrategyConstants.PUBLISHER);
-
-        for (Element e : pubElem) {
-            String pub = e.text();
-            document.setPublisher(pub);
-        }
+        Elements publisherElements = metadata.select(DublinCoreStrategyConstants.PUBLISHER);
+        document.setPublisher(publisherElements.first().text());
 
         // get formats
-        Elements fmts = metadata.select(DublinCoreStrategyConstants.METADATA_FORMATS);
+        Elements formatElements = metadata.select(DublinCoreStrategyConstants.METADATA_FORMATS);
 
-        for (Element e : fmts) {
-            String fmt = e.text();
-            formats.add(fmt);
-        }
+        for (Element e : formatElements)
+            formats.add(e.text());
 
         document.setFormats(formats);
 
-        // get identifier URLs
-        Elements identEles = metadata.select(DublinCoreStrategyConstants.IDENTIFIER);
-        int numidents = identEles.size();
-
-        for (Element identElement : identEles) {
-            WebLink viewLink = new WebLink(identElement.text());
-            viewLink.setName("Identifier" + numidents);
-            viewLink.setType(WebLinkType.ViewURL);
-            links.add(viewLink);
-            numidents--;
-        }
-
-        document.setWebLinks(links);
-
         // get keyword subjects
-        Elements dcsubjects = metadata.select(DublinCoreStrategyConstants.SUBJECTS);
+        Elements subjectElements = metadata.select(DublinCoreStrategyConstants.SUBJECTS);
 
-        for (Element subject : dcsubjects) {
+        for (Element subject : subjectElements) {
             Subject dcsubject = new Subject(subject.text());
             subjects.add(dcsubject);
         }
@@ -208,24 +196,20 @@ public class OaiPmhDublinCoreStrategy implements IStrategy
         document.setSubjects(subjects);
 
         // get rights
-        Elements rgs = metadata.select(DublinCoreStrategyConstants.RIGHTS);
+        Elements rightsElements = metadata.select(DublinCoreStrategyConstants.RIGHTS);
 
-        for (Element e : rgs) {
-            Rights rg = new Rights(e.text());
-            rightslist.add(rg);
-        }
+        for (Element e : rightsElements)
+            rightslist.add(new Rights(e.text()));
 
         document.setRightsList(rightslist);
 
         // get source, relation, coverage -> missing in document-Class
 
         // get language
-        Elements langs = metadata.select(DublinCoreStrategyConstants.LANG);
+        Elements languageElements = metadata.select(DublinCoreStrategyConstants.LANG);
 
-        for (Element e : langs) {
-            String lang = e.text();
-            document.setLanguage(lang);
-        }
+        if (!languageElements.isEmpty())
+            document.setLanguage(languageElements.first().text());
 
         // compile a document
         document.setIdentifier(mainIdentifier);
