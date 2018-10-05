@@ -42,6 +42,10 @@ public class OaiPmhConstants
     public static final String DEFAULT_PROVIDER = "Unknown";
     public static final String LANGUAGE_ATTRIBUTE = "xml:lang";
 
+    // Errors
+    public static final String NO_METADATA_PREFIX_ERROR = "Could not harvest: You must set the '" + OaiPmhParameterConstants.HOST_URL_KEY + "'-parameter in the config!";
+    public static final String NO_RECORDS_ERROR = "Could not harvest: The URL '%s' did not yield any harvestable records! Change the parameters in the config!";
+
 
     /**
      * Private Constructor, because this is a static class.

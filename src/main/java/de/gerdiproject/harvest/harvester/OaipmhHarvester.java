@@ -66,21 +66,24 @@ public class OaipmhHarvester extends AbstractHarvester
         final IStrategy harvestingStrategy = OaiPmhStrategyFactory.createStrategy(queryMetadataPrefix);
         final boolean hasNoUpperBound = endIndex == -1;
 
-        String url = getListRecordsUrl();
-        int processedRecords = 0;
+        final String entryUrl = getListRecordsUrl();
 
-        urlLoop: while (url != null) {
+        if (entryUrl == null)
+            throw new IllegalArgumentException(OaiPmhConstants.NO_METADATA_PREFIX_ERROR);
+
+        Document doc = httpRequester.getHtmlFromUrl(entryUrl);
+
+        if (doc == null || doc.select(OaiPmhConstants.RECORD_ELEMENT).isEmpty())
+            throw new IllegalArgumentException(String.format(OaiPmhConstants.NO_RECORDS_ERROR, entryUrl));
+
+        int processedRecords = 0;
+        urlLoop: while (doc != null) {
 
             // abort harvest, if it is flagged for cancellation
             if (isAborting) {
                 currentHarvestingProcess.cancel(false);
                 return false;
             }
-
-            final Document doc = httpRequester.getHtmlFromUrl(url);
-
-            if (doc == null)
-                break;
 
             // add records to list
             final Elements records = doc.select(OaiPmhConstants.RECORD_ELEMENT);
@@ -111,9 +114,15 @@ public class OaipmhHarvester extends AbstractHarvester
             // get next URL if we have not reached our max range yet
             if (hasNoUpperBound || processedRecords < endIndex) {
                 final Element token = doc.select(OaiPmhConstants.RESUMPTION_TOKEN_ELEMENT).first();
-                url = (token != null) ? getResumptionUrl(token.text()) : null;
-            } else
-                break urlLoop;
+                final String resumptionUrl = (token != null) ? getResumptionUrl(token.text()) : null;
+
+                if (resumptionUrl != null) {
+                    doc = httpRequester.getHtmlFromUrl(resumptionUrl);
+                    continue;
+                }
+            }
+
+            doc = null;
         }
 
         return true;
