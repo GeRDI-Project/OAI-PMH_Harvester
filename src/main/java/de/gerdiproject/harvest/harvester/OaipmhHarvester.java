@@ -64,11 +64,12 @@ public class OaipmhHarvester extends AbstractHarvester
     protected boolean harvestInternal(int startIndex, int endIndex) throws Exception // NOPMD - we want this inheriting class to be able to throw any exception
     {
         final IStrategy harvestingStrategy = OaiPmhStrategyFactory.createStrategy(queryMetadataPrefix);
-        String url = getListRecordsUrl();
+        final boolean hasNoUpperBound = endIndex == -1;
 
+        String url = getListRecordsUrl();
         int processedRecords = 0;
 
-        while (url != null) {
+        urlLoop: while (url != null) {
 
             // abort harvest, if it is flagged for cancellation
             if (isAborting) {
@@ -90,7 +91,7 @@ public class OaipmhHarvester extends AbstractHarvester
                 processedRecords += numberOfRecords;
             else {
                 final int from = Math.max(0, startIndex - processedRecords);
-                final int until = endIndex == -1
+                final int until = hasNoUpperBound
                                   ? numberOfRecords
                                   : Math.min(numberOfRecords, endIndex - processedRecords);
 
@@ -99,7 +100,7 @@ public class OaipmhHarvester extends AbstractHarvester
                 for (int i = from; i < until; i++) {
                     // abort this inner loop if we abort the harvest
                     if (isAborting)
-                        break;
+                        break urlLoop;
 
                     IDocument jsonRecord = harvestingStrategy.harvestRecord(records.get(i));
                     addDocument(jsonRecord);
@@ -108,11 +109,11 @@ public class OaipmhHarvester extends AbstractHarvester
             }
 
             // get next URL if we have not reached our max range yet
-            if (!isAborting && endIndex == -1 || processedRecords < endIndex) {
+            if (hasNoUpperBound || processedRecords < endIndex) {
                 final Element token = doc.select(OaiPmhConstants.RESUMPTION_TOKEN_ELEMENT).first();
                 url = (token != null) ? getResumptionUrl(token.text()) : null;
             } else
-                break;
+                break urlLoop;
         }
 
         return true;
