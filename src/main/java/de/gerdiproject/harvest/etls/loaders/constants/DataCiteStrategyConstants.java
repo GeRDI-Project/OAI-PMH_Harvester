@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.gerdiproject.harvest.oaipmh.constants;
+package de.gerdiproject.harvest.etls.loaders.constants;
 
 /**
  * A static collection of constant parameters for configuring the DataCite3 strategy.

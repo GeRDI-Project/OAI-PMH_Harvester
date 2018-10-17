@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.gerdiproject.harvest.oaipmh.constants;
+package de.gerdiproject.harvest.etls.constants;
 
 /**
  * A static collection of constant parameters regarding OAI-PMH.
@@ -39,10 +39,12 @@ public class OaiPmhConstants
     public static final String RESUMPTION_TOKEN_ELEMENT = "resumptionToken";
 
     // Other
-    public static final String DEFAULT_PROVIDER = "Unknown";
+    public static final String UNINITIALIZED_PROVIDER = "OaiPmh";
+    public static final String UNKNOWN_PROVIDER = "Unknown";
     public static final String LANGUAGE_ATTRIBUTE = "xml:lang";
 
     // Errors
+    public static final String WRONG_METADATA_PREFIX_ERROR = "The metadataPrefix '%s' is not allowed for this repository";
     public static final String NO_METADATA_PREFIX_ERROR = "Could not harvest: You must set the '" + OaiPmhParameterConstants.HOST_URL_KEY + "'-parameter in the config!";
     public static final String NO_RECORDS_ERROR = "Could not harvest: The URL '%s' did not yield any harvestable records! Change the parameters in the config!";
 

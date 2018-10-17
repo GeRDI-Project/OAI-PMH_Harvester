@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.gerdiproject.harvest.oaipmh.strategies.impl;
+package de.gerdiproject.harvest.etls.loaders;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -26,9 +26,9 @@ import java.util.List;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import de.gerdiproject.harvest.IDocument;
-import de.gerdiproject.harvest.oaipmh.constants.DublinCoreStrategyConstants;
-import de.gerdiproject.harvest.oaipmh.strategies.IStrategy;
+import de.gerdiproject.harvest.etls.loaders.constants.DublinCoreStrategyConstants;
+import de.gerdiproject.harvest.etls.transformers.AbstractIteratorTransformer;
+import de.gerdiproject.harvest.etls.transformers.TransformerException;
 import de.gerdiproject.json.datacite.Contributor;
 import de.gerdiproject.json.datacite.Creator;
 import de.gerdiproject.json.datacite.DataCiteJson;
@@ -47,17 +47,16 @@ import de.gerdiproject.json.datacite.extension.WebLink;
 import de.gerdiproject.json.datacite.extension.enums.WebLinkType;
 
 /**
- * An OAI-PMH DublinCore metadata strategy for harvesting documents from records
+ * This class is a transformer for OAI-PMH DublinCore records.
  *
  * @author Jan Frömberg
  */
-public class OaiPmhDublinCoreStrategy implements IStrategy
+public class DublinCoreTransformer extends AbstractIteratorTransformer<Element, DataCiteJson>
 {
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy'-'MM'-'dd");
 
-
     @Override
-    public IDocument harvestRecord(Element record)
+    protected DataCiteJson transformElement(Element record) throws TransformerException
     {
         // each entry-node starts with a record element.
         Elements children = record.children();

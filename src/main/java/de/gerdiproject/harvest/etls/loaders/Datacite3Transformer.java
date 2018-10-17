@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.gerdiproject.harvest.oaipmh.strategies.impl;
+package de.gerdiproject.harvest.etls.loaders;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -22,10 +22,10 @@ import java.util.List;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import de.gerdiproject.harvest.IDocument;
-import de.gerdiproject.harvest.oaipmh.constants.DataCiteStrategyConstants;
-import de.gerdiproject.harvest.oaipmh.constants.OaiPmhConstants;
-import de.gerdiproject.harvest.oaipmh.strategies.IStrategy;
+import de.gerdiproject.harvest.etls.constants.OaiPmhConstants;
+import de.gerdiproject.harvest.etls.loaders.constants.DataCiteStrategyConstants;
+import de.gerdiproject.harvest.etls.transformers.AbstractIteratorTransformer;
+import de.gerdiproject.harvest.etls.transformers.TransformerException;
 import de.gerdiproject.json.datacite.Contributor;
 import de.gerdiproject.json.datacite.Creator;
 import de.gerdiproject.json.datacite.DataCiteJson;
@@ -52,17 +52,15 @@ import de.gerdiproject.json.geo.GeoJson;
 import de.gerdiproject.json.geo.Point;
 
 /**
- * A harvesting strategy for the Datacite3 metadata standard.<br>
+ * A transformer for the Datacite3 metadata standard.<br>
  * https://schema.datacite.org/meta/kernel-3.0/doc/DataCite-MetadataKernel_v3.0.pdf
  *
  * @author Jan Frömberg
- *
  */
-public class OaiPmhDatacite3Strategy implements IStrategy
+public class Datacite3Transformer extends AbstractIteratorTransformer<Element, DataCiteJson>
 {
-
     @Override
-    public IDocument harvestRecord(Element record)
+    protected DataCiteJson transformElement(Element record) throws TransformerException
     {
         Elements children = record.children();
         Boolean deleted = children.first().attr(DataCiteStrategyConstants.RECORD_STATUS).equals(

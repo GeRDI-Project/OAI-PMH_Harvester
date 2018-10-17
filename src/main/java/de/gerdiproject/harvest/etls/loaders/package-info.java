@@ -13,26 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.gerdiproject.harvest.oaipmh.strategies;
-
-import org.jsoup.nodes.Element;
-
-import de.gerdiproject.harvest.IDocument;
-
 /**
- * This interface represents a strategy for harvesting a document from an OAI-PMH record.
+ * This package contains OAI-PMH loaders for the {@linkplain de.gerdiproject.harvest.etls.OaiPmhETL}.
  *
  * @author Robin Weiss
  */
-public interface IStrategy
-{
-    /**
-     * Reads an HTML record from an OAI-PMH record list and generates a single document
-     * out of it.
-     *
-     * @param record the HTML element that represents the OAI-PMH record
-     *
-     * @return a searchable document
-     */
-    IDocument harvestRecord(Element record);
-}
+package de.gerdiproject.harvest.etls.loaders;

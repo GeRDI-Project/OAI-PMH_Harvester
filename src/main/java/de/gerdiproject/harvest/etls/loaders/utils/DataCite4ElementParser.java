@@ -14,7 +14,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package de.gerdiproject.harvest.oaipmh.strategies.impl;
+package de.gerdiproject.harvest.etls.loaders.utils;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -24,7 +24,7 @@ import java.util.function.Function;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import de.gerdiproject.harvest.oaipmh.constants.OaiPmhConstants;
+import de.gerdiproject.harvest.etls.constants.OaiPmhConstants;
 import de.gerdiproject.json.datacite.AlternateIdentifier;
 import de.gerdiproject.json.datacite.Contributor;
 import de.gerdiproject.json.datacite.Creator;

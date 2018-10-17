@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.gerdiproject.harvest.oaipmh.constants;
+package de.gerdiproject.harvest.etls.constants;
 
 /**
  * A static collection of constant parameters for configuring the OAI-PMH harvester.
@@ -22,17 +22,17 @@ package de.gerdiproject.harvest.oaipmh.constants;
  */
 public class OaiPmhParameterConstants
 {
-    // KEYS
-    public static final String DATE_FROM_KEY = "from";
-    public static final String DATE_TO_KEY = "until";
-    public static final String HOST_URL_KEY = "hostUrl";
     public static final String METADATA_PREFIX_KEY = "metadataPrefix";
+    public static final String METADATA_PREFIX_DEFAULT_VALUE = "datacite4";
 
-    // DEFAULT VALUES
-    public static final String DATE_FROM_DEFAULT = "";
-    public static final String DATE_TO_DEFAULT = "";
-    public static final String HOST_URL_DEFAULT = "";
-    public static final String METADATA_PREFIX_DEFAULT = "datacite3";
+    public static final String FROM_KEY = "from";
+    public static final String FROM_DEFAULT_VALUE = "";
+
+    public static final String UNTIL_KEY = "until";
+    public static final String UNTIL_DEFAULT_VALUE = "";
+
+    public static final String HOST_URL_KEY = "hostUrl";
+    public static final String HOST_URL_DEFAULT_VALUE = "";
 
 
     /**
