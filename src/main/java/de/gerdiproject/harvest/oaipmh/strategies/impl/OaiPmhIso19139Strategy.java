@@ -15,13 +15,22 @@
  */
 package de.gerdiproject.harvest.oaipmh.strategies.impl;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.jsoup.nodes.Element;
 
 import de.gerdiproject.harvest.IDocument;
 import de.gerdiproject.harvest.oaipmh.constants.Iso19139StrategyConstants;
 import de.gerdiproject.harvest.oaipmh.strategies.IStrategy;
 import de.gerdiproject.json.datacite.DataCiteJson;
+import de.gerdiproject.json.datacite.Description;
+import de.gerdiproject.json.datacite.GeoLocation;
 import de.gerdiproject.json.datacite.Identifier;
+import de.gerdiproject.json.datacite.ResourceType;
+import de.gerdiproject.json.datacite.Title;
+import de.gerdiproject.json.datacite.enums.DescriptionType;
+import de.gerdiproject.json.datacite.enums.ResourceTypeGeneral;
 
 /**
  * A harvesting strategy for the ISO 19139 metadata standard.<br>
@@ -44,11 +53,7 @@ public class OaiPmhIso19139Strategy implements IStrategy
         if (isRecordDeleted)
             return null;
 
-        //@todo: delete?
-        // get header and meta data for each record
-        //final Element header = record.select(Iso19139StrategyConstants.RECORD_HEADER).first();
-
-        // get identifier and date stamp
+        // get identifier and date stamp --> Cannot be determined via Metadata... :(
         final String repositoryIdentifier = "TODO";
 
         final DataCiteJson document = new DataCiteJson(repositoryIdentifier);
@@ -57,14 +62,32 @@ public class OaiPmhIso19139Strategy implements IStrategy
         Element metadata = record.select(Iso19139StrategyConstants.RECORD_METADATA).first();
 
         /* Category 0 - Minimal viable harvester */
-        Identifier identifier = DataCite4ElementParser.getObject(metadata, "identifier", DataCite4ElementParser::parseIdentifier);
-        document.setIdentifier(identifier);
-        document.setTitles(DataCite4ElementParser.getObjects(metadata, "titles", DataCite4ElementParser::parseTitle));
-        document.setPublisher(DataCite4ElementParser.getString(metadata, "publisher"));
-        document.setResourceType(DataCite4ElementParser.getObject(metadata, "resourceType", DataCite4ElementParser::parseResourceType));
-        document.setDescriptions(DataCite4ElementParser.getObjects(metadata, "descriptions", DataCite4ElementParser::parseDescription));
-        document.setGeoLocations(DataCite4ElementParser.getObjects(metadata, "geoLocations", DataCite4ElementParser::parseGeoLocation));
+        List<Title> titleList = new LinkedList<>();
+        List<Description> descriptionList = new LinkedList<>();
+        List<GeoLocation> geoLocationList = new LinkedList<>();
 
+        document.setIdentifier(
+            new Identifier(metadata.select(Iso19139StrategyConstants.IDENTIFIER).text())); //D1
+        titleList.add(new Title(metadata.select(Iso19139StrategyConstants.TITLE).text()));
+        document.setTitles(titleList);                                                     //D3
+        document.setPublisher(metadata.select(Iso19139StrategyConstants.GEOLOCS).text());  //D4
+        document.setResourceType(
+            new ResourceType(
+                metadata.select(Iso19139StrategyConstants.RESOURCE_TYPE).text(),
+                ResourceTypeGeneral.Dataset));                                             //D10
+        descriptionList.add(
+            new Description(metadata.select(Iso19139StrategyConstants.DESCRIPTIONS).text(),
+                            DescriptionType.Abstract));
+        document.setDescriptions(descriptionList);                                         //D17
+        GeoLocation geoLocation = new GeoLocation();
+        Element isoGeoLocation = metadata.select(Iso19139StrategyConstants.GEOLOCS).first();
+        geoLocation.setBox(
+            Double.parseDouble(isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_WEST).text()),
+            Double.parseDouble(isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_EAST).text()),
+            Double.parseDouble(isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_SOUTH).text()),
+            Double.parseDouble(isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_NORTH).text()));
+        geoLocationList.add(geoLocation);
+        document.setGeoLocations(geoLocationList);                                         //D18
 
         /* Category 1 - To be done until 0.4 finishes */
         document.setCreators(DataCite4ElementParser.getObjects(metadata, "creators", DataCite4ElementParser::parseCreator));

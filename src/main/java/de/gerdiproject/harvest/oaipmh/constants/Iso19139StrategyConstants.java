@@ -29,46 +29,16 @@ public class Iso19139StrategyConstants
     public static final String RECORD_HEADER = "header";
     public static final String RECORD_METADATA = "metadata";
 
-    /** Copy and Paste: To be reviewed
-    public static final String IDENTIFIER = "identifier";
-    public static final String VERSION = "version";
-    public static final String DATESTAMP = "datestamp";
-    public static final String PUB_YEAR = "publicationYear";
-    public static final String DOC_TITLE = "title";
-    public static final String DOC_CREATORS = "creators";
-    public static final String DOC_CREATORNAME = "creatorName";
-    public static final String DOC_CREATOR_NAMEIDENT = "nameIdentifier";
-    public static final String DOC_CREATOR_NAMEIDENTSCHEME = "nameIdentifierScheme";
-    public static final String DOC_CREATOR_NAMEIDENTSCHEMEURI = "schemeURI";
-    public static final String DOC_CREATOR_AFFILIATION = "affiliation";
-
-    public static final String CONTRIBUTORS = "contributors";
-    public static final String CONTRIB_TYPE = "contributorType";
-    public static final String PUBLISHER = "publisher";
-    public static final String SUBJECT = "subject";
-    public static final String SUBJECT_SCHEME = "subjectScheme";
-    public static final String METADATA_DATE = "date";
-    public static final String METADATA_DATETYPE = "dateType";
-    public static final String LANG = "language";
-    public static final String RES_TYPE = "resourceType";
-    public static final String RES_TYPE_GENERAL = "resourceTypeGeneral";
-
-    public static final String REL_IDENTIFIERS = "relatedIdentifiers";
-    public static final String REL_IDENT_TYPE = "relatedIdentifierType";
-    public static final String REL_TYPE = "relationType";
-
-    public static final String SIZE = "size";
-    public static final String METADATA_FORMATS = "formats";
-    public static final String RIGHTS_LIST = "rightsList";
-    public static final String RIGHTS_URI = "rightsURI";
-    public static final String DESCRIPTIONS = "descriptions";
-    public static final String DESC_TYPE = "descriptionType";
-
-    public static final String GEOLOCS = "geoLocations";
-    public static final String GEOLOC_BOX = "geolocationbox";
-    public static final String GEOLOC_POINT = "geolocationpoint";
-    public static final String GEOLOC_PLACE = "geolocationplace";
-    */
+    public static final String IDENTIFIER = "gmd|citation gmd|CI_Citation gmd|identifier:eq(0) * gmd|code";
+    public static final String TITLE = "gmd|citation gmd|CI_Citation gmd|title";
+    public static final String PUBLISHER = "gmd|pointOfContact gmd|CI_ResponsibleParty gmd|organisationName";
+    public static final String RESOURCE_TYPE = "gmd|hierarchyLevel:eq(0) gmd|MD_ScopeCode";
+    public static final String DESCRIPTIONS = "gmd|abstract";
+    public static final String GEOLOCS = "gmd|extent gmd|EX_Extent gmd|geographicElement gmd|EX_GeographicBoundingBox";
+    public static final String GEOLOCS_WEST = "gmd|westBoundLongitude gco|Decimal";
+    public static final String GEOLOCS_EAST = "gmd|eastBoundLongitude gco|Decimal";
+    public static final String GEOLOCS_SOUTH = "gmd|southBoundLongitude gco|Decimal";
+    public static final String GEOLOCS_NORTH = "gmd|northBoundLongitude gco|Decimal";
 
     /**
      * Private Constructor, because this is a static class.
