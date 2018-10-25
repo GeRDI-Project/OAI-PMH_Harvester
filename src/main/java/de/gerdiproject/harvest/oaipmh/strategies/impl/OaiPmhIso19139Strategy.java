@@ -15,20 +15,13 @@
  */
 package de.gerdiproject.harvest.oaipmh.strategies.impl;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import org.jsoup.nodes.Element;
 
 import de.gerdiproject.harvest.IDocument;
 import de.gerdiproject.harvest.oaipmh.constants.Iso19139StrategyConstants;
-import de.gerdiproject.harvest.oaipmh.constants.OaiPmhConstants;
 import de.gerdiproject.harvest.oaipmh.strategies.IStrategy;
 import de.gerdiproject.json.datacite.DataCiteJson;
 import de.gerdiproject.json.datacite.Identifier;
-import de.gerdiproject.json.datacite.RelatedIdentifier;
-import de.gerdiproject.json.datacite.extension.WebLink;
-import de.gerdiproject.json.datacite.extension.enums.WebLinkType;
 
 /**
  * A harvesting strategy for the ISO 19139 metadata standard.<br>
@@ -51,8 +44,9 @@ public class OaiPmhIso19139Strategy implements IStrategy
         if (isRecordDeleted)
             return null;
 
+        //@todo: delete?
         // get header and meta data for each record
-        final Element header = record.select(Iso19139StrategyConstants.RECORD_HEADER).first();
+        //final Element header = record.select(Iso19139StrategyConstants.RECORD_HEADER).first();
 
         // get identifier and date stamp
         final String repositoryIdentifier = "TODO"; 
