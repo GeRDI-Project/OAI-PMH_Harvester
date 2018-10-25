@@ -18,6 +18,8 @@ package de.gerdiproject.harvest.oaipmh.strategies;
 import de.gerdiproject.harvest.oaipmh.strategies.impl.OaiPmhDatacite3Strategy;
 import de.gerdiproject.harvest.oaipmh.strategies.impl.OaiPmhDatacite4Strategy;
 import de.gerdiproject.harvest.oaipmh.strategies.impl.OaiPmhDublinCoreStrategy;
+import de.gerdiproject.harvest.oaipmh.strategies.impl.OaiPmhIso19139Strategy;
+
 
 /**
  * This static factory generates strategies for harvesting OAI-PMH records.
@@ -60,6 +62,10 @@ public class OaiPmhStrategyFactory
 
             case "oai_dc":
                 strategy = new OaiPmhDublinCoreStrategy();
+                break;
+
+            case "iso19139":
+                strategy = new OaiPmhIso19139Strategy();
                 break;
 
             //case "ore":
