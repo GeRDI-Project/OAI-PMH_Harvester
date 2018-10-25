@@ -27,7 +27,7 @@ import de.gerdiproject.json.datacite.Identifier;
  * A harvesting strategy for the ISO 19139 metadata standard.<br>
  *  https://www.iso.org/standard/32557.html
  *
- * @author Tobias Weber 
+ * @author Tobias Weber
  *
  */
 public class OaiPmhIso19139Strategy implements IStrategy
@@ -49,7 +49,7 @@ public class OaiPmhIso19139Strategy implements IStrategy
         //final Element header = record.select(Iso19139StrategyConstants.RECORD_HEADER).first();
 
         // get identifier and date stamp
-        final String repositoryIdentifier = "TODO"; 
+        final String repositoryIdentifier = "TODO";
 
         final DataCiteJson document = new DataCiteJson(repositoryIdentifier);
         document.setRepositoryIdentifier(repositoryIdentifier);
@@ -68,12 +68,14 @@ public class OaiPmhIso19139Strategy implements IStrategy
 
         /* Category 1 - To be done until 0.4 finishes */
         document.setCreators(DataCite4ElementParser.getObjects(metadata, "creators", DataCite4ElementParser::parseCreator));
+
         try {
             String publicationYear = DataCite4ElementParser.getString(metadata, "publicationYear");
             document.setPublicationYear(Short.parseShort(publicationYear));
         } catch (NumberFormatException | NullPointerException e) {
             document.setPublicationYear((short)0);
         }
+
         document.setDates(DataCite4ElementParser.getObjects(metadata, "dates", DataCite4ElementParser::parseDate));
         //document.setWebLinks(createWebLinks(identifier, relatedIdentifiers));
 
@@ -85,8 +87,8 @@ public class OaiPmhIso19139Strategy implements IStrategy
         document.setContributors(DataCite4ElementParser.getObjects(metadata, "contributors", DataCite4ElementParser::parseContributor));
         document.setSubjects(DataCite4ElementParser.getObjects(metadata, "subjects", DataCite4ElementParser::parseSubject));
         document.setAlternateIdentifiers(DataCite4ElementParser.getObjects(metadata, "alternateIdentifiers", DataCite4ElementParser::parseAlternateIdentifier));
-        document.setRightsList(DataCite4ElementParser.getObjects(metadata, "rightsList", DataCite4ElementParser::parseRights)); 
-        document.setFundingReferences(DataCite4ElementParser.getObjects(metadata, "fundingReferences", DataCite4ElementParser::parseFundingReference)); 
+        document.setRightsList(DataCite4ElementParser.getObjects(metadata, "rightsList", DataCite4ElementParser::parseRights));
+        document.setFundingReferences(DataCite4ElementParser.getObjects(metadata, "fundingReferences", DataCite4ElementParser::parseFundingReference));
         List<RelatedIdentifier> relatedIdentifiers = DataCite4ElementParser.getObjects(metadata, "relatedIdentifiers", DataCite4ElementParser::parseRelatedIdentifier);
         document.setRelatedIdentifiers(relatedIdentifiers);
         */

@@ -18,7 +18,7 @@ package de.gerdiproject.harvest.oaipmh.constants;
 /**
  * A static collection of constant parameters for configuring the ISO19139 strategy.
  *
- * @author Tobias Weber 
+ * @author Tobias Weber
  *
  */
 public class Iso19139StrategyConstants
