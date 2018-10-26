@@ -1,5 +1,5 @@
 /**
- * Copyright © 2017 Jan Frömberg (http://www.gerdi-project.de)
+ * Copyright © 2018 Tobias Weber (http://www.gerdi-project.de)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,38 @@
  */
 package de.gerdiproject.harvest.oaipmh.strategies.impl;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Calendar;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.xml.bind.DatatypeConverter;
+
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.gerdiproject.harvest.IDocument;
 import de.gerdiproject.harvest.oaipmh.constants.Iso19139StrategyConstants;
 import de.gerdiproject.harvest.oaipmh.strategies.IStrategy;
+import de.gerdiproject.json.datacite.Creator;
 import de.gerdiproject.json.datacite.DataCiteJson;
+import de.gerdiproject.json.datacite.Date;
 import de.gerdiproject.json.datacite.Description;
 import de.gerdiproject.json.datacite.GeoLocation;
 import de.gerdiproject.json.datacite.Identifier;
 import de.gerdiproject.json.datacite.ResourceType;
 import de.gerdiproject.json.datacite.Title;
+import de.gerdiproject.json.datacite.abstr.AbstractDate;
+import de.gerdiproject.json.datacite.enums.DateType;
 import de.gerdiproject.json.datacite.enums.DescriptionType;
 import de.gerdiproject.json.datacite.enums.ResourceTypeGeneral;
+import de.gerdiproject.json.datacite.extension.ResearchData;
+import de.gerdiproject.json.geo.GeoJson;
+import de.gerdiproject.json.geo.Point;
 
 /**
  * A harvesting strategy for the ISO 19139 metadata standard.<br>
@@ -41,6 +57,9 @@ import de.gerdiproject.json.datacite.enums.ResourceTypeGeneral;
  */
 public class OaiPmhIso19139Strategy implements IStrategy
 {
+    protected static final Logger logger
+        = LoggerFactory.getLogger(OaiPmhIso19139Strategy.class.getName());
+
     @Override
     public IDocument harvestRecord(Element record)
     {
@@ -53,80 +72,207 @@ public class OaiPmhIso19139Strategy implements IStrategy
         if (isRecordDeleted)
             return null;
 
-        // get identifier and date stamp --> Cannot be determined via Metadata... :(
-        final String repositoryIdentifier = "TODO";
+        /*
+         ********************************************************************************
+         * Start for mandatory fields (may not fail)
+         ********************************************************************************
+         */
+        /*
+         * E2 RepositoryIdentifier
+         * Cannot be determined via Metadata
+         * TODO A constant is not a good idea, should be configurable
+         */
+        final String repositoryIdentifier = Iso19139StrategyConstants.REPOSITORY_IDENTIFIER;
 
+        //prepare for the other metadata
         final DataCiteJson document = new DataCiteJson(repositoryIdentifier);
         document.setRepositoryIdentifier(repositoryIdentifier);
-
         Element metadata = record.select(Iso19139StrategyConstants.RECORD_METADATA).first();
 
-        /* Category 0 - Minimal viable harvester */
-        // Mandatory fields (we fail if we do not get them)
-        List<Title> titleList = new LinkedList<>();
-        List<Description> descriptionList = new LinkedList<>();
-        List<GeoLocation> geoLocationList = new LinkedList<>();
-
+        /*
+         * D1 Identifier
+         * TODO: ISO19139 does not guarantee a DOI, but a "unique and persistent identifier",
+         * up to now these are URNs - the following call will set the identifierType to DOI
+         * nevertheless
+         */
         document.setIdentifier(
             new Identifier(
                 metadata.select(Iso19139StrategyConstants.IDENTIFIER).first().text()
             )
-        );                                                                                  //D1
-        titleList.add(new Title(metadata.select(Iso19139StrategyConstants.TITLE).text()));
-        document.setTitles(titleList);                                                      //D3
-        document.setPublisher(metadata.select(Iso19139StrategyConstants.PUBLISHER).text()); //D4
+        );
+
+        /*
+         * D2 Creator
+         * This field is not easily mappable from ISO19139 to DataCite.
+         * We will use the same value as for Publisher.
+         */
+        List<Creator> creatorList = new LinkedList<>();
+        creatorList.add(
+            new Creator(metadata.select(Iso19139StrategyConstants.PUBLISHER).text()));
+        document.setCreators(creatorList);
+
+        /*
+         * D3 Title
+         */
+        List<Title> titleList = new LinkedList<>();
+        titleList.add(
+            new Title(metadata.select(Iso19139StrategyConstants.TITLE).text()));
+        document.setTitles(titleList);
+
+        /*
+         * D4 Publisher
+         */
+        document.setPublisher(metadata.select(Iso19139StrategyConstants.PUBLISHER).text());
+
+        /*
+         * D5 PublicationYear
+         * This field is not easily mappable from ISO19139 to DataCite.
+         * We will use the datestamp of the metadata record, since it is the best approximation:
+         * "The date which specifies when the metadata record was created or updated."
+         */
+        Calendar cal = DatatypeConverter.parseDateTime(
+                           metadata.select(Iso19139StrategyConstants.DATESTAMP).text());
+        document.setPublicationYear((short) cal.get(Calendar.YEAR));
+
+        /*
+         * D10 ResourceType
+         */
         document.setResourceType(
             new ResourceType(
                 metadata.select(Iso19139StrategyConstants.RESOURCE_TYPE).first().text(),
-                ResourceTypeGeneral.Dataset));                                              //D10
+                ResourceTypeGeneral.Dataset));
+
+        /*
+         * E3 ResearchData
+         * Since we do not have a DOI, we will return null, if there is no valid URL for
+         * the research data available.
+         */
+        List<ResearchData> researchDataList = new LinkedList<>();
+        String researchDataURLString =
+            metadata.select(Iso19139StrategyConstants.RESEARCH_DATA).text();
+
+        try {
+            new URL(researchDataURLString);
+        } catch (MalformedURLException e) {
+            logger.warn("URL {} is not valid, skipping {}",
+                        researchDataURLString,
+                        document.getIdentifier());
+            return null;
+        }
+
+        ResearchData researchData = new ResearchData(
+            researchDataURLString,
+            metadata.select(Iso19139StrategyConstants.TITLE).text());
+        researchDataList.add(researchData);
+        document.setResearchDataList(researchDataList);
+
+        /*
+         ********************************************************************************
+         * Start for non-mandatory fields (may fail)
+         ********************************************************************************
+         */
+
+        /*
+         * The following DataCite and GeRDI generic extension fields are currently
+         * NOT implemented:
+         * - D7     Contributor
+         * - D9     Language
+         * - D11    AlternateIdentifier
+         * - D12    RelatedIdentifier
+         * - D13    Size
+         * - D14    Format
+         * - D15    Version
+         * - D16    Rights
+         * - D19    FundingReference
+         * - E1     WebLink
+         * - E4     ResearchDiscipline
+         * For a possible mapping from ISO19139 to these fields
+         * see https://wiki.gerdi-project.de/x/8YDmAQ
+         */
+
+        /*
+         * D8 Date
+         */
+        List<AbstractDate> dateList = new LinkedList<>();
+        Elements isoDates = metadata.select(Iso19139StrategyConstants.DATES);
+        Iterator<Element> isoDateIterator = isoDates.iterator();
+        nextDate: while (isoDateIterator.hasNext()) {
+            Element isoDate = isoDateIterator.next();
+            DateType dateType;
+
+            switch (isoDate.select("gmd|CI_DateTypeCode").text()) {
+                case "publication":
+                    dateType = DateType.Issued;
+                    break;
+
+                case "revision":
+                    dateType = DateType.Updated;
+                    break;
+
+                case "creation":
+                    dateType = DateType.Created;
+                    break;
+
+                default:
+                    logger.debug(isoDate.toString());
+                    logger.info("Ignoring date, cannot make sense of dateType {}",
+                                isoDate.select("gmd|CI_DateTypeCode").text());
+                    break nextDate;
+            }
+
+            dateList.add(new Date(isoDate.select("gmd|date gco|Date").text(), dateType));
+
+            //Correct PublicationYear
+            if (dateType == DateType.Issued) {
+                cal = DatatypeConverter.parseDateTime(
+                          isoDate.select("gmd|date gco|Date").text());
+                document.setPublicationYear((short) cal.get(Calendar.YEAR));
+            }
+        }
+
+        if (! dateList.isEmpty())
+            document.setDates(dateList);
+
+        /*
+         * D17 Description
+         */
+        List<Description> descriptionList = new LinkedList<>();
         descriptionList.add(
             new Description(metadata.select(Iso19139StrategyConstants.DESCRIPTIONS).text(),
                             DescriptionType.Abstract));
-        document.setDescriptions(descriptionList);                                          //D17
-        // Start for non-mandatory fields (may fail)
-        GeoLocation geoLocation = new GeoLocation();
-        Element isoGeoLocation = metadata.select(Iso19139StrategyConstants.GEOLOCS).first();
-        geoLocation.setBox(
-            Double.parseDouble(isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_WEST).text()),
-            Double.parseDouble(isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_EAST).text()),
-            Double.parseDouble(isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_SOUTH).text()),
-            Double.parseDouble(isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_NORTH).text())
-        );
-        geoLocationList.add(geoLocation);
-        document.setGeoLocations(geoLocationList);                                     //D18
+        document.setDescriptions(descriptionList);
 
+        /*
+         * D18 GeoLocation
+         */
+        List<GeoLocation> geoLocationList = new LinkedList<>();
+        Elements isoGeoLocations = metadata.select(Iso19139StrategyConstants.GEOLOCS);
+        Iterator<Element> isoGeoLocationIterator = isoGeoLocations.iterator();
 
+        while (isoGeoLocationIterator.hasNext()) {
+            GeoLocation geoLocation = new GeoLocation();
+            Element isoGeoLocation = isoGeoLocationIterator.next();
+            double west = Double.parseDouble(
+                              isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_WEST).text());
+            double east = Double.parseDouble(
+                              isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_EAST).text());
+            double south = Double.parseDouble(
+                               isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_SOUTH).text());
+            double north = Double.parseDouble(
+                               isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_NORTH).text());
 
+            //is it a point or a polygon?
+            if (west == east && south == north)
+                geoLocation.setPoint(new GeoJson(new Point(west, south)));
 
+            else
+                geoLocation.setBox(west, east, south, north);
 
-        /* Category 1 - To be done until 0.4 finishes */
-        document.setCreators(DataCite4ElementParser.getObjects(metadata, "creators", DataCite4ElementParser::parseCreator));
-
-        try {
-            String publicationYear = DataCite4ElementParser.getString(metadata, "publicationYear");
-            document.setPublicationYear(Short.parseShort(publicationYear));
-        } catch (NumberFormatException | NullPointerException e) {
-            document.setPublicationYear((short)0);
+            geoLocationList.add(geoLocation);
         }
 
-        document.setDates(DataCite4ElementParser.getObjects(metadata, "dates", DataCite4ElementParser::parseDate));
-        //document.setWebLinks(createWebLinks(identifier, relatedIdentifiers));
-
-        /* Category 2 Postpone until needed
-        document.setLanguage(DataCite4ElementParser.getString(metadata, "language"));
-        document.setVersion(DataCite4ElementParser.getString(metadata, "version"));
-        document.setSizes(DataCite4ElementParser.getStrings(metadata, "sizes"));
-        document.setFormats(DataCite4ElementParser.getStrings(metadata, "formats"));
-        document.setContributors(DataCite4ElementParser.getObjects(metadata, "contributors", DataCite4ElementParser::parseContributor));
-        document.setSubjects(DataCite4ElementParser.getObjects(metadata, "subjects", DataCite4ElementParser::parseSubject));
-        document.setAlternateIdentifiers(DataCite4ElementParser.getObjects(metadata, "alternateIdentifiers", DataCite4ElementParser::parseAlternateIdentifier));
-        document.setRightsList(DataCite4ElementParser.getObjects(metadata, "rightsList", DataCite4ElementParser::parseRights));
-        document.setFundingReferences(DataCite4ElementParser.getObjects(metadata, "fundingReferences", DataCite4ElementParser::parseFundingReference));
-        List<RelatedIdentifier> relatedIdentifiers = DataCite4ElementParser.getObjects(metadata, "relatedIdentifiers", DataCite4ElementParser::parseRelatedIdentifier);
-        document.setRelatedIdentifiers(relatedIdentifiers);
-        */
+        document.setGeoLocations(geoLocationList);
 
         return document;
-
     }
 }

@@ -29,10 +29,18 @@ public class Iso19139StrategyConstants
     public static final String RECORD_HEADER = "header";
     public static final String RECORD_METADATA = "metadata";
 
+    public static final String REPOSITORY_IDENTIFIER = "DWD";
+
     public static final String IDENTIFIER = "gmd|citation gmd|CI_Citation gmd|identifier gmd|code";
     public static final String TITLE = "gmd|citation gmd|CI_Citation gmd|title";
     public static final String PUBLISHER = "gmd|pointOfContact gmd|CI_ResponsibleParty gmd|organisationName";
+    public static final String DATESTAMP = "gmd|dateStamp gco|DateTime";
     public static final String RESOURCE_TYPE = "gmd|hierarchyLevel gmd|MD_ScopeCode";
+
+    public static final String RESEARCH_DATA = "gmd|transferOptions gmd|MD_DigitalTransferOptions gmd|onLine gmd|CI_OnlineResource gmd|linkage gmd|URL";
+
+
+    public static final String DATES = "gmd|citation gmd|CI_citation gmd|date";
     public static final String DESCRIPTIONS = "gmd|abstract";
     public static final String GEOLOCS = "gmd|extent gmd|EX_Extent gmd|geographicElement gmd|EX_GeographicBoundingBox";
     public static final String GEOLOCS_WEST = "gmd|westBoundLongitude gco|Decimal";
