@@ -62,32 +62,42 @@ public class OaiPmhIso19139Strategy implements IStrategy
         Element metadata = record.select(Iso19139StrategyConstants.RECORD_METADATA).first();
 
         /* Category 0 - Minimal viable harvester */
+        // Mandatory fields (we fail if we do not get them)
         List<Title> titleList = new LinkedList<>();
         List<Description> descriptionList = new LinkedList<>();
         List<GeoLocation> geoLocationList = new LinkedList<>();
 
         document.setIdentifier(
-            new Identifier(metadata.select(Iso19139StrategyConstants.IDENTIFIER).text())); //D1
+            new Identifier(
+                metadata.select(Iso19139StrategyConstants.IDENTIFIER).first().text()
+            )
+        );                                                                                  //D1
         titleList.add(new Title(metadata.select(Iso19139StrategyConstants.TITLE).text()));
-        document.setTitles(titleList);                                                     //D3
-        document.setPublisher(metadata.select(Iso19139StrategyConstants.GEOLOCS).text());  //D4
+        document.setTitles(titleList);                                                      //D3
+        document.setPublisher(metadata.select(Iso19139StrategyConstants.PUBLISHER).text()); //D4
         document.setResourceType(
             new ResourceType(
-                metadata.select(Iso19139StrategyConstants.RESOURCE_TYPE).text(),
-                ResourceTypeGeneral.Dataset));                                             //D10
+                metadata.select(Iso19139StrategyConstants.RESOURCE_TYPE).first().text(),
+                ResourceTypeGeneral.Dataset));                                              //D10
         descriptionList.add(
             new Description(metadata.select(Iso19139StrategyConstants.DESCRIPTIONS).text(),
                             DescriptionType.Abstract));
-        document.setDescriptions(descriptionList);                                         //D17
+        document.setDescriptions(descriptionList);                                          //D17
+        // Start for non-mandatory fields (may fail)
         GeoLocation geoLocation = new GeoLocation();
         Element isoGeoLocation = metadata.select(Iso19139StrategyConstants.GEOLOCS).first();
         geoLocation.setBox(
             Double.parseDouble(isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_WEST).text()),
             Double.parseDouble(isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_EAST).text()),
             Double.parseDouble(isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_SOUTH).text()),
-            Double.parseDouble(isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_NORTH).text()));
+            Double.parseDouble(isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_NORTH).text())
+        );
         geoLocationList.add(geoLocation);
-        document.setGeoLocations(geoLocationList);                                         //D18
+        document.setGeoLocations(geoLocationList);                                     //D18
+
+
+
+
 
         /* Category 1 - To be done until 0.4 finishes */
         document.setCreators(DataCite4ElementParser.getObjects(metadata, "creators", DataCite4ElementParser::parseCreator));
