@@ -14,7 +14,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package de.gerdiproject.harvest.etls.loaders.utils;
+package de.gerdiproject.harvest.etls.transformers.utils;
 
 import java.util.Collection;
 import java.util.LinkedList;

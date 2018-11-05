@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.gerdiproject.harvest.etls.loaders;
+package de.gerdiproject.harvest.etls.transformers;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -26,9 +26,9 @@ import java.util.List;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import de.gerdiproject.harvest.etls.loaders.constants.DublinCoreStrategyConstants;
 import de.gerdiproject.harvest.etls.transformers.AbstractIteratorTransformer;
 import de.gerdiproject.harvest.etls.transformers.TransformerException;
+import de.gerdiproject.harvest.etls.transformers.constants.DublinCoreConstants;
 import de.gerdiproject.json.datacite.Contributor;
 import de.gerdiproject.json.datacite.Creator;
 import de.gerdiproject.json.datacite.DataCiteJson;
@@ -60,16 +60,16 @@ public class DublinCoreTransformer extends AbstractIteratorTransformer<Element, 
     {
         // each entry-node starts with a record element.
         Elements children = record.children();
-        Boolean deleted = children.first().attr(DublinCoreStrategyConstants.RECORD_STATUS).equals(
-                              DublinCoreStrategyConstants.RECORD_STATUS_DEL) ? true : false;
+        Boolean deleted = children.first().attr(DublinCoreConstants.RECORD_STATUS).equals(
+                              DublinCoreConstants.RECORD_STATUS_DEL) ? true : false;
 
         //check if Entry is "deleted"
         if (deleted)
             return null;
 
         // get header and meta data for each record
-        Elements header = children.select(DublinCoreStrategyConstants.RECORD_HEADER);
-        Elements metadata = children.select(DublinCoreStrategyConstants.RECORD_METADATA);
+        Elements header = children.select(DublinCoreConstants.RECORD_HEADER);
+        Elements metadata = children.select(DublinCoreConstants.RECORD_METADATA);
 
         List<WebLink> webLinks = new LinkedList<>();
         List<RelatedIdentifier> relatedIdentifiers = new LinkedList<>();
@@ -84,19 +84,19 @@ public class DublinCoreTransformer extends AbstractIteratorTransformer<Element, 
         List<Rights> rightslist = new LinkedList<>();
 
         // get identifier and datestamp
-        Element identifier = header.select(DublinCoreStrategyConstants.IDENTIFIER).first();
+        Element identifier = header.select(DublinCoreConstants.IDENTIFIER).first();
         DataCiteJson document = new DataCiteJson(identifier.text());
         Identifier mainIdentifier = new Identifier(identifier.text());
 
         // get last updated
-        String recorddate = header.select(DublinCoreStrategyConstants.RECORD_DATESTAMP).first().text();
+        String recorddate = header.select(DublinCoreConstants.RECORD_DATESTAMP).first().text();
         Date updatedDate = new Date(recorddate, DateType.Updated);
         dates.add(updatedDate);
 
         // based XSD schema -> http://dublincore.org/schemas/xmls/simpledc20021212.xsd
         // get publication date
         Calendar cal = Calendar.getInstance();
-        Elements dateElements = metadata.select(DublinCoreStrategyConstants.METADATA_DATE);
+        Elements dateElements = metadata.select(DublinCoreConstants.METADATA_DATE);
 
         for (Element e : dateElements) {
             try {
@@ -109,7 +109,7 @@ public class DublinCoreTransformer extends AbstractIteratorTransformer<Element, 
             }
         }
 
-        Elements resourceIdentifierElements = metadata.select(DublinCoreStrategyConstants.METADATA_IDENTIFIER);
+        Elements resourceIdentifierElements = metadata.select(DublinCoreConstants.METADATA_IDENTIFIER);
 
         for (Element e : resourceIdentifierElements) {
             try {
@@ -129,7 +129,7 @@ public class DublinCoreTransformer extends AbstractIteratorTransformer<Element, 
         document.setWebLinks(webLinks);
 
         // get resource types
-        Elements typeElements = metadata.select(DublinCoreStrategyConstants.RES_TYPE);
+        Elements typeElements = metadata.select(DublinCoreConstants.RES_TYPE);
 
         for (Element e : typeElements)
             dctype.add(e.text());
@@ -137,7 +137,7 @@ public class DublinCoreTransformer extends AbstractIteratorTransformer<Element, 
         document.setFormats(dctype);
 
         // get creators
-        Elements creatorElements = metadata.select(DublinCoreStrategyConstants.DOC_CREATORS);
+        Elements creatorElements = metadata.select(DublinCoreConstants.DOC_CREATORS);
 
         for (Element e : creatorElements)
             creators.add(new Creator(e.text()));
@@ -145,7 +145,7 @@ public class DublinCoreTransformer extends AbstractIteratorTransformer<Element, 
         document.setCreators(creators);
 
         // get contributors
-        Elements contributorElements = metadata.select(DublinCoreStrategyConstants.DOC_CONTRIBUTORS);
+        Elements contributorElements = metadata.select(DublinCoreConstants.DOC_CONTRIBUTORS);
 
         for (Element e : contributorElements) {
             Contributor contrib = new Contributor(e.text(), ContributorType.ContactPerson);
@@ -155,7 +155,7 @@ public class DublinCoreTransformer extends AbstractIteratorTransformer<Element, 
         document.setContributors(contributors);
 
         // get titles
-        Elements titleElements = metadata.select(DublinCoreStrategyConstants.DOC_TITLE);
+        Elements titleElements = metadata.select(DublinCoreConstants.DOC_TITLE);
 
         for (Element title : titleElements)
             titles.add(new Title(title.text()));
@@ -163,7 +163,7 @@ public class DublinCoreTransformer extends AbstractIteratorTransformer<Element, 
         document.setTitles(titles);
 
         // get descriptions
-        Elements descriptionElements = metadata.select(DublinCoreStrategyConstants.DOC_DESCRIPTIONS);
+        Elements descriptionElements = metadata.select(DublinCoreConstants.DOC_DESCRIPTIONS);
 
         for (Element descElement : descriptionElements) {
             Description description = new Description(descElement.text(), DescriptionType.Abstract);
@@ -173,11 +173,11 @@ public class DublinCoreTransformer extends AbstractIteratorTransformer<Element, 
         document.setDescriptions(descriptions);
 
         // get publisher
-        Elements publisherElements = metadata.select(DublinCoreStrategyConstants.PUBLISHER);
+        Elements publisherElements = metadata.select(DublinCoreConstants.PUBLISHER);
         document.setPublisher(publisherElements.first().text());
 
         // get formats
-        Elements formatElements = metadata.select(DublinCoreStrategyConstants.METADATA_FORMATS);
+        Elements formatElements = metadata.select(DublinCoreConstants.METADATA_FORMATS);
 
         for (Element e : formatElements)
             formats.add(e.text());
@@ -185,7 +185,7 @@ public class DublinCoreTransformer extends AbstractIteratorTransformer<Element, 
         document.setFormats(formats);
 
         // get keyword subjects
-        Elements subjectElements = metadata.select(DublinCoreStrategyConstants.SUBJECTS);
+        Elements subjectElements = metadata.select(DublinCoreConstants.SUBJECTS);
 
         for (Element subject : subjectElements) {
             Subject dcsubject = new Subject(subject.text());
@@ -195,7 +195,7 @@ public class DublinCoreTransformer extends AbstractIteratorTransformer<Element, 
         document.setSubjects(subjects);
 
         // get rights
-        Elements rightsElements = metadata.select(DublinCoreStrategyConstants.RIGHTS);
+        Elements rightsElements = metadata.select(DublinCoreConstants.RIGHTS);
 
         for (Element e : rightsElements)
             rightslist.add(new Rights(e.text()));
@@ -205,7 +205,7 @@ public class DublinCoreTransformer extends AbstractIteratorTransformer<Element, 
         // get source, relation, coverage -> missing in document-Class
 
         // get language
-        Elements languageElements = metadata.select(DublinCoreStrategyConstants.LANG);
+        Elements languageElements = metadata.select(DublinCoreConstants.LANG);
 
         if (!languageElements.isEmpty())
             document.setLanguage(languageElements.first().text());

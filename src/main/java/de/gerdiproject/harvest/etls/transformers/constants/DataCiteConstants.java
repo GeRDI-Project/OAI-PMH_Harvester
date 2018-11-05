@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.gerdiproject.harvest.etls.loaders.constants;
+package de.gerdiproject.harvest.etls.transformers.constants;
 
 /**
  * A static collection of constant parameters for configuring the DataCite3 strategy.
@@ -21,7 +21,7 @@ package de.gerdiproject.harvest.etls.loaders.constants;
  * @author Jan Frömberg
  *
  */
-public class DataCiteStrategyConstants
+public class DataCiteConstants
 {
 
     public static final String RECORD_STATUS = "status";
@@ -71,7 +71,7 @@ public class DataCiteStrategyConstants
     /**
      * Private Constructor, because this is a static class.
      */
-    private DataCiteStrategyConstants()
+    private DataCiteConstants()
     {
     }
 }

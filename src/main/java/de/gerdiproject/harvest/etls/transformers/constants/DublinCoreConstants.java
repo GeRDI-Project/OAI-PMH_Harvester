@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.gerdiproject.harvest.etls.loaders.constants;
+package de.gerdiproject.harvest.etls.transformers.constants;
 
 /**
  * A static collection of constant parameters for configuring the Dublin Core strategy.
@@ -21,7 +21,7 @@ package de.gerdiproject.harvest.etls.loaders.constants;
  * @author Jan Frömberg
  *
  */
-public class DublinCoreStrategyConstants
+public class DublinCoreConstants
 {
 
     public static final String RECORD_STATUS = "status";
@@ -52,7 +52,7 @@ public class DublinCoreStrategyConstants
     /**
      * Private Constructor, because this is a static class.
      */
-    private DublinCoreStrategyConstants()
+    private DublinCoreConstants()
     {
     }
 }

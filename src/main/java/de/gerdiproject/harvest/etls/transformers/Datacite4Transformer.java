@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.gerdiproject.harvest.etls.loaders;
+package de.gerdiproject.harvest.etls.transformers;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -21,10 +21,10 @@ import java.util.List;
 import org.jsoup.nodes.Element;
 
 import de.gerdiproject.harvest.etls.constants.OaiPmhConstants;
-import de.gerdiproject.harvest.etls.loaders.constants.DataCiteStrategyConstants;
-import de.gerdiproject.harvest.etls.loaders.utils.DataCite4ElementParser;
 import de.gerdiproject.harvest.etls.transformers.AbstractIteratorTransformer;
 import de.gerdiproject.harvest.etls.transformers.TransformerException;
+import de.gerdiproject.harvest.etls.transformers.constants.DataCiteConstants;
+import de.gerdiproject.harvest.etls.transformers.utils.DataCite4ElementParser;
 import de.gerdiproject.json.datacite.DataCiteJson;
 import de.gerdiproject.json.datacite.Identifier;
 import de.gerdiproject.json.datacite.RelatedIdentifier;
@@ -44,23 +44,23 @@ public class Datacite4Transformer extends AbstractIteratorTransformer<Element, D
     {
         Boolean isRecordDeleted = record.children()
                                   .first()
-                                  .attr(DataCiteStrategyConstants.RECORD_STATUS)
-                                  .equals(DataCiteStrategyConstants.RECORD_STATUS_DEL);
+                                  .attr(DataCiteConstants.RECORD_STATUS)
+                                  .equals(DataCiteConstants.RECORD_STATUS_DEL);
 
         // check if entry/record is "deleted" from repository
         if (isRecordDeleted)
             return null;
 
         // get header and meta data for each record
-        final Element header = record.select(DataCiteStrategyConstants.RECORD_HEADER).first();
+        final Element header = record.select(DataCiteConstants.RECORD_HEADER).first();
 
         // get identifier and date stamp
-        final String repositoryIdentifier = DataCite4ElementParser.getString(header, DataCiteStrategyConstants.IDENTIFIER);
+        final String repositoryIdentifier = DataCite4ElementParser.getString(header, DataCiteConstants.IDENTIFIER);
 
         final DataCiteJson document = new DataCiteJson(repositoryIdentifier);
         document.setRepositoryIdentifier(repositoryIdentifier);
 
-        Element metadata = record.select(DataCiteStrategyConstants.RECORD_METADATA).first();
+        Element metadata = record.select(DataCiteConstants.RECORD_METADATA).first();
         document.setPublisher(DataCite4ElementParser.getString(metadata, "publisher"));
         document.setLanguage(DataCite4ElementParser.getString(metadata, "language"));
         document.setVersion(DataCite4ElementParser.getString(metadata, "version"));

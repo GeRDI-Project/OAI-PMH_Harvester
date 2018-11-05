@@ -30,7 +30,7 @@ import com.google.gson.Gson;
 import de.gerdiproject.harvest.etls.AbstractETL;
 import de.gerdiproject.harvest.etls.OaiPmhETL;
 import de.gerdiproject.harvest.etls.constants.OaiPmhConstants;
-import de.gerdiproject.harvest.etls.loaders.constants.DublinCoreStrategyConstants;
+import de.gerdiproject.harvest.etls.transformers.constants.DublinCoreConstants;
 import de.gerdiproject.harvest.utils.data.HttpRequester;
 
 /**
@@ -57,7 +57,7 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
 
         // retrieve identifier of the latest record
         if (recordsDoc != null) {
-            final Element identifier = recordsDoc.select(DublinCoreStrategyConstants.IDENTIFIER).first();
+            final Element identifier = recordsDoc.select(DublinCoreConstants.IDENTIFIER).first();
 
             if (identifier != null)
                 return identifier.text();
