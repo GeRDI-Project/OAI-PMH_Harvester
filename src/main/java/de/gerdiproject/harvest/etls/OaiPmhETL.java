@@ -26,6 +26,7 @@ import com.google.gson.Gson;
 import de.gerdiproject.harvest.config.Configuration;
 import de.gerdiproject.harvest.config.parameters.AbstractParameter;
 import de.gerdiproject.harvest.config.parameters.StringParameter;
+import de.gerdiproject.harvest.config.parameters.constants.ParameterMappingFunctions;
 import de.gerdiproject.harvest.etls.constants.OaiPmhConstants;
 import de.gerdiproject.harvest.etls.constants.OaiPmhParameterConstants;
 import de.gerdiproject.harvest.etls.events.GetRepositoryNameEvent;
@@ -54,12 +55,17 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
 
 
     @Override
-    public void init(String moduleName)
+    public void addEventListeners()
     {
-        super.init(moduleName);
-
-        EventSystem.removeSynchronousListener(GetRepositoryNameEvent.class);
+        super.addEventListeners();
         EventSystem.addSynchronousListener(GetRepositoryNameEvent.class, this::getRepositoryName);
+    }
+
+
+    @Override
+    public void removeEventListeners()
+    {
+        EventSystem.removeSynchronousListener(GetRepositoryNameEvent.class);
     }
 
 
@@ -74,16 +80,17 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
     protected ITransformer<Iterator<Element>, Iterator<DataCiteJson>> createTransformer()
     {
         switch (metadataPrefixParam.getValue()) {
-            case "oai_datacite":
-            case "oai_datacite3":
-            case "datacite3":
+            case OaiPmhParameterConstants.DATACITE_3_METADATA_PREFIX:
+            case OaiPmhParameterConstants.DATACITE_3_METADATA_PREFIX_2:
+            case OaiPmhParameterConstants.DATACITE_3_METADATA_PREFIX_3:
                 return new Datacite3Transformer();
 
-            case "datacite":
-            case "datacite4":
+            case OaiPmhParameterConstants.DATACITE_4_METADATA_PREFIX:
+            case OaiPmhParameterConstants.DATACITE_4_METADATA_PREFIX_2:
+            case OaiPmhParameterConstants.DATACITE_4_METADATA_PREFIX_3:
                 return new Datacite4Transformer();
 
-            case "oai_dc":
+            case OaiPmhParameterConstants.DUBLIN_CORE_METADATA_PREFIX:
                 return new DublinCoreTransformer();
 
             default:
@@ -100,26 +107,28 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
         this.fromParam = Configuration.registerParameter(
                              new StringParameter(
                                  OaiPmhParameterConstants.FROM_KEY,
-                                 harvesterCategory,
+                                 getName(),
                                  OaiPmhParameterConstants.FROM_DEFAULT_VALUE));
 
         this.untilParam = Configuration.registerParameter(
                               new StringParameter(
                                   OaiPmhParameterConstants.UNTIL_KEY,
-                                  harvesterCategory,
+                                  getName(),
                                   OaiPmhParameterConstants.UNTIL_DEFAULT_VALUE));
 
         this.hostUrlParam = Configuration.registerParameter(
                                 new StringParameter(
                                     OaiPmhParameterConstants.HOST_URL_KEY,
-                                    harvesterCategory,
-                                    OaiPmhParameterConstants.HOST_URL_DEFAULT_VALUE));
-
+                                    getName(),
+                                    OaiPmhParameterConstants.HOST_URL_DEFAULT_VALUE,
+                                    ParameterMappingFunctions::mapToUrlString));
+            
         this.metadataPrefixParam = Configuration.registerParameter(
                                        new StringParameter(
                                            OaiPmhParameterConstants.METADATA_PREFIX_KEY,
-                                           harvesterCategory,
-                                           OaiPmhParameterConstants.METADATA_PREFIX_DEFAULT_VALUE));
+                                           getName(),
+                                           OaiPmhParameterConstants.METADATA_PREFIX_DEFAULT_VALUE,
+                                           ParameterMappingFunctions.createStringListMapper(OaiPmhParameterConstants.METADATA_PREFIX_ALLOWED_VALUES)));
     }
 
 

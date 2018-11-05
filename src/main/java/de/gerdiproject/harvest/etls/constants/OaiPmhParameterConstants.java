@@ -15,6 +15,10 @@
  */
 package de.gerdiproject.harvest.etls.constants;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * A static collection of constant parameters for configuring the OAI-PMH harvester.
  *
@@ -22,8 +26,30 @@ package de.gerdiproject.harvest.etls.constants;
  */
 public class OaiPmhParameterConstants
 {
+    //
+    public static final String  DATACITE_3_METADATA_PREFIX = "datacite3";
+    public static final String  DATACITE_3_METADATA_PREFIX_2 = "oai_datacite3";
+    public static final String  DATACITE_3_METADATA_PREFIX_3 = "oai_datacite";
+
+    public static final String  DATACITE_4_METADATA_PREFIX = "datacite4";
+    public static final String  DATACITE_4_METADATA_PREFIX_2 = "oai_datacite4";
+    public static final String  DATACITE_4_METADATA_PREFIX_3 = "datacite";
+
+    public static final String  DUBLIN_CORE_METADATA_PREFIX = "oai_dc";
+
+    public static final List<String> METADATA_PREFIX_ALLOWED_VALUES =
+        Collections.unmodifiableList(Arrays.asList(
+                                         DATACITE_3_METADATA_PREFIX,
+                                         DATACITE_3_METADATA_PREFIX_2,
+                                         DATACITE_3_METADATA_PREFIX_3,
+                                         DATACITE_4_METADATA_PREFIX,
+                                         DATACITE_4_METADATA_PREFIX_2,
+                                         DATACITE_4_METADATA_PREFIX_3,
+                                         DUBLIN_CORE_METADATA_PREFIX
+                                     ));
+
     public static final String METADATA_PREFIX_KEY = "metadataPrefix";
-    public static final String METADATA_PREFIX_DEFAULT_VALUE = "datacite4";
+    public static final String METADATA_PREFIX_DEFAULT_VALUE = DUBLIN_CORE_METADATA_PREFIX;
 
     public static final String FROM_KEY = "from";
     public static final String FROM_DEFAULT_VALUE = "";

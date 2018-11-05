@@ -79,8 +79,6 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
     {
         super.init(etl);
 
-        this.httpRequester.setCharset(etl.getCharset());
-
         final OaiPmhETL oaiEtl = (OaiPmhETL) etl;
         this.recordsBaseUrl = oaiEtl.getListRecordsUrl();
         this.resumptionUrlFormat = oaiEtl.getResumptionUrl("%s");
