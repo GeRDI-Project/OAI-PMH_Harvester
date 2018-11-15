@@ -26,8 +26,6 @@ import java.util.List;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import de.gerdiproject.harvest.etls.transformers.AbstractIteratorTransformer;
-import de.gerdiproject.harvest.etls.transformers.TransformerException;
 import de.gerdiproject.harvest.etls.transformers.constants.DublinCoreConstants;
 import de.gerdiproject.json.datacite.Contributor;
 import de.gerdiproject.json.datacite.Creator;

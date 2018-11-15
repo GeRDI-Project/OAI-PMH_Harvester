@@ -21,8 +21,6 @@ import java.util.List;
 import org.jsoup.nodes.Element;
 
 import de.gerdiproject.harvest.etls.constants.OaiPmhConstants;
-import de.gerdiproject.harvest.etls.transformers.AbstractIteratorTransformer;
-import de.gerdiproject.harvest.etls.transformers.TransformerException;
 import de.gerdiproject.harvest.etls.transformers.constants.DataCiteConstants;
 import de.gerdiproject.harvest.etls.transformers.utils.DataCite4ElementParser;
 import de.gerdiproject.json.datacite.DataCiteJson;

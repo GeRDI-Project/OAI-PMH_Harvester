@@ -122,7 +122,7 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
                                     getName(),
                                     OaiPmhParameterConstants.HOST_URL_DEFAULT_VALUE,
                                     ParameterMappingFunctions::mapToUrlString));
-            
+
         this.metadataPrefixParam = Configuration.registerParameter(
                                        new StringParameter(
                                            OaiPmhParameterConstants.METADATA_PREFIX_KEY,

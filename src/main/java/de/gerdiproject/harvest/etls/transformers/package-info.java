@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * This package contains OAI-PMH loaders for the {@linkplain de.gerdiproject.harvest.etls.OaiPmhETL}.
+ * This package contains OAI-PMH transformers for the {@linkplain de.gerdiproject.harvest.etls.OaiPmhETL}.
  *
  * @author Robin Weiss
  */
