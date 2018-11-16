@@ -124,7 +124,7 @@ public class DublinCoreTransformer extends AbstractIteratorTransformer<Element, 
             }
         }
 
-        document.setWebLinks(webLinks);
+        document.addWebLinks(webLinks);
 
         // get resource types
         Elements typeElements = metadata.select(DublinCoreConstants.RES_TYPE);
@@ -132,7 +132,7 @@ public class DublinCoreTransformer extends AbstractIteratorTransformer<Element, 
         for (Element e : typeElements)
             dctype.add(e.text());
 
-        document.setFormats(dctype);
+        document.addFormats(dctype);
 
         // get creators
         Elements creatorElements = metadata.select(DublinCoreConstants.DOC_CREATORS);
@@ -140,7 +140,7 @@ public class DublinCoreTransformer extends AbstractIteratorTransformer<Element, 
         for (Element e : creatorElements)
             creators.add(new Creator(e.text()));
 
-        document.setCreators(creators);
+        document.addCreators(creators);
 
         // get contributors
         Elements contributorElements = metadata.select(DublinCoreConstants.DOC_CONTRIBUTORS);
@@ -150,7 +150,7 @@ public class DublinCoreTransformer extends AbstractIteratorTransformer<Element, 
             contributors.add(contrib);
         }
 
-        document.setContributors(contributors);
+        document.addContributors(contributors);
 
         // get titles
         Elements titleElements = metadata.select(DublinCoreConstants.DOC_TITLE);
@@ -158,7 +158,7 @@ public class DublinCoreTransformer extends AbstractIteratorTransformer<Element, 
         for (Element title : titleElements)
             titles.add(new Title(title.text()));
 
-        document.setTitles(titles);
+        document.addTitles(titles);
 
         // get descriptions
         Elements descriptionElements = metadata.select(DublinCoreConstants.DOC_DESCRIPTIONS);
@@ -168,7 +168,7 @@ public class DublinCoreTransformer extends AbstractIteratorTransformer<Element, 
             descriptions.add(description);
         }
 
-        document.setDescriptions(descriptions);
+        document.addDescriptions(descriptions);
 
         // get publisher
         Elements publisherElements = metadata.select(DublinCoreConstants.PUBLISHER);
@@ -180,7 +180,7 @@ public class DublinCoreTransformer extends AbstractIteratorTransformer<Element, 
         for (Element e : formatElements)
             formats.add(e.text());
 
-        document.setFormats(formats);
+        document.addFormats(formats);
 
         // get keyword subjects
         Elements subjectElements = metadata.select(DublinCoreConstants.SUBJECTS);
@@ -190,7 +190,7 @@ public class DublinCoreTransformer extends AbstractIteratorTransformer<Element, 
             subjects.add(dcsubject);
         }
 
-        document.setSubjects(subjects);
+        document.addSubjects(subjects);
 
         // get rights
         Elements rightsElements = metadata.select(DublinCoreConstants.RIGHTS);
@@ -198,7 +198,7 @@ public class DublinCoreTransformer extends AbstractIteratorTransformer<Element, 
         for (Element e : rightsElements)
             rightslist.add(new Rights(e.text()));
 
-        document.setRightsList(rightslist);
+        document.addRights(rightslist);
 
         // get source, relation, coverage -> missing in document-Class
 
@@ -213,11 +213,11 @@ public class DublinCoreTransformer extends AbstractIteratorTransformer<Element, 
 
         // add dates if there are any
         if (!dates.isEmpty())
-            document.setDates(dates);
+            document.addDates(dates);
 
         // add related identifiers if there are any
         if (!relatedIdentifiers.isEmpty())
-            document.setRelatedIdentifiers(relatedIdentifiers);
+            document.addRelatedIdentifiers(relatedIdentifiers);
 
         return document;
     }

@@ -110,7 +110,7 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
         viewLink.setType(WebLinkType.ViewURL);
         viewLink.setName("View URL");
         links.add(viewLink);
-        document.setWebLinks(links);
+        document.addWebLinks(links);
 
         // get creators
         Elements creatorElements = metadata.select(DataCiteConstants.DOC_CREATORS);
@@ -133,7 +133,7 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
                 }
 
                 if (!nameIdentifiers.isEmpty())
-                    creator.setNameIdentifiers(nameIdentifiers);
+                    creator.addNameIdentifiers(nameIdentifiers);
 
                 Elements ecaffils = ec.select(DataCiteConstants.DOC_CREATOR_AFFILIATION);
 
@@ -141,13 +141,13 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
                     affiliations.add(eaffil.text());
 
                 if (!affiliations.isEmpty())
-                    creator.setAffiliations(affiliations);
+                    creator.addAffiliations(affiliations);
 
                 creators.add(creator);
             }
         }
 
-        document.setCreators(creators);
+        document.addCreators(creators);
 
         // get titles
         Elements etitles = metadata.select(DataCiteConstants.DOC_TITLE);
@@ -155,7 +155,7 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
         for (Element e : etitles)
             titles.add(new Title(e.text()));
 
-        document.setTitles(titles);
+        document.addTitles(titles);
 
         // get publisher
         Elements epubs = metadata.select(DataCiteConstants.PUBLISHER);
@@ -188,7 +188,7 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
             subjects.add(sub);
         }
 
-        document.setSubjects(subjects);
+        document.addSubjects(subjects);
 
         // get contributors
         Elements contribs = metadata.select(DataCiteConstants.CONTRIBUTORS);
@@ -212,7 +212,7 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
             }
         }
 
-        document.setContributors(contributors);
+        document.addContributors(contributors);
 
         // get dates
         Elements edates = metadata.select(DataCiteConstants.METADATA_DATE);
@@ -223,7 +223,7 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
             dates.add(edate);
         }
 
-        document.setDates(dates);
+        document.addDates(dates);
 
         // get language
         Elements elang = metadata.select(DataCiteConstants.LANG);
@@ -259,13 +259,13 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
             }
         }
 
-        document.setRelatedIdentifiers(relatedIdentifiers);
+        document.addRelatedIdentifiers(relatedIdentifiers);
 
         // get sizes
         Elements esize = metadata.select(DataCiteConstants.SIZE);
 
         if (!esize.isEmpty())
-            document.setSizes(Arrays.asList(esize.first().text()));
+            document.addSizes(Arrays.asList(esize.first().text()));
 
         // get formats
         Elements eformats = metadata.select(DataCiteConstants.METADATA_FORMATS);
@@ -280,7 +280,7 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
             }
         }
 
-        document.setFormats(formats);
+        document.addFormats(formats);
 
         // get version (min occ. 0, type string)
         Elements versions = metadata.select(DataCiteConstants.VERSION);
@@ -303,7 +303,7 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
             }
         }
 
-        document.setRightsList(docrights);
+        document.addRights(docrights);
 
         // get descriptions
         Elements edesc = metadata.select(DataCiteConstants.DESCRIPTIONS);
@@ -328,7 +328,7 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
             }
         }
 
-        document.setDescriptions(descriptions);
+        document.addDescriptions(descriptions);
 
         // get geoLocations
         Elements egeolocs = metadata.select(DataCiteConstants.GEOLOCS);
@@ -385,7 +385,7 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
             }
         }
 
-        document.setGeoLocations(geoLocations);
+        document.addGeoLocations(geoLocations);
 
         return document;
     }

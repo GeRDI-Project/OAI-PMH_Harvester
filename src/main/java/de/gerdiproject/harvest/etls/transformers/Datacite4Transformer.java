@@ -62,27 +62,27 @@ public class Datacite4Transformer extends AbstractIteratorTransformer<Element, D
         document.setPublisher(DataCite4ElementParser.getString(metadata, "publisher"));
         document.setLanguage(DataCite4ElementParser.getString(metadata, "language"));
         document.setVersion(DataCite4ElementParser.getString(metadata, "version"));
-        document.setSizes(DataCite4ElementParser.getStrings(metadata, "sizes"));
-        document.setFormats(DataCite4ElementParser.getStrings(metadata, "formats"));
-        document.setCreators(DataCite4ElementParser.getObjects(metadata, "creators", DataCite4ElementParser::parseCreator));
-        document.setContributors(DataCite4ElementParser.getObjects(metadata, "contributors", DataCite4ElementParser::parseContributor));
-        document.setTitles(DataCite4ElementParser.getObjects(metadata, "titles", DataCite4ElementParser::parseTitle));
+        document.addSizes(DataCite4ElementParser.getStrings(metadata, "sizes"));
+        document.addFormats(DataCite4ElementParser.getStrings(metadata, "formats"));
+        document.addCreators(DataCite4ElementParser.getObjects(metadata, "creators", DataCite4ElementParser::parseCreator));
+        document.addContributors(DataCite4ElementParser.getObjects(metadata, "contributors", DataCite4ElementParser::parseContributor));
+        document.addTitles(DataCite4ElementParser.getObjects(metadata, "titles", DataCite4ElementParser::parseTitle));
         document.setResourceType(DataCite4ElementParser.getObject(metadata, "resourceType", DataCite4ElementParser::parseResourceType));
-        document.setDescriptions(DataCite4ElementParser.getObjects(metadata, "descriptions", DataCite4ElementParser::parseDescription));
-        document.setSubjects(DataCite4ElementParser.getObjects(metadata, "subjects", DataCite4ElementParser::parseSubject));
-        document.setAlternateIdentifiers(DataCite4ElementParser.getObjects(metadata, "alternateIdentifiers", DataCite4ElementParser::parseAlternateIdentifier));
-        document.setRightsList(DataCite4ElementParser.getObjects(metadata, "rightsList", DataCite4ElementParser::parseRights));
-        document.setDates(DataCite4ElementParser.getObjects(metadata, "dates", DataCite4ElementParser::parseDate));
-        document.setGeoLocations(DataCite4ElementParser.getObjects(metadata, "geoLocations", DataCite4ElementParser::parseGeoLocation));
-        document.setFundingReferences(DataCite4ElementParser.getObjects(metadata, "fundingReferences", DataCite4ElementParser::parseFundingReference));
+        document.addDescriptions(DataCite4ElementParser.getObjects(metadata, "descriptions", DataCite4ElementParser::parseDescription));
+        document.addSubjects(DataCite4ElementParser.getObjects(metadata, "subjects", DataCite4ElementParser::parseSubject));
+        document.addAlternateIdentifiers(DataCite4ElementParser.getObjects(metadata, "alternateIdentifiers", DataCite4ElementParser::parseAlternateIdentifier));
+        document.addRights(DataCite4ElementParser.getObjects(metadata, "rightsList", DataCite4ElementParser::parseRights));
+        document.addDates(DataCite4ElementParser.getObjects(metadata, "dates", DataCite4ElementParser::parseDate));
+        document.addGeoLocations(DataCite4ElementParser.getObjects(metadata, "geoLocations", DataCite4ElementParser::parseGeoLocation));
+        document.addFundingReferences(DataCite4ElementParser.getObjects(metadata, "fundingReferences", DataCite4ElementParser::parseFundingReference));
 
         Identifier identifier = DataCite4ElementParser.getObject(metadata, "identifier", DataCite4ElementParser::parseIdentifier);
         document.setIdentifier(identifier);
 
         List<RelatedIdentifier> relatedIdentifiers = DataCite4ElementParser.getObjects(metadata, "relatedIdentifiers", DataCite4ElementParser::parseRelatedIdentifier);
-        document.setRelatedIdentifiers(relatedIdentifiers);
+        document.addRelatedIdentifiers(relatedIdentifiers);
 
-        document.setWebLinks(createWebLinks(identifier, relatedIdentifiers));
+        document.addWebLinks(createWebLinks(identifier, relatedIdentifiers));
 
         try {
             String publicationYear = DataCite4ElementParser.getString(metadata, "publicationYear");

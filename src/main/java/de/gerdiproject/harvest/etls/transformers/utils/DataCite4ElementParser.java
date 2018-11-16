@@ -190,8 +190,8 @@ public class DataCite4ElementParser
         final Creator creator = new Creator(creatorName);
         creator.setGivenName(givenName);
         creator.setFamilyName(familyName);
-        creator.setAffiliations(affiliations);
-        creator.setNameIdentifiers(nameIdentifiers);
+        creator.addAffiliations(affiliations);
+        creator.addNameIdentifiers(nameIdentifiers);
 
         return creator;
     }
@@ -216,8 +216,8 @@ public class DataCite4ElementParser
         final Contributor contributor = new Contributor(contributorName, contributorType);
         contributor.setGivenName(givenName);
         contributor.setFamilyName(familyName);
-        contributor.setAffiliations(affiliations);
-        contributor.setNameIdentifiers(nameIdentifiers);
+        contributor.addAffiliations(affiliations);
+        contributor.addNameIdentifiers(nameIdentifiers);
 
         return contributor;
     }
