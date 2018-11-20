@@ -18,7 +18,6 @@ package de.gerdiproject.harvest.oaipmh.strategies.impl;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Calendar;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -89,17 +88,7 @@ public class OaiPmhIso19139Strategy implements IStrategy
         document.setRepositoryIdentifier(repositoryIdentifier);
         Element metadata = record.select(Iso19139StrategyConstants.RECORD_METADATA).first();
 
-        /*
-         * D1 Identifier
-         * TODO: ISO19139 does not guarantee a DOI, but a "unique and persistent identifier",
-         * up to now these are URNs - the following call will set the identifierType to DOI
-         * nevertheless
-         */
-        document.setIdentifier(
-            new Identifier(
-                metadata.select(Iso19139StrategyConstants.IDENTIFIER).first().text()
-            )
-        );
+        document.setIdentifier(this.parseIdentifier(metadata));
 
         /*
          * D2 Creator
@@ -195,9 +184,7 @@ public class OaiPmhIso19139Strategy implements IStrategy
          */
         List<AbstractDate> dateList = new LinkedList<>();
         Elements isoDates = metadata.select(Iso19139StrategyConstants.DATES);
-        Iterator<Element> isoDateIterator = isoDates.iterator();
-        nextDate: while (isoDateIterator.hasNext()) {
-            Element isoDate = isoDateIterator.next();
+        nextDate: for (Element isoDate : isoDates) {
             DateType dateType;
 
             switch (isoDate.select("gmd|CI_DateTypeCode").text()) {
@@ -247,11 +234,9 @@ public class OaiPmhIso19139Strategy implements IStrategy
          */
         List<GeoLocation> geoLocationList = new LinkedList<>();
         Elements isoGeoLocations = metadata.select(Iso19139StrategyConstants.GEOLOCS);
-        Iterator<Element> isoGeoLocationIterator = isoGeoLocations.iterator();
 
-        while (isoGeoLocationIterator.hasNext()) {
+        for (Element isoGeoLocation : isoGeoLocations) {
             GeoLocation geoLocation = new GeoLocation();
-            Element isoGeoLocation = isoGeoLocationIterator.next();
             double west = Double.parseDouble(
                               isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_WEST).text());
             double east = Double.parseDouble(
@@ -274,5 +259,20 @@ public class OaiPmhIso19139Strategy implements IStrategy
         document.setGeoLocations(geoLocationList);
 
         return document;
+    }
+
+    /*
+     * Parses metadata for an identifier (D1) in an ISO19139 metadata record
+     *
+     * @param metadata metadata to be searched
+     * @todo ISO19139 does not guarantee a DOI, but a "unique and persistent identifier",
+     *       up to now these are URNs - the following call will set the identifierType to DOI
+     *       nevertheless
+     */
+    private Identifier parseIdentifier(Element metadata)
+    {
+        return new Identifier(
+                   metadata.select(Iso19139StrategyConstants.IDENTIFIER).first().text()
+               );
     }
 }
