@@ -88,7 +88,7 @@ public class OaiPmhIso19139Strategy implements IStrategy
         document.setRepositoryIdentifier(repositoryIdentifier);
         Element metadata = record.select(Iso19139StrategyConstants.RECORD_METADATA).first();
 
-        document.setIdentifier(this.parseIdentifier(metadata));
+        document.setIdentifier(parseIdentifier(metadata));
 
         /*
          * D2 Creator
@@ -118,6 +118,7 @@ public class OaiPmhIso19139Strategy implements IStrategy
          * This field is not easily mappable from ISO19139 to DataCite.
          * We will use the datestamp of the metadata record, since it is the best approximation:
          * "The date which specifies when the metadata record was created or updated."
+         * This could be overwritten after we parsed the dates (but these might be missing)
          */
         Calendar cal = DatatypeConverter.parseDateTime(
                            metadata.select(Iso19139StrategyConstants.DATESTAMP).text());
@@ -182,7 +183,7 @@ public class OaiPmhIso19139Strategy implements IStrategy
         /*
          * D8 Date
          */
-        List<AbstractDate> dateList = this.parseDates(metadata);
+        List<AbstractDate> dateList = parseDates(metadata);
 
         if (! dateList.isEmpty()) {
             document.setDates(dateList);
@@ -207,31 +208,10 @@ public class OaiPmhIso19139Strategy implements IStrategy
         /*
          * D18 GeoLocation
          */
-        List<GeoLocation> geoLocationList = new LinkedList<>();
-        Elements isoGeoLocations = metadata.select(Iso19139StrategyConstants.GEOLOCS);
+        List<GeoLocation> geoLocationList = parseGeoLocations(metadata);
 
-        for (Element isoGeoLocation : isoGeoLocations) {
-            GeoLocation geoLocation = new GeoLocation();
-            double west = Double.parseDouble(
-                              isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_WEST).text());
-            double east = Double.parseDouble(
-                              isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_EAST).text());
-            double south = Double.parseDouble(
-                               isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_SOUTH).text());
-            double north = Double.parseDouble(
-                               isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_NORTH).text());
-
-            //is it a point or a polygon?
-            if (west == east && south == north)
-                geoLocation.setPoint(new GeoJson(new Point(west, south)));
-
-            else
-                geoLocation.setBox(west, east, south, north);
-
-            geoLocationList.add(geoLocation);
-        }
-
-        document.setGeoLocations(geoLocationList);
+        if (! geoLocationList.isEmpty())
+            document.setGeoLocations(geoLocationList);
 
         return document;
     }
@@ -239,7 +219,7 @@ public class OaiPmhIso19139Strategy implements IStrategy
     /**
      * Parses metadata for an identifier (D1) in an ISO19139 metadata record
      *
-     * @param metadata metadata to be searched
+     * @param metadata metadata to be parsed
      * @todo ISO19139 does not guarantee a DOI, but a "unique and persistent identifier",
      *       up to now these are URNs - the following call will set the identifierType to DOI
      *       nevertheless
@@ -255,7 +235,7 @@ public class OaiPmhIso19139Strategy implements IStrategy
      * Parses metadata for dates (D8) in an ISO19139 metadata record that are mappable
      * to a DataCite field
      *
-     * @param metadata metadata to be searched
+     * @param metadata metadata to be parsed
      */
     private List<AbstractDate> parseDates(Element metadata)
     {
@@ -289,6 +269,49 @@ public class OaiPmhIso19139Strategy implements IStrategy
         }
 
         return dateList;
+
+    }
+
+    /**
+     * Parses metadata for geolocations (D18) in an ISO19139 metadata record
+     *
+     * @param metadata metadata to be parsed
+     */
+    private List<GeoLocation> parseGeoLocations(Element metadata)
+    {
+        List<GeoLocation> geoLocationList = new LinkedList<>();
+        Elements isoGeoLocations = metadata.select(Iso19139StrategyConstants.GEOLOCS);
+
+        for (Element isoGeoLocation : isoGeoLocations) {
+            GeoLocation geoLocation = new GeoLocation();
+            double west, east, south, north;
+
+            try {
+                west = Double.parseDouble(
+                           isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_WEST).text());
+                east = Double.parseDouble(
+                           isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_EAST).text());
+                south = Double.parseDouble(
+                            isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_SOUTH).text());
+                north = Double.parseDouble(
+                            isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_NORTH).text());
+            } catch (NullPointerException | NumberFormatException e) {
+                logger.info("Ignoring geolocation {}, has no valid coordinations",
+                            isoGeoLocation.text());
+                continue;
+            }
+
+            //is it a point or a polygon?
+            if (west == east && south == north)
+                geoLocation.setPoint(new GeoJson(new Point(west, south)));
+            else
+                geoLocation.setBox(west, east, south, north);
+
+            geoLocationList.add(geoLocation);
+        }
+
+        return geoLocationList;
+
 
     }
 
