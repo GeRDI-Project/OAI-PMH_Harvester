@@ -182,43 +182,18 @@ public class OaiPmhIso19139Strategy implements IStrategy
         /*
          * D8 Date
          */
-        List<AbstractDate> dateList = new LinkedList<>();
-        Elements isoDates = metadata.select(Iso19139StrategyConstants.DATES);
-        nextDate: for (Element isoDate : isoDates) {
-            DateType dateType;
+        List<AbstractDate> dateList = this.parseDates(metadata);
 
-            switch (isoDate.select("gmd|CI_DateTypeCode").text()) {
-                case "publication":
-                    dateType = DateType.Issued;
-                    break;
+        if (! dateList.isEmpty()) {
+            document.setDates(dateList);
 
-                case "revision":
-                    dateType = DateType.Updated;
-                    break;
-
-                case "creation":
-                    dateType = DateType.Created;
-                    break;
-
-                default:
-                    logger.debug(isoDate.toString());
-                    logger.info("Ignoring date, cannot make sense of dateType {}",
-                                isoDate.select("gmd|CI_DateTypeCode").text());
-                    continue nextDate;
-            }
-
-            dateList.add(new Date(isoDate.select("gmd|date gco|Date").text(), dateType));
-
-            //Correct PublicationYear
-            if (dateType == DateType.Issued) {
-                cal = DatatypeConverter.parseDateTime(
-                          isoDate.select("gmd|date gco|Date").text());
-                document.setPublicationYear((short) cal.get(Calendar.YEAR));
+            for (AbstractDate date : dateList) {
+                if (date.getType() == DateType.Issued) {
+                    cal = DatatypeConverter.parseDateTime(date.getValue());
+                    document.setPublicationYear((short) cal.get(Calendar.YEAR));
+                }
             }
         }
-
-        if (! dateList.isEmpty())
-            document.setDates(dateList);
 
         /*
          * D17 Description
@@ -261,7 +236,7 @@ public class OaiPmhIso19139Strategy implements IStrategy
         return document;
     }
 
-    /*
+    /**
      * Parses metadata for an identifier (D1) in an ISO19139 metadata record
      *
      * @param metadata metadata to be searched
@@ -275,4 +250,45 @@ public class OaiPmhIso19139Strategy implements IStrategy
                    metadata.select(Iso19139StrategyConstants.IDENTIFIER).first().text()
                );
     }
+
+    /**
+     * Parses metadata for dates (D8) in an ISO19139 metadata record that are mappable
+     * to a DataCite field
+     *
+     * @param metadata metadata to be searched
+     */
+    private List<AbstractDate> parseDates(Element metadata)
+    {
+        List<AbstractDate> dateList = new LinkedList<>();
+        Elements isoDates = metadata.select(Iso19139StrategyConstants.DATES);
+        nextDate: for (Element isoDate : isoDates) {
+            DateType dateType;
+
+            switch (isoDate.select("gmd|CI_DateTypeCode").text()) {
+                case "publication":
+                    dateType = DateType.Issued;
+                    break;
+
+                case "revision":
+                    dateType = DateType.Updated;
+                    break;
+
+                case "creation":
+                    dateType = DateType.Created;
+                    break;
+
+                default:
+                    logger.debug(isoDate.toString());
+                    logger.info("Ignoring date, cannot make sense of dateType {}",
+                                isoDate.select("gmd|CI_DateTypeCode").text());
+                    continue nextDate;
+            }
+
+            dateList.add(new Date(isoDate.select("gmd|date gco|Date").text(), dateType));
+        }
+
+        return dateList;
+
+    }
+
 }
