@@ -41,6 +41,8 @@ public class Iso19139StrategyConstants
 
 
     public static final String DATES = "gmd|citation gmd|CI_citation gmd|date";
+    public static final String DATE = "gmd|date gco|Date";
+    public static final String DATE_TYPE = "gmd|CI_DateTypeCode";
     public static final String DESCRIPTIONS = "gmd|abstract";
     public static final String GEOLOCS = "gmd|extent gmd|EX_Extent gmd|geographicElement gmd|EX_GeographicBoundingBox";
     public static final String GEOLOCS_WEST = "gmd|westBoundLongitude gco|Decimal";

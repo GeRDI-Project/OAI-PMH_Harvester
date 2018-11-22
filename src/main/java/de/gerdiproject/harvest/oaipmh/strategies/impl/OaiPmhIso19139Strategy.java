@@ -264,7 +264,7 @@ public class OaiPmhIso19139Strategy implements IStrategy
         nextDate: for (Element isoDate : isoDates) {
             DateType dateType;
 
-            switch (isoDate.select("gmd|CI_DateTypeCode").text()) {
+            switch (isoDate.select(Iso19139StrategyConstants.DATE_TYPE).text()) {
                 case "publication":
                     dateType = DateType.Issued;
                     break;
@@ -280,11 +280,12 @@ public class OaiPmhIso19139Strategy implements IStrategy
                 default:
                     logger.debug(isoDate.toString());
                     logger.info("Ignoring date, cannot make sense of dateType {}",
-                                isoDate.select("gmd|CI_DateTypeCode").text());
+                                isoDate.select(Iso19139StrategyConstants.DATE_TYPE).text());
                     continue nextDate;
             }
 
-            dateList.add(new Date(isoDate.select("gmd|date gco|Date").text(), dateType));
+            dateList.add(
+                new Date(isoDate.select(Iso19139StrategyConstants.DATE).text(), dateType));
         }
 
         return dateList;
