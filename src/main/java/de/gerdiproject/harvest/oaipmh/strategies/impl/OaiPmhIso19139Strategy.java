@@ -88,7 +88,12 @@ public class OaiPmhIso19139Strategy implements IStrategy
         document.setRepositoryIdentifier(repositoryIdentifier);
         Element metadata = record.select(Iso19139StrategyConstants.RECORD_METADATA).first();
 
-        document.setIdentifier(parseIdentifier(metadata));
+        try {
+            document.setIdentifier(parseIdentifier(metadata));
+        } catch (NullPointerException e) {
+            logger.warn("Document has no identifier, skipping");
+            return null;
+        }
 
         /*
          * D2 Creator
@@ -96,22 +101,44 @@ public class OaiPmhIso19139Strategy implements IStrategy
          * We will use the same value as for Publisher.
          */
         List<Creator> creatorList = new LinkedList<>();
-        creatorList.add(
-            new Creator(metadata.select(Iso19139StrategyConstants.PUBLISHER).text()));
+
+        try {
+            creatorList.add(
+                new Creator(metadata.select(Iso19139StrategyConstants.PUBLISHER).text()));
+        } catch (NullPointerException e) {
+            logger.warn("Document has no creator, skipping {}",
+                        document.getIdentifier());
+            return null;
+        }
+
         document.setCreators(creatorList);
 
         /*
          * D3 Title
          */
         List<Title> titleList = new LinkedList<>();
-        titleList.add(
-            new Title(metadata.select(Iso19139StrategyConstants.TITLE).text()));
+
+        try {
+            titleList.add(
+                new Title(metadata.select(Iso19139StrategyConstants.TITLE).text()));
+        } catch (NullPointerException e) {
+            logger.warn("Document has no title, skipping {}",
+                        document.getIdentifier());
+            return null;
+        }
+
         document.setTitles(titleList);
 
         /*
          * D4 Publisher
          */
-        document.setPublisher(metadata.select(Iso19139StrategyConstants.PUBLISHER).text());
+        try {
+            document.setPublisher(metadata.select(Iso19139StrategyConstants.PUBLISHER).text());
+        } catch (NullPointerException e) {
+            logger.warn("Document has no publisher, skipping {}",
+                        document.getIdentifier());
+            return null;
+        }
 
         /*
          * D5 PublicationYear
@@ -120,17 +147,29 @@ public class OaiPmhIso19139Strategy implements IStrategy
          * "The date which specifies when the metadata record was created or updated."
          * This could be overwritten after we parsed the dates (but these might be missing)
          */
-        Calendar cal = DatatypeConverter.parseDateTime(
-                           metadata.select(Iso19139StrategyConstants.DATESTAMP).text());
-        document.setPublicationYear((short) cal.get(Calendar.YEAR));
+        try {
+            Calendar cal = DatatypeConverter.parseDateTime(
+                               metadata.select(Iso19139StrategyConstants.DATESTAMP).text());
+            document.setPublicationYear((short) cal.get(Calendar.YEAR));
+        } catch (NullPointerException e) {
+            logger.warn("Document has no datestamp, skipping {}",
+                        document.getIdentifier());
+            return null;
+        }
 
         /*
          * D10 ResourceType
          */
-        document.setResourceType(
-            new ResourceType(
-                metadata.select(Iso19139StrategyConstants.RESOURCE_TYPE).first().text(),
-                ResourceTypeGeneral.Dataset));
+        try {
+            document.setResourceType(
+                new ResourceType(
+                    metadata.select(Iso19139StrategyConstants.RESOURCE_TYPE).first().text(),
+                    ResourceTypeGeneral.Dataset));
+        } catch (NullPointerException e) {
+            logger.warn("Document has no resourceType, skipping {}",
+                        document.getIdentifier());
+            return null;
+        }
 
         /*
          * E3 ResearchData
@@ -138,11 +177,16 @@ public class OaiPmhIso19139Strategy implements IStrategy
          * the research data available.
          */
         List<ResearchData> researchDataList = new LinkedList<>();
-        String researchDataURLString =
-            metadata.select(Iso19139StrategyConstants.RESEARCH_DATA).text();
+        String researchDataURLString = null;
 
         try {
+            researchDataURLString =
+                metadata.select(Iso19139StrategyConstants.RESEARCH_DATA).text();
             new URL(researchDataURLString);
+        } catch (NullPointerException e) {
+            logger.warn("Document has no URL to the data, skipping {}",
+                        document.getIdentifier());
+            return null;
         } catch (MalformedURLException e) {
             logger.warn("URL {} is not valid, skipping {}",
                         researchDataURLString,
@@ -190,7 +234,7 @@ public class OaiPmhIso19139Strategy implements IStrategy
 
             for (AbstractDate date : dateList) {
                 if (date.getType() == DateType.Issued) {
-                    cal = DatatypeConverter.parseDateTime(date.getValue());
+                    Calendar cal = DatatypeConverter.parseDateTime(date.getValue());
                     document.setPublicationYear((short) cal.get(Calendar.YEAR));
                 }
             }
@@ -241,35 +285,22 @@ public class OaiPmhIso19139Strategy implements IStrategy
     {
         List<AbstractDate> dateList = new LinkedList<>();
         Elements isoDates = metadata.select(Iso19139StrategyConstants.DATES);
-        nextDate: for (Element isoDate : isoDates) {
-            DateType dateType;
 
-            switch (isoDate.select(Iso19139StrategyConstants.DATE_TYPE).text()) {
-                case "publication":
-                    dateType = DateType.Issued;
-                    break;
+        for (Element isoDate : isoDates) {
+            final DateType dateType = Iso19139StrategyConstants.DATE_TYPE_MAP.get(
+                                          isoDate.select(Iso19139StrategyConstants.DATE_TYPE).text());
 
-                case "revision":
-                    dateType = DateType.Updated;
-                    break;
-
-                case "creation":
-                    dateType = DateType.Created;
-                    break;
-
-                default:
-                    logger.debug(isoDate.toString());
-                    logger.info("Ignoring date, cannot make sense of dateType {}",
-                                isoDate.select(Iso19139StrategyConstants.DATE_TYPE).text());
-                    continue nextDate;
+            if (dateType != null) {
+                dateList.add(
+                    new Date(isoDate.select(Iso19139StrategyConstants.DATE).text(), dateType));
+            } else {
+                logger.debug(isoDate.toString());
+                logger.info("Ignoring date, cannot make sense of dateType '{}'",
+                            isoDate.select(Iso19139StrategyConstants.DATE_TYPE).text());
             }
-
-            dateList.add(
-                new Date(isoDate.select(Iso19139StrategyConstants.DATE).text(), dateType));
         }
 
         return dateList;
-
     }
 
     /**
@@ -311,8 +342,6 @@ public class OaiPmhIso19139Strategy implements IStrategy
         }
 
         return geoLocationList;
-
-
     }
 
 }

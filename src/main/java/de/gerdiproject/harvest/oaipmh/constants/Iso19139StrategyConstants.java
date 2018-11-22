@@ -15,6 +15,11 @@
  */
 package de.gerdiproject.harvest.oaipmh.constants;
 
+import java.util.Map;
+import java.util.HashMap;
+
+import de.gerdiproject.json.datacite.enums.DateType;
+
 /**
  * A static collection of constant parameters for configuring the ISO19139 strategy.
  *
@@ -49,6 +54,17 @@ public class Iso19139StrategyConstants
     public static final String GEOLOCS_EAST = "gmd|eastBoundLongitude gco|Decimal";
     public static final String GEOLOCS_SOUTH = "gmd|southBoundLatitude gco|Decimal";
     public static final String GEOLOCS_NORTH = "gmd|northBoundLatitude gco|Decimal";
+
+    public static final Map<String, DateType> DATE_TYPE_MAP = createDateTypeMap();
+
+    private static Map<String, DateType> createDateTypeMap()
+    {
+        final Map<String, DateType> map = new HashMap<>();
+        map.put("publication", DateType.Issued);
+        map.put("revision", DateType.Updated);
+        map.put("creation", DateType.Created);
+        return map;
+    }
 
     /**
      * Private Constructor, because this is a static class.
