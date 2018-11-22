@@ -107,7 +107,7 @@ public class OaiPmhIso19139Strategy implements IStrategy
                 new Creator(metadata.select(Iso19139StrategyConstants.PUBLISHER).text()));
         } catch (NullPointerException e) {
             logger.warn("Document has no creator, skipping {}",
-                        document.getIdentifier());
+                        document.getIdentifier().getValue());
             return null;
         }
 
@@ -123,7 +123,7 @@ public class OaiPmhIso19139Strategy implements IStrategy
                 new Title(metadata.select(Iso19139StrategyConstants.TITLE).text()));
         } catch (NullPointerException e) {
             logger.warn("Document has no title, skipping {}",
-                        document.getIdentifier());
+                        document.getIdentifier().getValue());
             return null;
         }
 
@@ -136,7 +136,7 @@ public class OaiPmhIso19139Strategy implements IStrategy
             document.setPublisher(metadata.select(Iso19139StrategyConstants.PUBLISHER).text());
         } catch (NullPointerException e) {
             logger.warn("Document has no publisher, skipping {}",
-                        document.getIdentifier());
+                        document.getIdentifier().getValue());
             return null;
         }
 
@@ -153,7 +153,7 @@ public class OaiPmhIso19139Strategy implements IStrategy
             document.setPublicationYear((short) cal.get(Calendar.YEAR));
         } catch (NullPointerException e) {
             logger.warn("Document has no datestamp, skipping {}",
-                        document.getIdentifier());
+                        document.getIdentifier().getValue());
             return null;
         }
 
@@ -167,7 +167,7 @@ public class OaiPmhIso19139Strategy implements IStrategy
                     ResourceTypeGeneral.Dataset));
         } catch (NullPointerException e) {
             logger.warn("Document has no resourceType, skipping {}",
-                        document.getIdentifier());
+                        document.getIdentifier().getValue());
             return null;
         }
 
@@ -185,12 +185,12 @@ public class OaiPmhIso19139Strategy implements IStrategy
             new URL(researchDataURLString);
         } catch (NullPointerException e) {
             logger.warn("Document has no URL to the data, skipping {}",
-                        document.getIdentifier());
+                        document.getIdentifier().getValue());
             return null;
         } catch (MalformedURLException e) {
             logger.warn("URL {} is not valid, skipping {}",
                         researchDataURLString,
-                        document.getIdentifier());
+                        document.getIdentifier().getValue());
             return null;
         }
 
@@ -295,7 +295,8 @@ public class OaiPmhIso19139Strategy implements IStrategy
                     new Date(isoDate.select(Iso19139StrategyConstants.DATE).text(), dateType));
             } else {
                 logger.debug(isoDate.toString());
-                logger.info("Ignoring date, cannot make sense of dateType '{}'",
+                logger.info("Ignoring date for document {}, cannot make sense of dateType '{}'",
+                            parseIdentifier(metadata).getValue(),
                             isoDate.select(Iso19139StrategyConstants.DATE_TYPE).text());
             }
         }
@@ -327,7 +328,8 @@ public class OaiPmhIso19139Strategy implements IStrategy
                 north = Double.parseDouble(
                             isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_NORTH).text());
             } catch (NullPointerException | NumberFormatException e) {
-                logger.info("Ignoring geolocation {}, has no valid coordinations",
+                logger.info("Ignoring geolocation {} for document {}, has no valid coordinations",
+                            parseIdentifier(metadata).getValue(),
                             isoGeoLocation.text());
                 continue;
             }
