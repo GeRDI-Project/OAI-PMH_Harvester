@@ -172,7 +172,9 @@ public class DublinCoreTransformer extends AbstractIteratorTransformer<Element, 
 
         // get publisher
         Elements publisherElements = metadata.select(DublinCoreConstants.PUBLISHER);
-        document.setPublisher(publisherElements.first().text());
+
+        if (!publisherElements.isEmpty())
+            document.setPublisher(publisherElements.first().text());
 
         // get formats
         Elements formatElements = metadata.select(DublinCoreConstants.METADATA_FORMATS);
