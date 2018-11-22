@@ -15,7 +15,9 @@
  *  under the License.
  */
 /**
- * @author Robin Weiss
+ * This package contains constants used by {@linkplain de.gerdiproject.harvest.etls.transformers.ITransformer}
+ * implementations for the {@linkplain de.gerdiproject.harvest.etls.OaiPmhETL}.
  *
+ * @author Robin Weiss
  */
 package de.gerdiproject.harvest.etls.transformers.constants;

@@ -15,7 +15,7 @@
  *  under the License.
  */
 /**
- * This package contains utility classes used by {@linkplain de.gerdiproject.harvest.etls.loaders.ILoader}
+ * This package contains utility classes used by {@linkplain de.gerdiproject.harvest.etls.transformers.ITransformer}
  * implementations for the {@linkplain de.gerdiproject.harvest.etls.OaiPmhETL}.
  *
  * @author Robin Weiss

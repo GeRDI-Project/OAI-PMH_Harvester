@@ -42,7 +42,7 @@ import de.gerdiproject.json.datacite.DataCiteJson;
 
 /**
  * An OAI-PMH-Protocol ETL capable to harvest various metadata standardsdocuments
- * by exchaning the transform component depending on a set parameter.
+ * by exchanging the transform component depending on a set parameter.
  *
  * @author Jan Frömberg, Robin Weiss
  */

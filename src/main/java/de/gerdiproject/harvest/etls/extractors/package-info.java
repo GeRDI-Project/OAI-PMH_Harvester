@@ -15,7 +15,8 @@
  *  under the License.
  */
 /**
- * This package contains OAI-PMH extractors for the {@linkplain de.gerdiproject.harvest.etls.OaiPmhETL}.
+ * This package contains {@linkplain de.gerdiproject.harvest.etls.extractors.IExtractor}
+ * implementations for the {@linkplain de.gerdiproject.harvest.etls.OaiPmhETL}.
  *
  * @author Robin Weiss
  */
