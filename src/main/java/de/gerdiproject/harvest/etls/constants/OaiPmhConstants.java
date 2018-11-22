@@ -42,6 +42,7 @@ public class OaiPmhConstants
     public static final String UNINITIALIZED_PROVIDER = "OaiPmh";
     public static final String UNKNOWN_PROVIDER = "Unknown";
     public static final String LANGUAGE_ATTRIBUTE = "xml:lang";
+    public static final String LIST_SIZE_ATTRIBUTE = "completeListSize";
 
     // Errors
     public static final String WRONG_METADATA_PREFIX_ERROR = "The metadataPrefix '%s' is not allowed for this repository";

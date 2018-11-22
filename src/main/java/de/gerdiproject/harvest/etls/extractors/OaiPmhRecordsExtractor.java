@@ -45,26 +45,24 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
     private String recordsBaseUrl;
     private String resumptionUrlFormat;
 
+    private String versionString;
+    private int size = -1;
+
 
     @Override
     public String getUniqueVersionString()
     {
-        if (recordsBaseUrl == null)
-            return null;
-
-        // retrieve records
-        final Document recordsDoc = httpRequester.getHtmlFromUrl(recordsBaseUrl);
-
-        // retrieve identifier of the latest record
-        if (recordsDoc != null) {
-            final Element identifier = recordsDoc.select(DublinCoreConstants.IDENTIFIER).first();
-
-            if (identifier != null)
-                return identifier.text();
-        }
-
-        return null;
+        return versionString;
     }
+
+
+    @Override
+    public int size()
+    {
+        return size;
+    }
+
+
 
 
     @Override
@@ -85,6 +83,16 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
 
         if (recordsBaseUrl == null)
             throw new IllegalStateException(OaiPmhConstants.NO_METADATA_PREFIX_ERROR);
+
+        // retrieve version as first record
+        final Document doc = httpRequester.getHtmlFromUrl(recordsBaseUrl);
+        final Element identifier = doc != null ? doc.select(DublinCoreConstants.IDENTIFIER).first() : null;
+        this.versionString = identifier != null ? identifier.text() : null;
+
+        // retrieve number of documents, if known
+        final Element resumptionToken = doc != null ? doc.select(OaiPmhConstants.RESUMPTION_TOKEN_ELEMENT).first() : null;
+        final String listSizeString = resumptionToken != null ? resumptionToken.attr(OaiPmhConstants.LIST_SIZE_ATTRIBUTE) : "";
+        this.size = listSizeString.isEmpty() ? -1 : Integer.parseInt(listSizeString);
     }
 
 
