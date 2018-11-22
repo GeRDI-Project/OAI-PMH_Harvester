@@ -204,7 +204,7 @@ public class OaiPmhIso19139Strategy implements IStrategy
                     logger.debug(isoDate.toString());
                     logger.info("Ignoring date, cannot make sense of dateType {}",
                                 isoDate.select("gmd|CI_DateTypeCode").text());
-                    break nextDate;
+                    continue nextDate;
             }
 
             dateList.add(new Date(isoDate.select("gmd|date gco|Date").text(), dateType));
