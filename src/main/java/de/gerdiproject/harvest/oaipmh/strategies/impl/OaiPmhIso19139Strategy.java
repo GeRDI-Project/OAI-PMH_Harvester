@@ -99,32 +99,31 @@ public class OaiPmhIso19139Strategy implements IStrategy
          * We will use the same value as for Publisher.
          */
         List<Creator> creatorList = new LinkedList<>();
-        Creator creator = new Creator(metadata.select(Iso19139StrategyConstants.PUBLISHER).text());
+        final Element creator = metadata.select(Iso19139StrategyConstants.PUBLISHER).first();
 
         if (creator != null) {
-            creatorList.add(creator);
+            creatorList.add(new Creator(creator.text()));
             document.setCreators(creatorList);
         }
-
 
         /*
          * D3 Title
          */
         List<Title> titleList = new LinkedList<>();
-        Title title = new Title(metadata.select(Iso19139StrategyConstants.TITLE).text());
+        final Element title = metadata.select(Iso19139StrategyConstants.TITLE).first();
 
         if (title != null) {
-            titleList.add(title);
+            titleList.add(new Title(title.text()));
             document.setTitles(titleList);
         }
 
         /*
          * D4 Publisher
          */
-        String publisher = metadata.select(Iso19139StrategyConstants.PUBLISHER).text();
+        final Element publisher = metadata.select(Iso19139StrategyConstants.PUBLISHER).first();
 
         if (publisher != null)
-            document.setPublisher(publisher);
+            document.setPublisher(publisher.text());
 
         /*
          * D5 PublicationYear
@@ -133,28 +132,33 @@ public class OaiPmhIso19139Strategy implements IStrategy
          * "The date which specifies when the metadata record was created or updated."
          * This could be overwritten after we parsed the dates (but these might be missing)
          */
-        Calendar cal = null;
+        final Element datestamp = metadata.select(Iso19139StrategyConstants.DATESTAMP).first();
 
-        try {
-            cal = DatatypeConverter.parseDateTime(
-                      metadata.select(Iso19139StrategyConstants.DATESTAMP).text());
-        } catch (IllegalArgumentException e) {
-            logger.warn("Datestamp does not seem to be a date: {}",
-                        metadata.select(Iso19139StrategyConstants.DATESTAMP).text());
+        if (datestamp != null) {
+            Calendar cal = null;
+
+            try {
+                cal = DatatypeConverter.parseDateTime(datestamp.text());
+            } catch (IllegalArgumentException e) {
+                logger.warn("Datestamp does not seem to be a date: {}",
+                            metadata.select(Iso19139StrategyConstants.DATESTAMP).text());
+            }
+
+            if (cal != null)
+                document.setPublicationYear((short) cal.get(Calendar.YEAR));
         }
-
-        if (cal != null)
-            document.setPublicationYear((short) cal.get(Calendar.YEAR));
 
         /*
          * D10 ResourceType
          */
-        ResourceType resourceType = new ResourceType(
-            metadata.select(Iso19139StrategyConstants.RESOURCE_TYPE).first().text(),
-            ResourceTypeGeneral.Dataset);
+        final Element resourceType
+            = metadata.select(Iso19139StrategyConstants.RESOURCE_TYPE).first();
 
-        if (resourceType != null)
-            document.setResourceType(resourceType);
+        if (resourceType != null) {
+            document.setResourceType(new ResourceType(
+                                         resourceType.text(),
+                                         ResourceTypeGeneral.Dataset));
+        }
 
         /*
          * E3 ResearchData
@@ -162,16 +166,17 @@ public class OaiPmhIso19139Strategy implements IStrategy
          * the research data available.
          */
         List<ResearchData> researchDataList = new LinkedList<>();
-        String researchDataURLString = metadata.select(Iso19139StrategyConstants.RESEARCH_DATA).text();
+        final Element researchDataURLString
+            = metadata.select(Iso19139StrategyConstants.RESEARCH_DATA).first();
 
         if (researchDataURLString != null) {
             //Check whether URL is
             try {
-                new URL(researchDataURLString);
+                new URL(researchDataURLString.text());
 
                 if (!titleList.isEmpty()) {
                     ResearchData researchData = new ResearchData(
-                        researchDataURLString,
+                        researchDataURLString.text(),
                         titleList.get(0).getValue());
                     researchDataList.add(researchData);
                     document.setResearchDataList(researchDataList);
@@ -215,7 +220,7 @@ public class OaiPmhIso19139Strategy implements IStrategy
 
             for (AbstractDate date : dateList) {
                 if (date.getType() == DateType.Issued) {
-                    cal = DatatypeConverter.parseDateTime(date.getValue());
+                    Calendar cal = DatatypeConverter.parseDateTime(date.getValue());
                     document.setPublicationYear((short) cal.get(Calendar.YEAR));
                 }
             }
@@ -225,10 +230,12 @@ public class OaiPmhIso19139Strategy implements IStrategy
          * D17 Description
          */
         List<Description> descriptionList = new LinkedList<>();
-        descriptionList.add(
-            new Description(metadata.select(Iso19139StrategyConstants.DESCRIPTIONS).text(),
-                            DescriptionType.Abstract));
-        document.setDescriptions(descriptionList);
+        final Element description = metadata.select(Iso19139StrategyConstants.DESCRIPTIONS).first();
+
+        if (description != null) {
+            descriptionList.add(new Description(description.text(), DescriptionType.Abstract));
+            document.setDescriptions(descriptionList);
+        }
 
         /*
          * D18 GeoLocation
@@ -251,9 +258,8 @@ public class OaiPmhIso19139Strategy implements IStrategy
      */
     private Identifier parseIdentifier(Element metadata)
     {
-        return new Identifier(
-                   metadata.select(Iso19139StrategyConstants.IDENTIFIER).first().text()
-               );
+        final Element identifier = metadata.select(Iso19139StrategyConstants.IDENTIFIER).first();
+        return new Identifier(identifier.text());
     }
 
     /**
