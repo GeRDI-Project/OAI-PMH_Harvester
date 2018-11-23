@@ -170,7 +170,7 @@ public class OaiPmhIso19139Strategy implements IStrategy
             = metadata.select(Iso19139StrategyConstants.RESEARCH_DATA).first();
 
         if (researchDataURLString != null) {
-            //Check whether URL is
+            //Check whether URL is - wait for it - valid
             try {
                 new URL(researchDataURLString.text());
 
@@ -222,6 +222,7 @@ public class OaiPmhIso19139Strategy implements IStrategy
                 if (date.getType() == DateType.Issued) {
                     Calendar cal = DatatypeConverter.parseDateTime(date.getValue());
                     document.setPublicationYear((short) cal.get(Calendar.YEAR));
+                    break;
                 }
             }
         }
