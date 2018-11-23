@@ -57,6 +57,17 @@ public class Iso19139StrategyConstants
 
     public static final Map<String, DateType> DATE_TYPE_MAP = createDateTypeMap();
 
+
+    /**
+     * Private Constructor, because this is a static class.
+     */
+    private Iso19139StrategyConstants()
+    {
+    }
+
+    /**
+     * Initializes the DateTypeMap
+     */
     private static Map<String, DateType> createDateTypeMap()
     {
         final Map<String, DateType> map = new HashMap<>();
@@ -64,12 +75,5 @@ public class Iso19139StrategyConstants
         map.put("revision", DateType.Updated);
         map.put("creation", DateType.Created);
         return map;
-    }
-
-    /**
-     * Private Constructor, because this is a static class.
-     */
-    private Iso19139StrategyConstants()
-    {
     }
 }

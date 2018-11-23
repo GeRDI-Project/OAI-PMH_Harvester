@@ -151,7 +151,7 @@ public class OaiPmhIso19139Strategy implements IStrategy
             Calendar cal = DatatypeConverter.parseDateTime(
                                metadata.select(Iso19139StrategyConstants.DATESTAMP).text());
             document.setPublicationYear((short) cal.get(Calendar.YEAR));
-        } catch (NullPointerException e) {
+        } catch (IllegalArgumentException | NullPointerException e) {
             logger.warn("Document has no datestamp, skipping {}",
                         document.getIdentifier().getValue());
             return null;
