@@ -88,12 +88,10 @@ public class OaiPmhIso19139Strategy implements IStrategy
         document.setRepositoryIdentifier(repositoryIdentifier);
         Element metadata = record.select(Iso19139StrategyConstants.RECORD_METADATA).first();
 
-        try {
-            document.setIdentifier(parseIdentifier(metadata));
-        } catch (NullPointerException e) {
-            logger.warn("Document has no identifier, skipping");
-            return null;
-        }
+        Identifier identifier = parseIdentifier(metadata);
+
+        if (identifier != null)
+            document.setIdentifier(identifier);
 
         /*
          * D2 Creator
@@ -101,44 +99,32 @@ public class OaiPmhIso19139Strategy implements IStrategy
          * We will use the same value as for Publisher.
          */
         List<Creator> creatorList = new LinkedList<>();
+        Creator creator = new Creator(metadata.select(Iso19139StrategyConstants.PUBLISHER).text());
 
-        try {
-            creatorList.add(
-                new Creator(metadata.select(Iso19139StrategyConstants.PUBLISHER).text()));
-        } catch (NullPointerException e) {
-            logger.warn("Document has no creator, skipping {}",
-                        document.getIdentifier().getValue());
-            return null;
+        if (creator != null) {
+            creatorList.add(creator);
+            document.setCreators(creatorList);
         }
 
-        document.setCreators(creatorList);
 
         /*
          * D3 Title
          */
         List<Title> titleList = new LinkedList<>();
+        Title title = new Title(metadata.select(Iso19139StrategyConstants.TITLE).text());
 
-        try {
-            titleList.add(
-                new Title(metadata.select(Iso19139StrategyConstants.TITLE).text()));
-        } catch (NullPointerException e) {
-            logger.warn("Document has no title, skipping {}",
-                        document.getIdentifier().getValue());
-            return null;
+        if (title != null) {
+            titleList.add(title);
+            document.setTitles(titleList);
         }
-
-        document.setTitles(titleList);
 
         /*
          * D4 Publisher
          */
-        try {
-            document.setPublisher(metadata.select(Iso19139StrategyConstants.PUBLISHER).text());
-        } catch (NullPointerException e) {
-            logger.warn("Document has no publisher, skipping {}",
-                        document.getIdentifier().getValue());
-            return null;
-        }
+        String publisher = metadata.select(Iso19139StrategyConstants.PUBLISHER).text();
+
+        if (publisher != null)
+            document.setPublisher(publisher);
 
         /*
          * D5 PublicationYear
@@ -147,29 +133,28 @@ public class OaiPmhIso19139Strategy implements IStrategy
          * "The date which specifies when the metadata record was created or updated."
          * This could be overwritten after we parsed the dates (but these might be missing)
          */
+        Calendar cal = null;
+
         try {
-            Calendar cal = DatatypeConverter.parseDateTime(
-                               metadata.select(Iso19139StrategyConstants.DATESTAMP).text());
-            document.setPublicationYear((short) cal.get(Calendar.YEAR));
-        } catch (IllegalArgumentException | NullPointerException e) {
-            logger.warn("Document has no datestamp, skipping {}",
-                        document.getIdentifier().getValue());
-            return null;
+            cal = DatatypeConverter.parseDateTime(
+                      metadata.select(Iso19139StrategyConstants.DATESTAMP).text());
+        } catch (IllegalArgumentException e) {
+            logger.warn("Datestamp does not seem to be a date: {}",
+                        metadata.select(Iso19139StrategyConstants.DATESTAMP).text());
         }
+
+        if (cal != null)
+            document.setPublicationYear((short) cal.get(Calendar.YEAR));
 
         /*
          * D10 ResourceType
          */
-        try {
-            document.setResourceType(
-                new ResourceType(
-                    metadata.select(Iso19139StrategyConstants.RESOURCE_TYPE).first().text(),
-                    ResourceTypeGeneral.Dataset));
-        } catch (NullPointerException e) {
-            logger.warn("Document has no resourceType, skipping {}",
-                        document.getIdentifier().getValue());
-            return null;
-        }
+        ResourceType resourceType = new ResourceType(
+            metadata.select(Iso19139StrategyConstants.RESOURCE_TYPE).first().text(),
+            ResourceTypeGeneral.Dataset);
+
+        if (resourceType != null)
+            document.setResourceType(resourceType);
 
         /*
          * E3 ResearchData
@@ -177,28 +162,24 @@ public class OaiPmhIso19139Strategy implements IStrategy
          * the research data available.
          */
         List<ResearchData> researchDataList = new LinkedList<>();
-        String researchDataURLString = null;
+        String researchDataURLString = metadata.select(Iso19139StrategyConstants.RESEARCH_DATA).text();
 
-        try {
-            researchDataURLString =
-                metadata.select(Iso19139StrategyConstants.RESEARCH_DATA).text();
-            new URL(researchDataURLString);
-        } catch (NullPointerException e) {
-            logger.warn("Document has no URL to the data, skipping {}",
-                        document.getIdentifier().getValue());
-            return null;
-        } catch (MalformedURLException e) {
-            logger.warn("URL {} is not valid, skipping {}",
+        if (researchDataURLString != null) {
+            //Check whether URL is
+            try {
+                new URL(researchDataURLString);
+
+                if (!titleList.isEmpty()) {
+                    ResearchData researchData = new ResearchData(
                         researchDataURLString,
-                        document.getIdentifier().getValue());
-            return null;
+                        titleList.get(0).getValue());
+                    researchDataList.add(researchData);
+                    document.setResearchDataList(researchDataList);
+                }
+            } catch (MalformedURLException e) {
+                logger.warn("URL {} is not valid, skipping", researchDataURLString);
+            }
         }
-
-        ResearchData researchData = new ResearchData(
-            researchDataURLString,
-            metadata.select(Iso19139StrategyConstants.TITLE).text());
-        researchDataList.add(researchData);
-        document.setResearchDataList(researchDataList);
 
         /*
          ********************************************************************************
@@ -229,12 +210,12 @@ public class OaiPmhIso19139Strategy implements IStrategy
          */
         List<AbstractDate> dateList = parseDates(metadata);
 
-        if (! dateList.isEmpty()) {
+        if (!dateList.isEmpty()) {
             document.setDates(dateList);
 
             for (AbstractDate date : dateList) {
                 if (date.getType() == DateType.Issued) {
-                    Calendar cal = DatatypeConverter.parseDateTime(date.getValue());
+                    cal = DatatypeConverter.parseDateTime(date.getValue());
                     document.setPublicationYear((short) cal.get(Calendar.YEAR));
                 }
             }
@@ -293,11 +274,6 @@ public class OaiPmhIso19139Strategy implements IStrategy
             if (dateType != null) {
                 dateList.add(
                     new Date(isoDate.select(Iso19139StrategyConstants.DATE).text(), dateType));
-            } else {
-                logger.debug(isoDate.toString());
-                logger.info("Ignoring date for document {}, cannot make sense of dateType '{}'",
-                            parseIdentifier(metadata).getValue(),
-                            isoDate.select(Iso19139StrategyConstants.DATE_TYPE).text());
             }
         }
 
