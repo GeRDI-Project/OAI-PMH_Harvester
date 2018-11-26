@@ -16,7 +16,6 @@
  */
 package de.gerdiproject.harvest.etls.extractors;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -24,8 +23,6 @@ import java.util.Queue;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-
-import com.google.gson.Gson;
 
 import de.gerdiproject.harvest.etls.AbstractETL;
 import de.gerdiproject.harvest.etls.OaiPmhETL;
@@ -41,7 +38,7 @@ import de.gerdiproject.harvest.utils.data.HttpRequester;
  */
 public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
 {
-    private final HttpRequester httpRequester = new HttpRequester(new Gson(), StandardCharsets.UTF_8);
+    private final HttpRequester httpRequester = new HttpRequester();
     private String recordsBaseUrl;
     private String resumptionUrlFormat;
 

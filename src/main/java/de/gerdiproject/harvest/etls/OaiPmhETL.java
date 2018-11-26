@@ -15,13 +15,10 @@
  */
 package de.gerdiproject.harvest.etls;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-
-import com.google.gson.Gson;
 
 import de.gerdiproject.harvest.config.Configuration;
 import de.gerdiproject.harvest.config.parameters.AbstractParameter;
@@ -189,7 +186,7 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
      */
     public String getRepositoryName()
     {
-        final HttpRequester httpRequester = new HttpRequester(new Gson(), StandardCharsets.UTF_8);
+        final HttpRequester httpRequester = new HttpRequester();
 
         if (hostUrlParam.getValue() != null && !hostUrlParam.getValue().isEmpty()) {
             Document identifyDoc = httpRequester.getHtmlFromUrl(String.format(OaiPmhConstants.IDENTIFY_URL, hostUrlParam.getValue()));
