@@ -256,6 +256,8 @@ public class OaiPmhIso19139Strategy implements IStrategy
      * @todo ISO19139 does not guarantee a DOI, but a "unique and persistent identifier",
      *       up to now these are URNs - the following call will set the identifierType to DOI
      *       nevertheless
+     *
+     * @return Identifier The String representation of the identifier
      */
     private Identifier parseIdentifier(Element metadata)
     {
@@ -268,6 +270,9 @@ public class OaiPmhIso19139Strategy implements IStrategy
      * to a DataCite field
      *
      * @param metadata metadata to be parsed
+     *
+     * @return List<AbstractDate> List of date-data that are mappable to a DataCite field
+     *                            (Created, Issued, Updated)
      */
     private List<AbstractDate> parseDates(Element metadata)
     {
@@ -291,6 +296,8 @@ public class OaiPmhIso19139Strategy implements IStrategy
      * Parses metadata for geolocations (D18) in an ISO19139 metadata record
      *
      * @param metadata metadata to be parsed
+     *
+     * @return List<GeoLocation> List of geolocations which are given as a bounding box
      */
     private List<GeoLocation> parseGeoLocations(Element metadata)
     {
@@ -328,5 +335,4 @@ public class OaiPmhIso19139Strategy implements IStrategy
 
         return geoLocationList;
     }
-
 }
