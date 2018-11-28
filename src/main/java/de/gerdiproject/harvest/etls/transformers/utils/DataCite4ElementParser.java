@@ -362,7 +362,7 @@ public class DataCite4ElementParser
 
         final Rights rights = new Rights(value);
         rights.setLang(language);
-        rights.setURI(rightsURI);
+        rights.setUri(rightsURI);
 
         return rights;
     }
@@ -471,14 +471,11 @@ public class DataCite4ElementParser
         final double longitude = Double.parseDouble(values[0]);
         final double latitude = Double.parseDouble(values[1]);
 
-        final Point point = new Point(longitude, latitude);
-
         if (values.length == 3) {
             final double elevation = Double.parseDouble(values[2]);
-            point.setElevation(elevation);
-        }
-
-        return point;
+            return new Point(longitude, latitude, elevation);
+        } else
+            return new Point(longitude, latitude);
     }
 
 

@@ -99,7 +99,7 @@ public class DublinCoreTransformer extends AbstractIteratorTransformer<Element, 
         for (Element e : dateElements) {
             try {
                 cal.setTime(dateFormat.parse(e.text()));
-                document.setPublicationYear((short) cal.get(Calendar.YEAR));
+                document.setPublicationYear(cal.get(Calendar.YEAR));
 
                 Date publicationDate = new Date(e.text(), DateType.Available);
                 dates.add(publicationDate);

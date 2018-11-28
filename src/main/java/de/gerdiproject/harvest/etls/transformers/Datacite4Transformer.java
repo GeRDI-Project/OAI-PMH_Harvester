@@ -86,9 +86,9 @@ public class Datacite4Transformer extends AbstractIteratorTransformer<Element, D
 
         try {
             String publicationYear = DataCite4ElementParser.getString(metadata, "publicationYear");
-            document.setPublicationYear(Short.parseShort(publicationYear));
+            document.setPublicationYear(Integer.parseInt(publicationYear));
         } catch (NumberFormatException | NullPointerException e) {
-            document.setPublicationYear((short)0);
+            document.setPublicationYear(null);
         }
 
         return document;

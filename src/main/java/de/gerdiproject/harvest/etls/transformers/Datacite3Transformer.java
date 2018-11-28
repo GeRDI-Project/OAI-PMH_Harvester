@@ -169,7 +169,7 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
         for (Element year : pubYears) {
 
             try {
-                short pubyear = Short.parseShort(year.text());
+                int pubyear = Integer.parseInt(year.text());
                 document.setPublicationYear(pubyear);
             } catch (NumberFormatException e) {//NOPMD do nothing.
             }
@@ -298,7 +298,7 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
             for (Element ei : ef) {
                 String temp = ei.text();
                 Rights rights = new Rights(temp);
-                rights.setURI(ei.attr(DataCiteConstants.RIGHTS_URI));
+                rights.setUri(ei.attr(DataCiteConstants.RIGHTS_URI));
                 docrights.add(rights);
             }
         }
