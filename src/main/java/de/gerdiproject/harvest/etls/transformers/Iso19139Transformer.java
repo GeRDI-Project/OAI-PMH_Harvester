@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.gerdiproject.harvest.oaipmh.strategies.impl;
+package de.gerdiproject.harvest.etls.transformers;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -28,9 +28,7 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.gerdiproject.harvest.IDocument;
-import de.gerdiproject.harvest.oaipmh.constants.Iso19139StrategyConstants;
-import de.gerdiproject.harvest.oaipmh.strategies.IStrategy;
+import de.gerdiproject.harvest.etls.transformers.constants.Iso19139Constants;
 import de.gerdiproject.json.datacite.Creator;
 import de.gerdiproject.json.datacite.DataCiteJson;
 import de.gerdiproject.json.datacite.Date;
@@ -43,7 +41,7 @@ import de.gerdiproject.json.datacite.abstr.AbstractDate;
 import de.gerdiproject.json.datacite.enums.DateType;
 import de.gerdiproject.json.datacite.enums.DescriptionType;
 import de.gerdiproject.json.datacite.enums.ResourceTypeGeneral;
-import de.gerdiproject.json.datacite.extension.ResearchData;
+import de.gerdiproject.json.datacite.extension.generic.ResearchData;
 import de.gerdiproject.json.geo.GeoJson;
 import de.gerdiproject.json.geo.Point;
 
@@ -54,22 +52,24 @@ import de.gerdiproject.json.geo.Point;
  * @author Tobias Weber
  *
  */
-public class OaiPmhIso19139Strategy implements IStrategy
+public class Iso19139Transformer extends AbstractIteratorTransformer<Element, DataCiteJson>
 {
-    protected static final Logger logger
-        = LoggerFactory.getLogger(OaiPmhIso19139Strategy.class.getName());
+    protected static final Logger LOGGER = LoggerFactory.getLogger(Iso19139Transformer.class);
+
 
     @Override
-    public IDocument harvestRecord(Element record)
+    public DataCiteJson transformElement(Element record)
     {
-        Boolean isRecordDeleted = record.children()
-                                  .first()
-                                  .attr(Iso19139StrategyConstants.RECORD_STATUS)
-                                  .equals(Iso19139StrategyConstants.RECORD_STATUS_DEL);
+        final boolean isRecordDeleted = record.children()
+                                        .first()
+                                        .attr(Iso19139Constants.RECORD_STATUS)
+                                        .equals(Iso19139Constants.RECORD_STATUS_DEL);
 
         // check if entry/record is "deleted" from repository
         if (isRecordDeleted)
             return null;
+
+        final Element metadata = record.select(Iso19139Constants.RECORD_METADATA).first();
 
         /*
          ********************************************************************************
@@ -81,46 +81,42 @@ public class OaiPmhIso19139Strategy implements IStrategy
          * Cannot be determined via Metadata
          * TODO A constant is not a good idea, should be configurable
          */
-        final String repositoryIdentifier = Iso19139StrategyConstants.REPOSITORY_IDENTIFIER;
+        final String repositoryIdentifier = Iso19139Constants.REPOSITORY_IDENTIFIER;
 
         //prepare for the other metadata
         final DataCiteJson document = new DataCiteJson(repositoryIdentifier);
+
         document.setRepositoryIdentifier(repositoryIdentifier);
-        Element metadata = record.select(Iso19139StrategyConstants.RECORD_METADATA).first();
-
-        Identifier identifier = parseIdentifier(metadata);
-
-        if (identifier != null)
-            document.setIdentifier(identifier);
+        document.setIdentifier(parseIdentifier(metadata));
 
         /*
          * D2 Creator
          * This field is not easily mappable from ISO19139 to DataCite.
          * We will use the same value as for Publisher.
          */
-        List<Creator> creatorList = new LinkedList<>();
-        final Element creator = metadata.select(Iso19139StrategyConstants.PUBLISHER).first();
+        final List<Creator> creatorList = new LinkedList<>();
+        final Element creator = metadata.selectFirst(Iso19139Constants.PUBLISHER);
 
         if (creator != null) {
             creatorList.add(new Creator(creator.text()));
-            document.setCreators(creatorList);
+            document.addCreators(creatorList);
         }
 
         /*
          * D3 Title
          */
-        List<Title> titleList = new LinkedList<>();
-        final Element title = metadata.select(Iso19139StrategyConstants.TITLE).first();
+        final List<Title> titleList = new LinkedList<>();
+        final Element title = metadata.selectFirst(Iso19139Constants.TITLE);
 
         if (title != null) {
             titleList.add(new Title(title.text()));
-            document.setTitles(titleList);
+            document.addTitles(titleList);
         }
 
         /*
          * D4 Publisher
          */
-        final Element publisher = metadata.select(Iso19139StrategyConstants.PUBLISHER).first();
+        final Element publisher = metadata.selectFirst(Iso19139Constants.PUBLISHER);
 
         if (publisher != null)
             document.setPublisher(publisher.text());
@@ -132,27 +128,25 @@ public class OaiPmhIso19139Strategy implements IStrategy
          * "The date which specifies when the metadata record was created or updated."
          * This could be overwritten after we parsed the dates (but these might be missing)
          */
-        final Element datestamp = metadata.select(Iso19139StrategyConstants.DATESTAMP).first();
+        final Element datestamp = metadata.selectFirst(Iso19139Constants.DATESTAMP);
 
         if (datestamp != null) {
             Calendar cal = null;
 
             try {
                 cal = DatatypeConverter.parseDateTime(datestamp.text());
+                document.setPublicationYear(cal.get(Calendar.YEAR));
             } catch (IllegalArgumentException e) {
-                logger.warn("Datestamp does not seem to be a date: {}",
-                            metadata.select(Iso19139StrategyConstants.DATESTAMP).text());
+                LOGGER.warn("Datestamp does not seem to be a date: {}",
+                            metadata.select(Iso19139Constants.DATESTAMP).text());
             }
-
-            if (cal != null)
-                document.setPublicationYear((short) cal.get(Calendar.YEAR));
         }
 
         /*
          * D10 ResourceType
          */
         final Element resourceType
-            = metadata.select(Iso19139StrategyConstants.RESOURCE_TYPE).first();
+            = metadata.selectFirst(Iso19139Constants.RESOURCE_TYPE);
 
         if (resourceType != null) {
             document.setResourceType(new ResourceType(
@@ -165,24 +159,24 @@ public class OaiPmhIso19139Strategy implements IStrategy
          * Since we do not have a DOI, we will return null, if there is no valid URL for
          * the research data available.
          */
-        List<ResearchData> researchDataList = new LinkedList<>();
-        final Element researchDataURLString
-            = metadata.select(Iso19139StrategyConstants.RESEARCH_DATA).first();
+        final List<ResearchData> researchDataList = new LinkedList<>();
+        final Element researchDataURL
+            = metadata.selectFirst(Iso19139Constants.RESEARCH_DATA);
 
-        if (researchDataURLString != null) {
+        if (researchDataURL != null) {
             //Check whether URL is - wait for it - valid
             try {
-                new URL(researchDataURLString.text());
+                new URL(researchDataURL.text());
 
                 if (!titleList.isEmpty()) {
-                    ResearchData researchData = new ResearchData(
-                        researchDataURLString.text(),
+                    final ResearchData researchData = new ResearchData(
+                        researchDataURL.text(),
                         titleList.get(0).getValue());
                     researchDataList.add(researchData);
-                    document.setResearchDataList(researchDataList);
+                    document.addResearchData(researchDataList);
                 }
             } catch (MalformedURLException e) {
-                logger.warn("URL {} is not valid, skipping", researchDataURLString);
+                LOGGER.warn("URL {} is not valid, skipping", researchDataURL);
             }
         }
 
@@ -213,15 +207,15 @@ public class OaiPmhIso19139Strategy implements IStrategy
         /*
          * D8 Date
          */
-        List<AbstractDate> dateList = parseDates(metadata);
+        final List<AbstractDate> dateList = parseDates(metadata);
 
         if (!dateList.isEmpty()) {
-            document.setDates(dateList);
+            document.addDates(dateList);
 
             for (AbstractDate date : dateList) {
                 if (date.getType() == DateType.Issued) {
                     Calendar cal = DatatypeConverter.parseDateTime(date.getValue());
-                    document.setPublicationYear((short) cal.get(Calendar.YEAR));
+                    document.setPublicationYear(cal.get(Calendar.YEAR));
                     break;
                 }
             }
@@ -230,27 +224,25 @@ public class OaiPmhIso19139Strategy implements IStrategy
         /*
          * D17 Description
          */
-        List<Description> descriptionList = new LinkedList<>();
-        final Element description = metadata.select(Iso19139StrategyConstants.DESCRIPTIONS).first();
+        final List<Description> descriptionList = new LinkedList<>();
+        final Element description = metadata.select(Iso19139Constants.DESCRIPTIONS).first();
 
         if (description != null) {
             descriptionList.add(new Description(description.text(), DescriptionType.Abstract));
-            document.setDescriptions(descriptionList);
+            document.addDescriptions(descriptionList);
         }
 
         /*
          * D18 GeoLocation
          */
-        List<GeoLocation> geoLocationList = parseGeoLocations(metadata);
-
-        if (! geoLocationList.isEmpty())
-            document.setGeoLocations(geoLocationList);
+        document.addGeoLocations(parseGeoLocations(metadata));
 
         return document;
     }
 
+
     /**
-     * Parses metadata for an identifier (D1) in an ISO19139 metadata record
+     * Parses metadata for an identifier (D1) in an ISO19139 metadata record.
      *
      * @param metadata metadata to be parsed
      * @todo ISO19139 does not guarantee a DOI, but a "unique and persistent identifier",
@@ -261,13 +253,14 @@ public class OaiPmhIso19139Strategy implements IStrategy
      */
     private Identifier parseIdentifier(Element metadata)
     {
-        final Element identifier = metadata.select(Iso19139StrategyConstants.IDENTIFIER).first();
+        final Element identifier = metadata.select(Iso19139Constants.IDENTIFIER).first();
         return new Identifier(identifier.text());
     }
 
+
     /**
      * Parses metadata for dates (D8) in an ISO19139 metadata record that are mappable
-     * to a DataCite field
+     * to a DataCite field.
      *
      * @param metadata metadata to be parsed
      *
@@ -277,23 +270,24 @@ public class OaiPmhIso19139Strategy implements IStrategy
     private List<AbstractDate> parseDates(Element metadata)
     {
         List<AbstractDate> dateList = new LinkedList<>();
-        Elements isoDates = metadata.select(Iso19139StrategyConstants.DATES);
+        Elements isoDates = metadata.select(Iso19139Constants.DATES);
 
         for (Element isoDate : isoDates) {
-            final DateType dateType = Iso19139StrategyConstants.DATE_TYPE_MAP.get(
-                                          isoDate.select(Iso19139StrategyConstants.DATE_TYPE).text());
+            final DateType dateType = Iso19139Constants.DATE_TYPE_MAP.get(
+                                          isoDate.select(Iso19139Constants.DATE_TYPE).text());
 
             if (dateType != null) {
                 dateList.add(
-                    new Date(isoDate.select(Iso19139StrategyConstants.DATE).text(), dateType));
+                    new Date(isoDate.select(Iso19139Constants.DATE).text(), dateType));
             }
         }
 
         return dateList;
     }
 
+
     /**
-     * Parses metadata for geolocations (D18) in an ISO19139 metadata record
+     * Parses metadata for geolocations (D18) in an ISO19139 metadata record.
      *
      * @param metadata metadata to be parsed
      *
@@ -302,7 +296,7 @@ public class OaiPmhIso19139Strategy implements IStrategy
     private List<GeoLocation> parseGeoLocations(Element metadata)
     {
         List<GeoLocation> geoLocationList = new LinkedList<>();
-        Elements isoGeoLocations = metadata.select(Iso19139StrategyConstants.GEOLOCS);
+        Elements isoGeoLocations = metadata.select(Iso19139Constants.GEOLOCS);
 
         for (Element isoGeoLocation : isoGeoLocations) {
             GeoLocation geoLocation = new GeoLocation();
@@ -310,15 +304,15 @@ public class OaiPmhIso19139Strategy implements IStrategy
 
             try {
                 west = Double.parseDouble(
-                           isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_WEST).text());
+                           isoGeoLocation.select(Iso19139Constants.GEOLOCS_WEST).text());
                 east = Double.parseDouble(
-                           isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_EAST).text());
+                           isoGeoLocation.select(Iso19139Constants.GEOLOCS_EAST).text());
                 south = Double.parseDouble(
-                            isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_SOUTH).text());
+                            isoGeoLocation.select(Iso19139Constants.GEOLOCS_SOUTH).text());
                 north = Double.parseDouble(
-                            isoGeoLocation.select(Iso19139StrategyConstants.GEOLOCS_NORTH).text());
+                            isoGeoLocation.select(Iso19139Constants.GEOLOCS_NORTH).text());
             } catch (NullPointerException | NumberFormatException e) {
-                logger.info("Ignoring geolocation {} for document {}, has no valid coordinations",
+                LOGGER.info("Ignoring geolocation {} for document {}, has no valid coordinations",
                             parseIdentifier(metadata).getValue(),
                             isoGeoLocation.text());
                 continue;

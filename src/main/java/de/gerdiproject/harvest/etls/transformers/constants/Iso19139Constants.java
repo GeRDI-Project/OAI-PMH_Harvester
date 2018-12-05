@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.gerdiproject.harvest.oaipmh.constants;
+package de.gerdiproject.harvest.etls.transformers.constants;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -26,7 +26,7 @@ import de.gerdiproject.json.datacite.enums.DateType;
  * @author Tobias Weber
  *
  */
-public class Iso19139StrategyConstants
+public class Iso19139Constants
 {
 
     public static final String RECORD_STATUS = "status";
@@ -61,7 +61,7 @@ public class Iso19139StrategyConstants
     /**
      * Private Constructor, because this is a static class.
      */
-    private Iso19139StrategyConstants()
+    private Iso19139Constants()
     {
     }
 

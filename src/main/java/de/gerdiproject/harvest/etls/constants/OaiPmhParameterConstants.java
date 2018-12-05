@@ -37,6 +37,8 @@ public class OaiPmhParameterConstants
 
     public static final String  DUBLIN_CORE_METADATA_PREFIX = "oai_dc";
 
+    public static final String  ISO_19139_METADATA_PREFIX = "iso19139";
+
     public static final List<String> METADATA_PREFIX_ALLOWED_VALUES =
         Collections.unmodifiableList(Arrays.asList(
                                          DATACITE_3_METADATA_PREFIX,

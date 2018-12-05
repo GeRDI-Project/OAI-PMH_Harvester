@@ -33,6 +33,7 @@ import de.gerdiproject.harvest.etls.transformers.Datacite3Transformer;
 import de.gerdiproject.harvest.etls.transformers.Datacite4Transformer;
 import de.gerdiproject.harvest.etls.transformers.DublinCoreTransformer;
 import de.gerdiproject.harvest.etls.transformers.ITransformer;
+import de.gerdiproject.harvest.etls.transformers.Iso19139Transformer;
 import de.gerdiproject.harvest.event.EventSystem;
 import de.gerdiproject.harvest.utils.data.HttpRequester;
 import de.gerdiproject.json.datacite.DataCiteJson;
@@ -89,6 +90,9 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
 
             case OaiPmhParameterConstants.DUBLIN_CORE_METADATA_PREFIX:
                 return new DublinCoreTransformer();
+
+            case OaiPmhParameterConstants.ISO_19139_METADATA_PREFIX:
+                return new Iso19139Transformer();
 
             default:
                 logger.error(String.format(OaiPmhConstants.WRONG_METADATA_PREFIX_ERROR, metadataPrefixParam.getValue()));
