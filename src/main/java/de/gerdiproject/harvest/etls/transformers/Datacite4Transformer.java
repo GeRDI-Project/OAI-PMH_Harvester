@@ -26,8 +26,8 @@ import de.gerdiproject.harvest.etls.transformers.utils.DataCite4ElementParser;
 import de.gerdiproject.json.datacite.DataCiteJson;
 import de.gerdiproject.json.datacite.Identifier;
 import de.gerdiproject.json.datacite.RelatedIdentifier;
-import de.gerdiproject.json.datacite.extension.WebLink;
-import de.gerdiproject.json.datacite.extension.enums.WebLinkType;
+import de.gerdiproject.json.datacite.extension.generic.WebLink;
+import de.gerdiproject.json.datacite.extension.generic.enums.WebLinkType;
 
 /**
  * A transformer for records of the Datacite 4.1 metadata standard.<br>
