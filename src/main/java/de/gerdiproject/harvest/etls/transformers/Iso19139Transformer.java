@@ -28,6 +28,7 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.gerdiproject.harvest.etls.transformers.constants.DataCiteConstants;
 import de.gerdiproject.harvest.etls.transformers.constants.Iso19139Constants;
 import de.gerdiproject.json.datacite.Creator;
 import de.gerdiproject.json.datacite.DataCiteJson;
@@ -49,8 +50,23 @@ import de.gerdiproject.json.geo.Point;
  * A harvesting strategy for the ISO 19139 metadata standard.<br>
  *  https://www.iso.org/standard/32557.html
  *
+ * The following DataCite and GeRDI generic extension fields are currently
+ * NOT implemented:
+ * - D7     Contributor
+ * - D9     Language
+ * - D11    AlternateIdentifier
+ * - D12    RelatedIdentifier
+ * - D13    Size
+ * - D14    Format
+ * - D15    Version
+ * - D16    Rights
+ * - D19    FundingReference
+ * - E1     WebLink
+ * - E4     ResearchDiscipline
+ * For a possible mapping from ISO19139 to these fields
+ * see https://wiki.gerdi-project.de/x/8YDmAQ
+ * 
  * @author Tobias Weber
- *
  */
 public class Iso19139Transformer extends AbstractIteratorTransformer<Element, DataCiteJson>
 {
@@ -69,203 +85,165 @@ public class Iso19139Transformer extends AbstractIteratorTransformer<Element, Da
         if (isRecordDeleted)
             return null;
 
-        final Element metadata = record.select(Iso19139Constants.RECORD_METADATA).first();
+        // retrieve record header and metadata
+        final Element header = record.selectFirst(DataCiteConstants.RECORD_HEADER);
+        final Element metadata = record.selectFirst(Iso19139Constants.RECORD_METADATA);
 
-        /*
-         ********************************************************************************
-         * Start for mandatory fields (may not fail)
-         ********************************************************************************
-         */
-        /*
-         * E2 RepositoryIdentifier
-         * Cannot be determined via Metadata
-         * TODO A constant is not a good idea, should be configurable
-         */
-        final String repositoryIdentifier = Iso19139Constants.REPOSITORY_IDENTIFIER;
-
-        //prepare for the other metadata
-        final DataCiteJson document = new DataCiteJson(repositoryIdentifier);
-
-        document.setRepositoryIdentifier(repositoryIdentifier);
-        document.setIdentifier(parseIdentifier(metadata));
-
-        /*
-         * D2 Creator
-         * This field is not easily mappable from ISO19139 to DataCite.
-         * We will use the same value as for Publisher.
-         */
-        final List<Creator> creatorList = new LinkedList<>();
-        final Element creator = metadata.selectFirst(Iso19139Constants.PUBLISHER);
-
-        if (creator != null) {
-            creatorList.add(new Creator(creator.text()));
-            document.addCreators(creatorList);
-        }
-
-        /*
-         * D3 Title
-         */
-        final List<Title> titleList = new LinkedList<>();
-        final Element title = metadata.selectFirst(Iso19139Constants.TITLE);
-
-        if (title != null) {
-            titleList.add(new Title(title.text()));
-            document.addTitles(titleList);
-        }
-
-        /*
-         * D4 Publisher
-         */
-        final Element publisher = metadata.selectFirst(Iso19139Constants.PUBLISHER);
-
-        if (publisher != null)
-            document.setPublisher(publisher.text());
-
-        /*
-         * D5 PublicationYear
-         * This field is not easily mappable from ISO19139 to DataCite.
-         * We will use the datestamp of the metadata record, since it is the best approximation:
-         * "The date which specifies when the metadata record was created or updated."
-         * This could be overwritten after we parsed the dates (but these might be missing)
-         */
-        final Element datestamp = metadata.selectFirst(Iso19139Constants.DATESTAMP);
-
-        if (datestamp != null) {
-            Calendar cal = null;
-
-            try {
-                cal = DatatypeConverter.parseDateTime(datestamp.text());
-                document.setPublicationYear(cal.get(Calendar.YEAR));
-            } catch (IllegalArgumentException e) {
-                LOGGER.warn("Datestamp does not seem to be a date: {}",
-                            metadata.select(Iso19139Constants.DATESTAMP).text());
-            }
-        }
-
-        /*
-         * D10 ResourceType
-         */
-        final Element resourceType
-            = metadata.selectFirst(Iso19139Constants.RESOURCE_TYPE);
-
-        if (resourceType != null) {
-            document.setResourceType(new ResourceType(
-                                         resourceType.text(),
-                                         ResourceTypeGeneral.Dataset));
-        }
-
-        /*
-         * E3 ResearchData
-         * Since we do not have a DOI, we will return null, if there is no valid URL for
-         * the research data available.
-         */
-        final List<ResearchData> researchDataList = new LinkedList<>();
-        final Element researchDataURL
-            = metadata.selectFirst(Iso19139Constants.RESEARCH_DATA);
-
-        if (researchDataURL != null) {
-            //Check whether URL is - wait for it - valid
-            try {
-                new URL(researchDataURL.text());
-
-                if (!titleList.isEmpty()) {
-                    final ResearchData researchData = new ResearchData(
-                        researchDataURL.text(),
-                        titleList.get(0).getValue());
-                    researchDataList.add(researchData);
-                    document.addResearchData(researchDataList);
-                }
-            } catch (MalformedURLException e) {
-                LOGGER.warn("URL {} is not valid, skipping", researchDataURL);
-            }
-        }
-
-        /*
-         ********************************************************************************
-         * Start for non-mandatory fields (may fail)
-         ********************************************************************************
-         */
-
-        /*
-         * The following DataCite and GeRDI generic extension fields are currently
-         * NOT implemented:
-         * - D7     Contributor
-         * - D9     Language
-         * - D11    AlternateIdentifier
-         * - D12    RelatedIdentifier
-         * - D13    Size
-         * - D14    Format
-         * - D15    Version
-         * - D16    Rights
-         * - D19    FundingReference
-         * - E1     WebLink
-         * - E4     ResearchDiscipline
-         * For a possible mapping from ISO19139 to these fields
-         * see https://wiki.gerdi-project.de/x/8YDmAQ
-         */
-
-        /*
-         * D8 Date
-         */
+        // create document
+        final DataCiteJson document = new DataCiteJson(parseDocumentId(header));
+        
+        // parse metadata that is used by more than one document field
         final List<AbstractDate> dateList = parseDates(metadata);
+        final List<Title> titleList = parseTitles(metadata);
 
-        if (!dateList.isEmpty()) {
-            document.addDates(dateList);
-
-            for (AbstractDate date : dateList) {
-                if (date.getType() == DateType.Issued) {
-                    Calendar cal = DatatypeConverter.parseDateTime(date.getValue());
-                    document.setPublicationYear(cal.get(Calendar.YEAR));
-                    break;
-                }
-            }
-        }
-
-        /*
-         * D17 Description
-         */
-        final List<Description> descriptionList = new LinkedList<>();
-        final Element description = metadata.select(Iso19139Constants.DESCRIPTIONS).first();
-
-        if (description != null) {
-            descriptionList.add(new Description(description.text(), DescriptionType.Abstract));
-            document.addDescriptions(descriptionList);
-        }
-
-        /*
-         * D18 GeoLocation
-         */
+        // DataCite metadata
+        document.setIdentifier(parseIdentifier(metadata));
+        document.addCreators(parseCreators(metadata));
+        document.addTitles(titleList);
+        document.setPublisher(parsePublisher(metadata));
+        document.addDates(dateList);
+        document.setPublicationYear(parsePublicationYear(metadata, dateList));
+        document.setResourceType(parseResourceType(metadata));
+        document.addDescriptions(parseDescriptions(metadata));
         document.addGeoLocations(parseGeoLocations(metadata));
+        
+        // GeRDI Extension metadata
+        document.addResearchData(parseResearchData(metadata, titleList));
 
         return document;
     }
-
-
+    
+    
     /**
-     * Parses metadata for an identifier (D1) in an ISO19139 metadata record.
+     * Parses metadata for an identifier (D1) from an ISO19139 metadata record.
      *
-     * @param metadata metadata to be parsed
+     * @param metadata the metadata that is to be parsed
      * @todo ISO19139 does not guarantee a DOI, but a "unique and persistent identifier",
      *       up to now these are URNs - the following call will set the identifierType to DOI
      *       nevertheless
      *
-     * @return Identifier The String representation of the identifier
+     * @return the string representation of the identifier
      */
     private Identifier parseIdentifier(Element metadata)
     {
-        final Element identifier = metadata.select(Iso19139Constants.IDENTIFIER).first();
+        final Element identifier = metadata.selectFirst(Iso19139Constants.IDENTIFIER);
         return new Identifier(identifier.text());
     }
-
+    
 
     /**
-     * Parses metadata for dates (D8) in an ISO19139 metadata record that are mappable
-     * to a DataCite field.
+     * Parses metadata for creators (D2) from an ISO19139 metadata record.
+     * 
+     * This field is not easily mappable from ISO19139 to DataCite.
+     * The same value as for the Publisher is used.
      *
-     * @param metadata metadata to be parsed
+     * @param metadata the metadata that is to be parsed
      *
-     * @return List<AbstractDate> List of date-data that are mappable to a DataCite field
-     *                            (Created, Issued, Updated)
+     * @return a list of parsed creators
+     */
+    private List<Creator> parseCreators(Element metadata)
+    {
+        final List<Creator> creatorList = new LinkedList<>();
+        final Element creator = metadata.selectFirst(Iso19139Constants.PUBLISHER);
+
+        if (creator != null)
+            creatorList.add(new Creator(creator.text()));
+        
+        return creatorList;
+    }
+    
+    
+    /**
+     * Parses metadata for titles (D3) from an ISO19139 metadata record.
+     *
+     * @param metadata the metadata that is to be parsed
+     *
+     * @return a list of parsed titles
+     */
+    private List<Title> parseTitles(Element metadata)
+    {
+        final List<Title> titleList = new LinkedList<>();
+        final Element title = metadata.selectFirst(Iso19139Constants.TITLE);
+
+        if (title != null)
+            titleList.add(new Title(title.text()));
+        
+        return titleList;
+    }
+
+    
+    /**
+     * Parses metadata for a publisher (D4) from an ISO19139 metadata record.
+     *
+     * @param metadata the metadata that is to be parsed
+     *
+     * @return the parsed publisher name or null, 
+     *          if the corresponding metadata is missing
+     */
+    private String parsePublisher(Element metadata)
+    {
+        final Element publisher = metadata.selectFirst(Iso19139Constants.PUBLISHER);
+
+        return publisher != null
+                ?publisher.text()
+                : null;
+    }
+    
+    
+    /**
+     * Parses metadata for the publication year (D5) from an ISO19139 metadata record
+     * and from already parsed dates.<br>
+     * 
+     * This field is not easily mappable from ISO19139 to DataCite.
+     * In a first attempt, the already parsed dates are searched for an "Issued" date.
+     * If no such date exists, the datestamp of the metadata record is used 
+     * since it is the best approximation:
+     * "The date which specifies when the metadata record was created or updated."
+     *
+     * @param metadata the metadata that is to be parsed
+     * @param dateList a list of parsed DataCite dates
+     *
+     * @return the publication year or null, if it could not be parsed
+     */
+    private Integer parsePublicationYear(Element metadata, List<AbstractDate> dateList)
+    {
+        Integer publicationYear = null;
+            
+        // first look for the publication year in already harvested dates
+        for (AbstractDate date : dateList) {
+            if (date.getType() == DateType.Issued) {
+                Calendar cal = DatatypeConverter.parseDateTime(date.getValue());
+                publicationYear = cal.get(Calendar.YEAR);
+                break;
+            }
+        }
+        
+        // fallback: use the datestamp of the record
+        if(publicationYear == null) {
+            final Element datestamp = metadata.selectFirst(Iso19139Constants.DATESTAMP);
+    
+            if (datestamp != null) {
+                try {
+                    final Calendar cal = DatatypeConverter.parseDateTime(datestamp.text());
+                    publicationYear = cal.get(Calendar.YEAR);
+                    
+                } catch (IllegalArgumentException e) {
+                    LOGGER.warn("Datestamp does not seem to be a date: {}",
+                                metadata.select(Iso19139Constants.DATESTAMP).text());
+                }
+            }
+        }
+        
+        return publicationYear;
+    }
+    
+
+    /**
+     * Parses metadata for dates (D8) from an ISO19139 metadata record.
+     *
+     * @param metadata the metadata that is to be parsed
+     *
+     * @return a list of parsed dates
      */
     private List<AbstractDate> parseDates(Element metadata)
     {
@@ -287,11 +265,47 @@ public class Iso19139Transformer extends AbstractIteratorTransformer<Element, Da
 
 
     /**
-     * Parses metadata for geolocations (D18) in an ISO19139 metadata record.
+     * Parses metadata for a resource type (D10) from an ISO19139 metadata record.
      *
-     * @param metadata metadata to be parsed
+     * @param metadata the metadata that is to be parsed
      *
-     * @return List<GeoLocation> List of geolocations which are given as a bounding box
+     * @return the parsed resource type
+     */
+    private ResourceType parseResourceType(Element metadata)
+    {
+        final Element resourceType = metadata.selectFirst(Iso19139Constants.RESOURCE_TYPE);
+    
+        return resourceType != null
+            ? new ResourceType(resourceType.text(), ResourceTypeGeneral.Dataset)
+            : null;
+    }
+    
+    
+    /**
+     * Parses metadata for descriptions (D17) from an ISO19139 metadata record.
+     *
+     * @param metadata the metadata that is to be parsed
+     *
+     * @return a list of parsed descriptions
+     */
+    private  List<Description> parseDescriptions(Element metadata)
+    {
+        final List<Description> descriptionList = new LinkedList<>();
+        final Element description = metadata.selectFirst(Iso19139Constants.DESCRIPTIONS);
+
+        if (description != null)
+            descriptionList.add(new Description(description.text(), DescriptionType.Abstract));
+        
+        return descriptionList;
+    }
+
+
+    /**
+     * Parses metadata for geolocations (D18) from an ISO19139 metadata record.
+     *
+     * @param metadata the metadata that is to be parsed
+     *
+     * @return a list of geolocations which are given as a bounding box
      */
     private List<GeoLocation> parseGeoLocations(Element metadata)
     {
@@ -328,5 +342,53 @@ public class Iso19139Transformer extends AbstractIteratorTransformer<Element, Da
         }
 
         return geoLocationList;
+    }
+    
+
+    /**
+     * Parses metadata for research data (E3) from an ISO19139 metadata record
+     * and from previously parsed titles.
+     *
+     * @param metadata the metadata that is to be parsed
+     * @param titleList the already parsed titles of the record
+     *
+     * @return a list of parsed research data
+     */
+    private List<ResearchData> parseResearchData(Element metadata, List<Title> titleList)
+    {
+        final List<ResearchData> researchDataList = new LinkedList<>();
+        
+        if(!titleList.isEmpty()) {
+            final String researchTitle = titleList.get(0).getValue();
+
+            final Element researchDataURL
+                = metadata.selectFirst(Iso19139Constants.RESEARCH_DATA);
+    
+            if (researchDataURL != null) {
+                // check whether URL is - wait for it - valid
+                try {
+                    new URL(researchDataURL.text());
+    
+                    researchDataList.add(new ResearchData(researchDataURL.text(), researchTitle));
+                } catch (MalformedURLException e) {
+                    LOGGER.warn("URL {} is not valid, skipping", researchDataURL);
+                }
+            }
+        }
+        
+        return researchDataList;
+    }
+    
+    
+    /**
+     * Parses an identifier that uniquely identifies this document.
+     * 
+     * @param header the record header
+     * 
+     * @return a unique identifier of the document
+     */
+    private String parseDocumentId(Element header)
+    {
+        return header.selectFirst(DataCiteConstants.IDENTIFIER).text();
     }
 }
