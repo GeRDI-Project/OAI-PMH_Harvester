@@ -28,13 +28,14 @@ import de.gerdiproject.harvest.etls.constants.OaiPmhConstants;
 import de.gerdiproject.json.datacite.DataCiteJson;
 import de.gerdiproject.json.datacite.Date;
 import de.gerdiproject.json.datacite.DateRange;
+import de.gerdiproject.json.datacite.Identifier;
 import de.gerdiproject.json.datacite.Subject;
 import de.gerdiproject.json.datacite.abstr.AbstractDate;
 import de.gerdiproject.json.datacite.enums.DateType;
 
 /**
  * This class offers a skeleton for transforming OAI-PMH records to {@linkplain DataCiteJson} objects.
- * The document identifier and repository identifier are set by this class and do not have to be
+ * The identifier and repository identifier are set by this class and do not have to be
  * specified by the sub-classes.
  *
  * @author Robin Weiss
@@ -73,7 +74,9 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
         if (isRecordDeleted(header))
             document = null;
         else {
-            document = new DataCiteJson(parseIdentifierFromHeader(header));
+            final String identifierString = parseIdentifierFromHeader(header);
+            document = new DataCiteJson(identifierString);
+            document.setIdentifier(new Identifier(identifierString));
             document.setRepositoryIdentifier(repositoryIdentifier);
             document.addSubjects(parseSubjectsFromHeader(header));
             setDocumentFieldsFromRecord(document, record);

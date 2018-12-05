@@ -47,7 +47,8 @@ public class OaiPmhParameterConstants
                                          DATACITE_4_METADATA_PREFIX,
                                          DATACITE_4_METADATA_PREFIX_2,
                                          DATACITE_4_METADATA_PREFIX_3,
-                                         DUBLIN_CORE_METADATA_PREFIX
+                                         DUBLIN_CORE_METADATA_PREFIX,
+                                         ISO_19139_METADATA_PREFIX
                                      ));
 
     public static final String METADATA_PREFIX_KEY = "metadataPrefix";

@@ -15,8 +15,6 @@
  */
 package de.gerdiproject.harvest.etls.transformers;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,7 +32,6 @@ import de.gerdiproject.json.datacite.DataCiteJson;
 import de.gerdiproject.json.datacite.Date;
 import de.gerdiproject.json.datacite.Description;
 import de.gerdiproject.json.datacite.GeoLocation;
-import de.gerdiproject.json.datacite.Identifier;
 import de.gerdiproject.json.datacite.ResourceType;
 import de.gerdiproject.json.datacite.Title;
 import de.gerdiproject.json.datacite.abstr.AbstractDate;
@@ -82,8 +79,6 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
         final List<AbstractDate> dateList = parseDates(metadata);
         final List<Title> titleList = parseTitles(metadata);
 
-        // DataCite metadata
-        document.setIdentifier(parseIdentifier(metadata));
         document.addCreators(parseCreators(metadata));
         document.addTitles(titleList);
         document.setPublisher(parsePublisher(metadata));
@@ -95,23 +90,6 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
 
         // GeRDI Extension metadata
         document.addResearchData(parseResearchData(metadata, titleList));
-    }
-
-
-    /**
-     * Parses metadata for an identifier (D1) from an ISO19139 metadata record.
-     *
-     * @param metadata the metadata that is to be parsed
-     * @todo ISO19139 does not guarantee a DOI, but a "unique and persistent identifier",
-     *       up to now these are URNs - the following call will set the identifierType to DOI
-     *       nevertheless
-     *
-     * @return the string representation of the identifier
-     */
-    private Identifier parseIdentifier(Element metadata)
-    {
-        final Element identifier = metadata.selectFirst(Iso19139Constants.IDENTIFIER);
-        return new Identifier(identifier.text());
     }
 
 
@@ -204,7 +182,7 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
                     publicationYear = cal.get(Calendar.YEAR);
 
                 } catch (IllegalArgumentException e) {
-                    LOGGER.warn("Datestamp is not a date: {}", datestamp.text());
+                    LOGGER.debug("Datestamp is not a date: {}", datestamp.text());
                 }
             }
         }
@@ -301,9 +279,6 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
                 north = Double.parseDouble(
                             isoGeoLocation.select(Iso19139Constants.GEOLOCS_NORTH).text());
             } catch (NullPointerException | NumberFormatException e) {
-                LOGGER.info("Ignoring geolocation {} for document {}, has no valid coordinates",
-                            isoGeoLocation.text(),
-                            parseIdentifier(metadata).getValue());
                 continue;
             }
 
@@ -339,16 +314,8 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
             final Element researchDataURL
                 = metadata.selectFirst(Iso19139Constants.RESEARCH_DATA);
 
-            if (researchDataURL != null) {
-                // check whether URL is - wait for it - valid
-                try {
-                    new URL(researchDataURL.text());
-
-                    researchDataList.add(new ResearchData(researchDataURL.text(), researchTitle));
-                } catch (MalformedURLException e) {
-                    LOGGER.warn("URL {} is not valid, skipping", researchDataURL);
-                }
-            }
+            if (researchDataURL != null)
+                researchDataList.add(new ResearchData(researchDataURL.text(), researchTitle));
         }
 
         return researchDataList;

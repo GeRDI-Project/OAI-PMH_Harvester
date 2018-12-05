@@ -29,7 +29,6 @@ import de.gerdiproject.json.datacite.Creator;
 import de.gerdiproject.json.datacite.DataCiteJson;
 import de.gerdiproject.json.datacite.Date;
 import de.gerdiproject.json.datacite.Description;
-import de.gerdiproject.json.datacite.Identifier;
 import de.gerdiproject.json.datacite.Rights;
 import de.gerdiproject.json.datacite.Subject;
 import de.gerdiproject.json.datacite.Title;
@@ -57,9 +56,6 @@ public class DublinCoreTransformer extends AbstractOaiPmhRecordTransformer
         final List<AbstractDate> dateList = parseDates(metadata);
         document.addDates(dateList);
         document.setPublicationYear(parsePublicationYearFromDateList(dateList));
-
-        // use identifier from header
-        document.setIdentifier(new Identifier(document.getSourceId()));
 
         document.addCreators(parseCreators(metadata));
         document.addContributors(parseContributors(metadata));
