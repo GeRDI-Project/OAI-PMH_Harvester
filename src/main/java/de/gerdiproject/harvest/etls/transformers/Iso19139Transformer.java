@@ -28,7 +28,6 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.gerdiproject.harvest.etls.transformers.constants.DataCiteConstants;
 import de.gerdiproject.harvest.etls.transformers.constants.Iso19139Constants;
 import de.gerdiproject.json.datacite.Creator;
 import de.gerdiproject.json.datacite.DataCiteJson;
@@ -47,7 +46,7 @@ import de.gerdiproject.json.geo.GeoJson;
 import de.gerdiproject.json.geo.Point;
 
 /**
- * A harvesting strategy for the ISO 19139 metadata standard.<br>
+ * A transformer for the ISO 19139 metadata standard.<br>
  *  https://www.iso.org/standard/32557.html
  *
  * The following DataCite and GeRDI generic extension fields are currently
@@ -63,35 +62,22 @@ import de.gerdiproject.json.geo.Point;
  * - D19    FundingReference
  * - E1     WebLink
  * - E4     ResearchDiscipline
+ *
  * For a possible mapping from ISO19139 to these fields
  * see https://wiki.gerdi-project.de/x/8YDmAQ
- * 
+ *
  * @author Tobias Weber
  */
-public class Iso19139Transformer extends AbstractIteratorTransformer<Element, DataCiteJson>
+public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
 {
     protected static final Logger LOGGER = LoggerFactory.getLogger(Iso19139Transformer.class);
 
 
     @Override
-    public DataCiteJson transformElement(Element record)
+    protected void setDocumentFieldsFromRecord(DataCiteJson document, Element record)
     {
-        final boolean isRecordDeleted = record.children()
-                                        .first()
-                                        .attr(Iso19139Constants.RECORD_STATUS)
-                                        .equals(Iso19139Constants.RECORD_STATUS_DEL);
+        final Element metadata = getMetadata(record);
 
-        // check if entry/record is "deleted" from repository
-        if (isRecordDeleted)
-            return null;
-
-        // retrieve record header and metadata
-        final Element header = record.selectFirst(DataCiteConstants.RECORD_HEADER);
-        final Element metadata = record.selectFirst(Iso19139Constants.RECORD_METADATA);
-
-        // create document
-        final DataCiteJson document = new DataCiteJson(parseDocumentId(header));
-        
         // parse metadata that is used by more than one document field
         final List<AbstractDate> dateList = parseDates(metadata);
         final List<Title> titleList = parseTitles(metadata);
@@ -106,14 +92,12 @@ public class Iso19139Transformer extends AbstractIteratorTransformer<Element, Da
         document.setResourceType(parseResourceType(metadata));
         document.addDescriptions(parseDescriptions(metadata));
         document.addGeoLocations(parseGeoLocations(metadata));
-        
+
         // GeRDI Extension metadata
         document.addResearchData(parseResearchData(metadata, titleList));
-
-        return document;
     }
-    
-    
+
+
     /**
      * Parses metadata for an identifier (D1) from an ISO19139 metadata record.
      *
@@ -129,11 +113,11 @@ public class Iso19139Transformer extends AbstractIteratorTransformer<Element, Da
         final Element identifier = metadata.selectFirst(Iso19139Constants.IDENTIFIER);
         return new Identifier(identifier.text());
     }
-    
+
 
     /**
      * Parses metadata for creators (D2) from an ISO19139 metadata record.
-     * 
+     *
      * This field is not easily mappable from ISO19139 to DataCite.
      * The same value as for the Publisher is used.
      *
@@ -148,11 +132,11 @@ public class Iso19139Transformer extends AbstractIteratorTransformer<Element, Da
 
         if (creator != null)
             creatorList.add(new Creator(creator.text()));
-        
+
         return creatorList;
     }
-    
-    
+
+
     /**
      * Parses metadata for titles (D3) from an ISO19139 metadata record.
      *
@@ -167,17 +151,17 @@ public class Iso19139Transformer extends AbstractIteratorTransformer<Element, Da
 
         if (title != null)
             titleList.add(new Title(title.text()));
-        
+
         return titleList;
     }
 
-    
+
     /**
      * Parses metadata for a publisher (D4) from an ISO19139 metadata record.
      *
      * @param metadata the metadata that is to be parsed
      *
-     * @return the parsed publisher name or null, 
+     * @return the parsed publisher name or null,
      *          if the corresponding metadata is missing
      */
     private String parsePublisher(Element metadata)
@@ -185,18 +169,18 @@ public class Iso19139Transformer extends AbstractIteratorTransformer<Element, Da
         final Element publisher = metadata.selectFirst(Iso19139Constants.PUBLISHER);
 
         return publisher != null
-                ?publisher.text()
-                : null;
+               ? publisher.text()
+               : null;
     }
-    
-    
+
+
     /**
      * Parses metadata for the publication year (D5) from an ISO19139 metadata record
      * and from already parsed dates.<br>
-     * 
+     *
      * This field is not easily mappable from ISO19139 to DataCite.
      * In a first attempt, the already parsed dates are searched for an "Issued" date.
-     * If no such date exists, the datestamp of the metadata record is used 
+     * If no such date exists, the datestamp of the metadata record is used
      * since it is the best approximation:
      * "The date which specifies when the metadata record was created or updated."
      *
@@ -207,36 +191,27 @@ public class Iso19139Transformer extends AbstractIteratorTransformer<Element, Da
      */
     private Integer parsePublicationYear(Element metadata, List<AbstractDate> dateList)
     {
-        Integer publicationYear = null;
-            
         // first look for the publication year in already harvested dates
-        for (AbstractDate date : dateList) {
-            if (date.getType() == DateType.Issued) {
-                Calendar cal = DatatypeConverter.parseDateTime(date.getValue());
-                publicationYear = cal.get(Calendar.YEAR);
-                break;
-            }
-        }
-        
+        Integer publicationYear = parsePublicationYearFromDateList(dateList);
+
         // fallback: use the datestamp of the record
-        if(publicationYear == null) {
+        if (publicationYear == null) {
             final Element datestamp = metadata.selectFirst(Iso19139Constants.DATESTAMP);
-    
+
             if (datestamp != null) {
                 try {
                     final Calendar cal = DatatypeConverter.parseDateTime(datestamp.text());
                     publicationYear = cal.get(Calendar.YEAR);
-                    
+
                 } catch (IllegalArgumentException e) {
-                    LOGGER.warn("Datestamp does not seem to be a date: {}",
-                                metadata.select(Iso19139Constants.DATESTAMP).text());
+                    LOGGER.warn("Datestamp is not a date: {}", datestamp.text());
                 }
             }
         }
-        
+
         return publicationYear;
     }
-    
+
 
     /**
      * Parses metadata for dates (D8) from an ISO19139 metadata record.
@@ -274,13 +249,13 @@ public class Iso19139Transformer extends AbstractIteratorTransformer<Element, Da
     private ResourceType parseResourceType(Element metadata)
     {
         final Element resourceType = metadata.selectFirst(Iso19139Constants.RESOURCE_TYPE);
-    
+
         return resourceType != null
-            ? new ResourceType(resourceType.text(), ResourceTypeGeneral.Dataset)
-            : null;
+               ? new ResourceType(resourceType.text(), ResourceTypeGeneral.Dataset)
+               : null;
     }
-    
-    
+
+
     /**
      * Parses metadata for descriptions (D17) from an ISO19139 metadata record.
      *
@@ -295,7 +270,7 @@ public class Iso19139Transformer extends AbstractIteratorTransformer<Element, Da
 
         if (description != null)
             descriptionList.add(new Description(description.text(), DescriptionType.Abstract));
-        
+
         return descriptionList;
     }
 
@@ -326,9 +301,9 @@ public class Iso19139Transformer extends AbstractIteratorTransformer<Element, Da
                 north = Double.parseDouble(
                             isoGeoLocation.select(Iso19139Constants.GEOLOCS_NORTH).text());
             } catch (NullPointerException | NumberFormatException e) {
-                LOGGER.info("Ignoring geolocation {} for document {}, has no valid coordinations",
-                            parseIdentifier(metadata).getValue(),
-                            isoGeoLocation.text());
+                LOGGER.info("Ignoring geolocation {} for document {}, has no valid coordinates",
+                            isoGeoLocation.text(),
+                            parseIdentifier(metadata).getValue());
                 continue;
             }
 
@@ -343,7 +318,7 @@ public class Iso19139Transformer extends AbstractIteratorTransformer<Element, Da
 
         return geoLocationList;
     }
-    
+
 
     /**
      * Parses metadata for research data (E3) from an ISO19139 metadata record
@@ -357,38 +332,25 @@ public class Iso19139Transformer extends AbstractIteratorTransformer<Element, Da
     private List<ResearchData> parseResearchData(Element metadata, List<Title> titleList)
     {
         final List<ResearchData> researchDataList = new LinkedList<>();
-        
-        if(!titleList.isEmpty()) {
+
+        if (!titleList.isEmpty()) {
             final String researchTitle = titleList.get(0).getValue();
 
             final Element researchDataURL
                 = metadata.selectFirst(Iso19139Constants.RESEARCH_DATA);
-    
+
             if (researchDataURL != null) {
                 // check whether URL is - wait for it - valid
                 try {
                     new URL(researchDataURL.text());
-    
+
                     researchDataList.add(new ResearchData(researchDataURL.text(), researchTitle));
                 } catch (MalformedURLException e) {
                     LOGGER.warn("URL {} is not valid, skipping", researchDataURL);
                 }
             }
         }
-        
+
         return researchDataList;
-    }
-    
-    
-    /**
-     * Parses an identifier that uniquely identifies this document.
-     * 
-     * @param header the record header
-     * 
-     * @return a unique identifier of the document
-     */
-    private String parseDocumentId(Element header)
-    {
-        return header.selectFirst(DataCiteConstants.IDENTIFIER).text();
     }
 }

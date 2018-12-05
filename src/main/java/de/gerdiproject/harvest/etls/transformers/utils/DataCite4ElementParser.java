@@ -116,7 +116,7 @@ public class DataCite4ElementParser
         if (parent == null)
             return null;
 
-        return DataCite4ElementParser.elementsToStringList(parent.children());
+        return elementsToStringList(parent.children());
     }
 
 
@@ -154,7 +154,7 @@ public class DataCite4ElementParser
         if (parent == null)
             return null;
 
-        return DataCite4ElementParser.elementsToList(parent.children(), eleToObject);
+        return elementsToList(parent.children(), eleToObject);
     }
 
 
@@ -181,7 +181,7 @@ public class DataCite4ElementParser
      */
     public static Creator parseCreator(Element ele)
     {
-        final PersonName creatorName = DataCite4ElementParser.parsePersonName(ele.select("creatorName").first());
+        final PersonName creatorName = parsePersonName(ele.selectFirst("creatorName"));
         final String givenName = getString(ele, "givenName");
         final String familyName = getString(ele, "familyName");
         final List<String> affiliations = elementsToStringList(ele.select("affiliation"));
@@ -206,7 +206,7 @@ public class DataCite4ElementParser
      */
     public static Contributor parseContributor(Element ele)
     {
-        final PersonName contributorName = DataCite4ElementParser.parsePersonName(ele.select("contributorName").first());
+        final PersonName contributorName = parsePersonName(ele.selectFirst("contributorName"));
         final ContributorType contributorType = getEnumAttribute(ele, "contributorType", ContributorType.class);
         final String givenName = getString(ele, "givenName");
         final String familyName = getString(ele, "familyName");

@@ -21,7 +21,6 @@ import java.util.List;
 import org.jsoup.nodes.Element;
 
 import de.gerdiproject.harvest.etls.constants.OaiPmhConstants;
-import de.gerdiproject.harvest.etls.transformers.constants.DataCiteConstants;
 import de.gerdiproject.harvest.etls.transformers.utils.DataCite4ElementParser;
 import de.gerdiproject.json.datacite.DataCiteJson;
 import de.gerdiproject.json.datacite.Identifier;
@@ -35,30 +34,14 @@ import de.gerdiproject.json.datacite.extension.generic.enums.WebLinkType;
  *
  * @author Robin Weiss
  */
-public class Datacite4Transformer extends AbstractIteratorTransformer<Element, DataCiteJson>
+public class Datacite4Transformer extends AbstractOaiPmhRecordTransformer
 {
+
     @Override
-    protected DataCiteJson transformElement(Element record) throws TransformerException
+    protected void setDocumentFieldsFromRecord(DataCiteJson document, Element record)
     {
-        Boolean isRecordDeleted = record.children()
-                                  .first()
-                                  .attr(DataCiteConstants.RECORD_STATUS)
-                                  .equals(DataCiteConstants.RECORD_STATUS_DEL);
+        final Element metadata = getMetadata(record);
 
-        // check if entry/record is "deleted" from repository
-        if (isRecordDeleted)
-            return null;
-
-        // get header and meta data for each record
-        final Element header = record.select(DataCiteConstants.RECORD_HEADER).first();
-
-        // get identifier and date stamp
-        final String repositoryIdentifier = DataCite4ElementParser.getString(header, DataCiteConstants.IDENTIFIER);
-
-        final DataCiteJson document = new DataCiteJson(repositoryIdentifier);
-        document.setRepositoryIdentifier(repositoryIdentifier);
-
-        Element metadata = record.select(DataCiteConstants.RECORD_METADATA).first();
         document.setPublisher(DataCite4ElementParser.getString(metadata, "publisher"));
         document.setLanguage(DataCite4ElementParser.getString(metadata, "language"));
         document.setVersion(DataCite4ElementParser.getString(metadata, "version"));
@@ -76,7 +59,7 @@ public class Datacite4Transformer extends AbstractIteratorTransformer<Element, D
         document.addGeoLocations(DataCite4ElementParser.getObjects(metadata, "geoLocations", DataCite4ElementParser::parseGeoLocation));
         document.addFundingReferences(DataCite4ElementParser.getObjects(metadata, "fundingReferences", DataCite4ElementParser::parseFundingReference));
 
-        Identifier identifier = DataCite4ElementParser.getObject(metadata, "identifier", DataCite4ElementParser::parseIdentifier);
+        final Identifier identifier = DataCite4ElementParser.getObject(metadata, "identifier", DataCite4ElementParser::parseIdentifier);
         document.setIdentifier(identifier);
 
         List<RelatedIdentifier> relatedIdentifiers = DataCite4ElementParser.getObjects(metadata, "relatedIdentifiers", DataCite4ElementParser::parseRelatedIdentifier);
@@ -90,8 +73,6 @@ public class Datacite4Transformer extends AbstractIteratorTransformer<Element, D
         } catch (NumberFormatException | NullPointerException e) {
             document.setPublicationYear(null);
         }
-
-        return document;
     }
 
 

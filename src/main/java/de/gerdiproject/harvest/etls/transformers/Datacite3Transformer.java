@@ -53,21 +53,14 @@ import de.gerdiproject.json.geo.Point;
  * A transformer for the Datacite3 metadata standard.<br>
  * https://schema.datacite.org/meta/kernel-3.0/doc/DataCite-MetadataKernel_v3.0.pdf
  *
- * @author Jan Frömberg
+ * @author Jan Frömberg, Robin Weiss
  */
-public class Datacite3Transformer extends AbstractIteratorTransformer<Element, DataCiteJson>
+public class Datacite3Transformer extends AbstractOaiPmhRecordTransformer
 {
+
     @Override
-    protected DataCiteJson transformElement(Element record) throws TransformerException
+    protected void setDocumentFieldsFromRecord(DataCiteJson document, Element record)
     {
-        Elements children = record.children();
-        Boolean deleted = children.first().attr(DataCiteConstants.RECORD_STATUS).equals(
-                              DataCiteConstants.RECORD_STATUS_DEL) ? true : false;
-
-        // check if entry/record is "deleted" from repository
-        if (deleted)
-            return null;
-
         List<RelatedIdentifier> relatedIdentifiers = new LinkedList<>();
         List<AbstractDate> dates = new LinkedList<>();
         List<Title> titles = new LinkedList<>();
@@ -83,19 +76,7 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
         List<WebLink> links = new LinkedList<>();
 
         // get header and meta data for each record
-        Elements header = children.select(DataCiteConstants.RECORD_HEADER);
-        Elements metadata = children.select(DataCiteConstants.RECORD_METADATA);
-
-        // get identifier and date stamp
-        String identifier = header.select(DataCiteConstants.IDENTIFIER).first().text();
-
-        final DataCiteJson document = new DataCiteJson(identifier);
-        document.setRepositoryIdentifier(identifier);
-
-        // get last updated
-        String recorddate = header.select(DataCiteConstants.DATESTAMP).first().text();
-        Date updatedDate = new Date(recorddate, DateType.Updated);
-        dates.add(updatedDate);
+        final Element metadata = getMetadata(record);
 
         // get identifiers (normally one element/identifier)
         Identifier doiIdentifier = new Identifier(metadata.select(DataCiteConstants.IDENTIFIER).first().text());
@@ -113,15 +94,15 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
         document.addWebLinks(links);
 
         // get creators
-        Elements creatorElements = metadata.select(DataCiteConstants.DOC_CREATORS);
+        final Elements creatorElements = metadata.select(DataCiteConstants.DOC_CREATORS);
 
         for (Element e : creatorElements) {
-            Elements ccreator = e.children();
+            final Elements ccreator = e.children();
             Creator creator;
 
             for (Element ec : ccreator) {
                 creator = new Creator(ec.select(DataCiteConstants.DOC_CREATORNAME).text());
-                Elements nameIds = ec.select(DataCiteConstants.DOC_CREATOR_NAMEIDENT);
+                final Elements nameIds = ec.select(DataCiteConstants.DOC_CREATOR_NAMEIDENT);
                 NameIdentifier nameIdent;
 
                 for (Element enids : nameIds) {
@@ -135,7 +116,7 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
                 if (!nameIdentifiers.isEmpty())
                     creator.addNameIdentifiers(nameIdentifiers);
 
-                Elements ecaffils = ec.select(DataCiteConstants.DOC_CREATOR_AFFILIATION);
+                final Elements ecaffils = ec.select(DataCiteConstants.DOC_CREATOR_AFFILIATION);
 
                 for (Element eaffil : ecaffils)
                     affiliations.add(eaffil.text());
@@ -150,7 +131,7 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
         document.addCreators(creators);
 
         // get titles
-        Elements etitles = metadata.select(DataCiteConstants.DOC_TITLE);
+        final Elements etitles = metadata.select(DataCiteConstants.DOC_TITLE);
 
         for (Element e : etitles)
             titles.add(new Title(e.text()));
@@ -158,13 +139,13 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
         document.addTitles(titles);
 
         // get publisher
-        Elements epubs = metadata.select(DataCiteConstants.PUBLISHER);
+        final Elements epubs = metadata.select(DataCiteConstants.PUBLISHER);
 
         for (Element e : epubs)
             document.setPublisher(e.text());
 
         // get publication year (a required field which is not always provided)
-        Elements pubYears = metadata.select(DataCiteConstants.PUB_YEAR);
+        final Elements pubYears = metadata.select(DataCiteConstants.PUB_YEAR);
 
         for (Element year : pubYears) {
 
@@ -176,7 +157,7 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
         }
 
         // get subjects
-        Elements esubj = metadata.select(DataCiteConstants.SUBJECT);
+        final Elements esubj = metadata.select(DataCiteConstants.SUBJECT);
 
         for (Element e : esubj) {
             String scheme = e.attr(DataCiteConstants.SUBJECT_SCHEME);
@@ -191,18 +172,18 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
         document.addSubjects(subjects);
 
         // get contributors
-        Elements contribs = metadata.select(DataCiteConstants.CONTRIBUTORS);
+        final Elements contribs = metadata.select(DataCiteConstants.CONTRIBUTORS);
         Contributor contrib;
 
         for (Element ec : contribs) {
 
-            Elements c = ec.children();
+            final Elements c = ec.children();
 
             for (Element ci : c) {
 
                 String cType = ci.attr(DataCiteConstants.CONTRIB_TYPE);
                 //LOGGER.info("ContibutorsType: " + cType);
-                Elements cns = ci.children();
+                final Elements cns = ci.children();
 
                 for (Element cn : cns) {
                     String cname = cn.text();
@@ -215,7 +196,7 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
         document.addContributors(contributors);
 
         // get dates
-        Elements edates = metadata.select(DataCiteConstants.METADATA_DATE);
+        final Elements edates = metadata.select(DataCiteConstants.METADATA_DATE);
 
         for (Element e : edates) {
             String datetype = e.attr(DataCiteConstants.METADATA_DATETYPE);
@@ -226,13 +207,13 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
         document.addDates(dates);
 
         // get language
-        Elements elang = metadata.select(DataCiteConstants.LANG);
+        final Elements elang = metadata.select(DataCiteConstants.LANG);
 
         if (!elang.isEmpty())
             document.setLanguage(elang.first().text());
 
         // get resourceType
-        Elements erest = metadata.select(DataCiteConstants.RES_TYPE);
+        final Elements erest = metadata.select(DataCiteConstants.RES_TYPE);
 
         if (!erest.isEmpty()) {
             ResourceType restype = new ResourceType(
@@ -242,10 +223,10 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
         }
 
         // get relatedIdentifiers
-        Elements erelidents = metadata.select(DataCiteConstants.REL_IDENTIFIERS);
+        final Elements erelidents = metadata.select(DataCiteConstants.REL_IDENTIFIERS);
 
         for (Element e : erelidents) {
-            Elements erel = e.children();
+            final Elements erel = e.children();
 
             for (Element ei : erel) {
                 String itype = ei.attr(DataCiteConstants.REL_IDENT_TYPE);
@@ -262,17 +243,17 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
         document.addRelatedIdentifiers(relatedIdentifiers);
 
         // get sizes
-        Elements esize = metadata.select(DataCiteConstants.SIZE);
+        final Elements esize = metadata.select(DataCiteConstants.SIZE);
 
         if (!esize.isEmpty())
             document.addSizes(Arrays.asList(esize.first().text()));
 
         // get formats
-        Elements eformats = metadata.select(DataCiteConstants.METADATA_FORMATS);
+        final Elements eformats = metadata.select(DataCiteConstants.METADATA_FORMATS);
 
         for (Element e : eformats) {
 
-            Elements ef = e.children();
+            final Elements ef = e.children();
 
             for (Element ei : ef) {
                 String temp = ei.text();
@@ -283,17 +264,17 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
         document.addFormats(formats);
 
         // get version (min occ. 0, type string)
-        Elements versions = metadata.select(DataCiteConstants.VERSION);
+        final Elements versions = metadata.select(DataCiteConstants.VERSION);
 
         for (Element version : versions)
             document.setVersion(version.text());
 
         // get rightsList
-        Elements elements = metadata.select(DataCiteConstants.RIGHTS_LIST);
+        final Elements elements = metadata.select(DataCiteConstants.RIGHTS_LIST);
 
         for (Element e : elements) {
 
-            Elements ef = e.children();
+            final Elements ef = e.children();
 
             for (Element ei : ef) {
                 String temp = ei.text();
@@ -306,11 +287,11 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
         document.addRights(docrights);
 
         // get descriptions
-        Elements edesc = metadata.select(DataCiteConstants.DESCRIPTIONS);
+        final Elements edesc = metadata.select(DataCiteConstants.DESCRIPTIONS);
 
         for (Element e : edesc) {
 
-            Elements ef = e.children();
+            final Elements ef = e.children();
 
             for (Element ei : ef) {
                 String tmp = ei.text();
@@ -331,16 +312,16 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
         document.addDescriptions(descriptions);
 
         // get geoLocations
-        Elements egeolocs = metadata.select(DataCiteConstants.GEOLOCS);
+        final Elements egeolocs = metadata.select(DataCiteConstants.GEOLOCS);
 
         for (Element e : egeolocs) {
 
-            Elements ec = e.children();
+            final Elements ec = e.children();
 
             //for each geoLocation
             for (Element ei : ec) {
 
-                Elements eigeo = ei.children();
+                final Elements eigeo = ei.children();
 
                 //for each geobox, point, place ...
                 for (Element gle : eigeo) {
@@ -386,7 +367,5 @@ public class Datacite3Transformer extends AbstractIteratorTransformer<Element, D
         }
 
         document.addGeoLocations(geoLocations);
-
-        return document;
     }
 }

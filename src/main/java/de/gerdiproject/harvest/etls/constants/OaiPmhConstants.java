@@ -33,10 +33,19 @@ public class OaiPmhConstants
     public static final String RESUMPTION_URL =  "%s?verb=ListRecords&resumptionToken=%s";
     public static final String DOI_URL = "https://doi.org/%s";
 
-    // Elements
+    // Elements and Attributes
     public static final String REPOSITORY_NAME_ELEMENT = "repositoryName";
     public static final String RECORD_ELEMENT = "record";
     public static final String RESUMPTION_TOKEN_ELEMENT = "resumptionToken";
+
+    public static final String RECORD_HEADER = "header";
+    public static final String RECORD_METADATA = "metadata";
+
+    public static final String HEADER_IDENTIFIER = "identifier";
+    public static final String HEADER_DATESTAMP = "datestamp";
+    public static final String HEADER_SET_SPEC = "setSpec";
+    public static final String HEADER_STATUS_ATTRIBUTE = "status";
+    public static final String HEADER_STATUS_ATTRIBUTE_DELETED = "deleted";
 
     // Other
     public static final String UNINITIALIZED_PROVIDER = "OaiPmh";

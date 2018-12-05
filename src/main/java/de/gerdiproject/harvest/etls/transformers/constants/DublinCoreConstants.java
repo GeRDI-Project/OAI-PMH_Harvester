@@ -24,10 +24,6 @@ package de.gerdiproject.harvest.etls.transformers.constants;
 public class DublinCoreConstants
 {
 
-    public static final String RECORD_STATUS = "status";
-    public static final String RECORD_STATUS_DEL = "deleted";
-    public static final String RECORD_HEADER = "header";
-    public static final String RECORD_METADATA = "metadata";
     public static final String RECORD_DATESTAMP = "datestamp";
 
     public static final String IDENTIFIER = "identifier";

@@ -23,12 +23,6 @@ package de.gerdiproject.harvest.etls.transformers.constants;
  */
 public class DataCiteConstants
 {
-
-    public static final String RECORD_STATUS = "status";
-    public static final String RECORD_STATUS_DEL = "deleted";
-    public static final String RECORD_HEADER = "header";
-    public static final String RECORD_METADATA = "metadata";
-
     public static final String IDENTIFIER = "identifier";
     public static final String VERSION = "version";
     public static final String DATESTAMP = "datestamp";
