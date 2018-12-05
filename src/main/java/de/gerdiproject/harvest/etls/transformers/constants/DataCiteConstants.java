@@ -15,17 +15,19 @@
  */
 package de.gerdiproject.harvest.etls.transformers.constants;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 /**
  * A static collection of constant parameters for configuring the DataCite3 strategy.
  *
  * @author Jan Frömberg
- *
  */
+@NoArgsConstructor(access=AccessLevel.PRIVATE)
 public class DataCiteConstants
 {
     public static final String IDENTIFIER = "identifier";
     public static final String VERSION = "version";
-    public static final String DATESTAMP = "datestamp";
     public static final String PUB_YEAR = "publicationYear";
     public static final String DOC_TITLE = "title";
     public static final String DOC_CREATORS = "creators";
@@ -61,11 +63,4 @@ public class DataCiteConstants
     public static final String GEOLOC_BOX = "geolocationbox";
     public static final String GEOLOC_POINT = "geolocationpoint";
     public static final String GEOLOC_PLACE = "geolocationplace";
-
-    /**
-     * Private Constructor, because this is a static class.
-     */
-    private DataCiteConstants()
-    {
-    }
 }

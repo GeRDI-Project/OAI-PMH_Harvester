@@ -19,6 +19,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import de.gerdiproject.json.datacite.enums.DateType;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
  * A static collection of constant parameters for configuring the ISO19139 strategy.
@@ -26,16 +28,9 @@ import de.gerdiproject.json.datacite.enums.DateType;
  * @author Tobias Weber
  *
  */
+@NoArgsConstructor(access=AccessLevel.PRIVATE)
 public class Iso19139Constants
 {
-
-    public static final String RECORD_STATUS = "status";
-    public static final String RECORD_STATUS_DEL = "deleted";
-    public static final String RECORD_HEADER = "header";
-    public static final String RECORD_METADATA = "metadata";
-
-    public static final String REPOSITORY_IDENTIFIER = "DWD";
-
     public static final String TITLE = "gmd|citation gmd|CI_Citation gmd|title";
     public static final String PUBLISHER = "gmd|pointOfContact gmd|CI_ResponsibleParty gmd|organisationName";
     public static final String DATESTAMP = "gmd|dateStamp gco|DateTime";
@@ -55,14 +50,7 @@ public class Iso19139Constants
 
     public static final Map<String, DateType> DATE_TYPE_MAP = createDateTypeMap();
 
-
-    /**
-     * Private Constructor, because this is a static class.
-     */
-    private Iso19139Constants()
-    {
-    }
-
+    
     /**
      * Initializes the DateTypeMap
      */

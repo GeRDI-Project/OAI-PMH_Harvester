@@ -27,7 +27,6 @@ import org.jsoup.select.Elements;
 import de.gerdiproject.harvest.etls.AbstractETL;
 import de.gerdiproject.harvest.etls.OaiPmhETL;
 import de.gerdiproject.harvest.etls.constants.OaiPmhConstants;
-import de.gerdiproject.harvest.etls.transformers.constants.DublinCoreConstants;
 import de.gerdiproject.harvest.utils.data.HttpRequester;
 
 /**
@@ -60,8 +59,6 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
     }
 
 
-
-
     @Override
     protected Iterator<Element> extractAll() throws ExtractorException
     {
@@ -83,11 +80,11 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
 
         // retrieve version as first record
         final Document doc = httpRequester.getHtmlFromUrl(recordsBaseUrl);
-        final Element identifier = doc != null ? doc.select(DublinCoreConstants.IDENTIFIER).first() : null;
+        final Element identifier = doc != null ? doc.selectFirst(OaiPmhConstants.HEADER_IDENTIFIER) : null;
         this.versionString = identifier != null ? identifier.text() : null;
 
         // retrieve number of documents, if known
-        final Element resumptionToken = doc != null ? doc.select(OaiPmhConstants.RESUMPTION_TOKEN_ELEMENT).first() : null;
+        final Element resumptionToken = doc != null ? doc.selectFirst(OaiPmhConstants.RESUMPTION_TOKEN_ELEMENT) : null;
         final String listSizeString = resumptionToken != null ? resumptionToken.attr(OaiPmhConstants.LIST_SIZE_ATTRIBUTE) : "";
         this.size = listSizeString.isEmpty() ? -1 : Integer.parseInt(listSizeString);
     }
@@ -148,7 +145,7 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
             if (newRecords.isEmpty())
                 throw new ExtractorException(String.format(OaiPmhConstants.NO_RECORDS_ERROR, recordsUrl));
 
-            final Element resumptionToken = doc.select(OaiPmhConstants.RESUMPTION_TOKEN_ELEMENT).first();
+            final Element resumptionToken = doc.selectFirst(OaiPmhConstants.RESUMPTION_TOKEN_ELEMENT);
 
             this.records.addAll(newRecords);
             this.recordsUrl = (resumptionToken != null)

@@ -19,11 +19,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 /**
  * A static collection of constant parameters for configuring the OAI-PMH harvester.
  *
  * @author Robin Weiss
  */
+@NoArgsConstructor(access=AccessLevel.PRIVATE)
 public class OaiPmhParameterConstants
 {
     //
@@ -62,12 +66,4 @@ public class OaiPmhParameterConstants
 
     public static final String HOST_URL_KEY = "hostUrl";
     public static final String HOST_URL_DEFAULT_VALUE = "";
-
-
-    /**
-     * Private Constructor, because this is a static class.
-     */
-    private OaiPmhParameterConstants()
-    {
-    }
 }

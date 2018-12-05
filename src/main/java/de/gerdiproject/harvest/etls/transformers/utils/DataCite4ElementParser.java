@@ -57,23 +57,18 @@ import de.gerdiproject.json.datacite.nested.PersonName;
 import de.gerdiproject.json.geo.GeoJson;
 import de.gerdiproject.json.geo.Point;
 import de.gerdiproject.json.geo.Polygon;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
- * This class parses {@linkplain Element}s of DataCite 4.1 HTML
- * records using static helper methods.
+ * This class offers static helper methods for parsing {@linkplain Element}s 
+ * of DataCite 4.1 HTML records.
  *
  * @author Robin Weiss
  */
+@NoArgsConstructor(access=AccessLevel.PRIVATE)
 public class DataCite4ElementParser
 {
-    /**
-     * Private constructor, because only static methods are provided.
-     */
-    private DataCite4ElementParser()
-    {
-    }
-
-
     /**
      * Retrieves the text of the first occurrence of a specified tag.
      *

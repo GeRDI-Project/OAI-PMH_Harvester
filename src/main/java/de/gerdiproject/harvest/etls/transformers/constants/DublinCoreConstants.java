@@ -15,18 +15,17 @@
  */
 package de.gerdiproject.harvest.etls.transformers.constants;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 /**
  * A static collection of constant parameters for configuring the Dublin Core strategy.
  *
  * @author Jan Frömberg
- *
  */
+@NoArgsConstructor(access=AccessLevel.PRIVATE)
 public class DublinCoreConstants
 {
-
-    public static final String RECORD_DATESTAMP = "datestamp";
-
-    public static final String IDENTIFIER = "identifier";
     public static final String METADATA_IDENTIFIER = "dc|identifier";
 
     public static final String DOC_TITLE = "dc|title";
@@ -44,11 +43,4 @@ public class DublinCoreConstants
 
     public static final String METADATA_FORMATS = "dc|format";
     public static final String RIGHTS = "dc|rights";
-
-    /**
-     * Private Constructor, because this is a static class.
-     */
-    private DublinCoreConstants()
-    {
-    }
 }

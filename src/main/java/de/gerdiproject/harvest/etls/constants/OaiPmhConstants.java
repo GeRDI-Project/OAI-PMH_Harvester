@@ -15,11 +15,15 @@
  */
 package de.gerdiproject.harvest.etls.constants;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 /**
  * A static collection of constant parameters regarding OAI-PMH.
  *
  * @author Robin Weiss
  */
+@NoArgsConstructor(access=AccessLevel.PRIVATE)
 public class OaiPmhConstants
 {
     // QUERY
@@ -57,12 +61,4 @@ public class OaiPmhConstants
     public static final String WRONG_METADATA_PREFIX_ERROR = "The metadataPrefix '%s' is not allowed for this repository";
     public static final String NO_METADATA_PREFIX_ERROR = "Could not harvest: You must set the '" + OaiPmhParameterConstants.HOST_URL_KEY + "'-parameter in the config!";
     public static final String NO_RECORDS_ERROR = "Could not harvest: The URL '%s' did not yield any harvestable records! Change the parameters in the config!";
-
-
-    /**
-     * Private Constructor, because this is a static class.
-     */
-    private OaiPmhConstants()
-    {
-    }
 }
