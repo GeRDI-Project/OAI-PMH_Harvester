@@ -29,6 +29,12 @@
 			<organization>Kiel University</organization>
 			<organizationUrl>http://www.uni-kiel.de/index-e.shtml</organizationUrl>
 		</developer>
+		<developer>
+			<name>Tobias Weber</name>
+			<email>weber@lrz.de</email>
+			<organization>Leibniz Supercompting Centre</organization>
+			<organizationUrl>https://www.lrz.de</organizationUrl>
+		</developer>
     </developers>
 
     <!-- Define Sonatype repository for retrieving SNAPSHOT versions -->
