@@ -16,13 +16,13 @@
 package de.gerdiproject.harvest.etls.transformers;
 
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
 import javax.xml.bind.DatatypeConverter;
 
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,80 +75,36 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
     {
         final Element metadata = getMetadata(record);
 
-        // parse metadata that is used by more than one document field
-        final List<AbstractDate> dateList = parseDates(metadata);
-        final List<Title> titleList = parseTitles(metadata);
+        // creators (D2) : use publisher metadata
+        document.addCreators(getObjects(metadata, Iso19139Constants.PUBLISHER,
+                                        (Element e) -> new Creator(e.text())));
 
-        document.addCreators(parseCreators(metadata));
-        document.addTitles(titleList);
-        document.setPublisher(parsePublisher(metadata));
-        document.addDates(dateList);
-        document.setPublicationYear(parsePublicationYear(metadata, dateList));
-        document.setResourceType(parseResourceType(metadata));
-        document.addDescriptions(parseDescriptions(metadata));
-        document.addGeoLocations(parseGeoLocations(metadata));
+        // titles (D3)
+        document.addTitles(getObjects(metadata, Iso19139Constants.TITLE,
+                                      (Element e) -> new Title(e.text())));
 
-        // GeRDI Extension metadata
-        document.addResearchData(parseResearchData(metadata, titleList));
-    }
+        // publisher (D4)
+        document.setPublisher(getString(metadata, Iso19139Constants.PUBLISHER));
 
+        // dates (D8)
+        document.addDates(getObjects(metadata, Iso19139Constants.DATES, this::parseDate));
 
-    /**
-     * Parses metadata for creators (D2) from an ISO19139 metadata record.
-     *
-     * This field is not easily mappable from ISO19139 to DataCite.
-     * The same value as for the Publisher is used.
-     *
-     * @param metadata the metadata that is to be parsed
-     *
-     * @return a list of parsed creators
-     */
-    private List<Creator> parseCreators(Element metadata)
-    {
-        final List<Creator> creatorList = new LinkedList<>();
-        final Element creator = metadata.selectFirst(Iso19139Constants.PUBLISHER);
+        // publication year (D5)
+        document.setPublicationYear(parsePublicationYear(metadata, document.getDates()));
 
-        if (creator != null)
-            creatorList.add(new Creator(creator.text()));
+        // resource type (D10)
+        document.setResourceType(getObject(metadata, Iso19139Constants.RESOURCE_TYPE,
+                                           (Element e) -> new ResourceType(e.text(), ResourceTypeGeneral.Dataset)));
 
-        return creatorList;
-    }
+        // descriptions (D17)
+        document.addDescriptions(getObjects(metadata, Iso19139Constants.DESCRIPTIONS,
+                                            (Element e) -> new Description(e.text(), DescriptionType.Abstract)));
 
+        // geolocations (D18)
+        document.addGeoLocations(getObjects(metadata, Iso19139Constants.GEOLOCS, this::parseGeoLocation));
 
-    /**
-     * Parses metadata for titles (D3) from an ISO19139 metadata record.
-     *
-     * @param metadata the metadata that is to be parsed
-     *
-     * @return a list of parsed titles
-     */
-    private List<Title> parseTitles(Element metadata)
-    {
-        final List<Title> titleList = new LinkedList<>();
-        final Element title = metadata.selectFirst(Iso19139Constants.TITLE);
-
-        if (title != null)
-            titleList.add(new Title(title.text()));
-
-        return titleList;
-    }
-
-
-    /**
-     * Parses metadata for a publisher (D4) from an ISO19139 metadata record.
-     *
-     * @param metadata the metadata that is to be parsed
-     *
-     * @return the parsed publisher name or null,
-     *          if the corresponding metadata is missing
-     */
-    private String parsePublisher(Element metadata)
-    {
-        final Element publisher = metadata.selectFirst(Iso19139Constants.PUBLISHER);
-
-        return publisher != null
-               ? publisher.text()
-               : null;
+        // research data (E3)
+        document.addResearchData(parseResearchData(metadata, document.getTitles()));
     }
 
 
@@ -167,7 +123,7 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
      *
      * @return the publication year or null, if it could not be parsed
      */
-    private Integer parsePublicationYear(Element metadata, List<AbstractDate> dateList)
+    private Integer parsePublicationYear(Element metadata, Collection<AbstractDate> dateList)
     {
         // first look for the publication year in already harvested dates
         Integer publicationYear = parsePublicationYearFromDates(dateList);
@@ -192,106 +148,52 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
 
 
     /**
-     * Parses metadata for dates (D8) from an ISO19139 metadata record.
+     * Parses a date (D8) from an ISO19139 record date.
      *
-     * @param metadata the metadata that is to be parsed
+     * @param isoDate the date element that is to be parsed
      *
-     * @return a list of parsed dates
+     * @return a date
      */
-    private List<AbstractDate> parseDates(Element metadata)
+    private AbstractDate parseDate(Element isoDate)
     {
-        List<AbstractDate> dateList = new LinkedList<>();
-        Elements isoDates = metadata.select(Iso19139Constants.DATES);
+        final DateType dateType = Iso19139Constants.DATE_TYPE_MAP.get(
+                                      isoDate.select(Iso19139Constants.DATE_TYPE).text());
 
-        for (Element isoDate : isoDates) {
-            final DateType dateType = Iso19139Constants.DATE_TYPE_MAP.get(
-                                          isoDate.select(Iso19139Constants.DATE_TYPE).text());
-
-            if (dateType != null) {
-                dateList.add(
-                    new Date(isoDate.select(Iso19139Constants.DATE).text(), dateType));
-            }
-        }
-
-        return dateList;
-    }
-
-
-    /**
-     * Parses metadata for a resource type (D10) from an ISO19139 metadata record.
-     *
-     * @param metadata the metadata that is to be parsed
-     *
-     * @return the parsed resource type
-     */
-    private ResourceType parseResourceType(Element metadata)
-    {
-        final Element resourceType = metadata.selectFirst(Iso19139Constants.RESOURCE_TYPE);
-
-        return resourceType != null
-               ? new ResourceType(resourceType.text(), ResourceTypeGeneral.Dataset)
+        return dateType != null
+               ? new Date(isoDate.select(Iso19139Constants.DATE).text(), dateType)
                : null;
     }
 
 
     /**
-     * Parses metadata for descriptions (D17) from an ISO19139 metadata record.
+     * Parses a geolocation (D18) from an ISO19139 record geolocation.
      *
-     * @param metadata the metadata that is to be parsed
+     * @param isoGeoLocation the geolocation element that is to be parsed
      *
-     * @return a list of parsed descriptions
+     * @return a geolocation
      */
-    private  List<Description> parseDescriptions(Element metadata)
+    private GeoLocation parseGeoLocation(Element isoGeoLocation)
     {
-        final List<Description> descriptionList = new LinkedList<>();
-        final Element description = metadata.selectFirst(Iso19139Constants.DESCRIPTIONS);
+        GeoLocation geoLocation;
 
-        if (description != null)
-            descriptionList.add(new Description(description.text(), DescriptionType.Abstract));
+        try {
+            double west = Double.parseDouble(getString(isoGeoLocation, Iso19139Constants.GEOLOCS_WEST));
+            double east = Double.parseDouble(getString(isoGeoLocation, Iso19139Constants.GEOLOCS_EAST));
+            double south = Double.parseDouble(getString(isoGeoLocation, Iso19139Constants.GEOLOCS_SOUTH));
+            double north = Double.parseDouble(getString(isoGeoLocation, Iso19139Constants.GEOLOCS_NORTH));
+            geoLocation = new GeoLocation();
 
-        return descriptionList;
-    }
-
-
-    /**
-     * Parses metadata for geolocations (D18) from an ISO19139 metadata record.
-     *
-     * @param metadata the metadata that is to be parsed
-     *
-     * @return a list of geolocations which are given as a bounding box
-     */
-    private List<GeoLocation> parseGeoLocations(Element metadata)
-    {
-        List<GeoLocation> geoLocationList = new LinkedList<>();
-        Elements isoGeoLocations = metadata.select(Iso19139Constants.GEOLOCS);
-
-        for (Element isoGeoLocation : isoGeoLocations) {
-            GeoLocation geoLocation = new GeoLocation();
-            double west, east, south, north;
-
-            try {
-                west = Double.parseDouble(
-                           isoGeoLocation.select(Iso19139Constants.GEOLOCS_WEST).text());
-                east = Double.parseDouble(
-                           isoGeoLocation.select(Iso19139Constants.GEOLOCS_EAST).text());
-                south = Double.parseDouble(
-                            isoGeoLocation.select(Iso19139Constants.GEOLOCS_SOUTH).text());
-                north = Double.parseDouble(
-                            isoGeoLocation.select(Iso19139Constants.GEOLOCS_NORTH).text());
-            } catch (NullPointerException | NumberFormatException e) {
-                continue;
-            }
-
-            //is it a point or a polygon?
+            // is it a point or a polygon?
             if (west == east && south == north)
                 geoLocation.setPoint(new GeoJson(new Point(west, south)));
             else
                 geoLocation.setBox(west, east, south, north);
 
-            geoLocationList.add(geoLocation);
+        } catch (NullPointerException | NumberFormatException e) {
+            geoLocation = null;
         }
 
-        return geoLocationList;
+        return geoLocation;
     }
 
 
@@ -304,18 +206,17 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
      *
      * @return a list of parsed research data
      */
-    private List<ResearchData> parseResearchData(Element metadata, List<Title> titleList)
+    private List<ResearchData> parseResearchData(Element metadata, Collection<Title> titleList)
     {
         final List<ResearchData> researchDataList = new LinkedList<>();
 
         if (!titleList.isEmpty()) {
-            final String researchTitle = titleList.get(0).getValue();
+            final String researchTitle = titleList.iterator().next().getValue();
 
-            final Element researchDataURL
-                = metadata.selectFirst(Iso19139Constants.RESEARCH_DATA);
+            final String researchDataURL = getString(metadata, Iso19139Constants.RESEARCH_DATA);
 
             if (researchDataURL != null)
-                researchDataList.add(new ResearchData(researchDataURL.text(), researchTitle));
+                researchDataList.add(new ResearchData(researchDataURL, researchTitle));
         }
 
         return researchDataList;

@@ -48,6 +48,8 @@ public class Iso19139Constants
     public static final String GEOLOCS_SOUTH = "gmd|southBoundLatitude gco|Decimal";
     public static final String GEOLOCS_NORTH = "gmd|northBoundLatitude gco|Decimal";
 
+    public static final String DATE_PARSING_FAILED = "Datestamp is not a date: {}";
+
     public static final Map<String, DateType> DATE_TYPE_MAP = createDateTypeMap();
 
 
