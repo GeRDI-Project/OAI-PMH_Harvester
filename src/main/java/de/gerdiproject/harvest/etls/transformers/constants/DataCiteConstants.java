@@ -23,44 +23,84 @@ import lombok.NoArgsConstructor;
  *
  * @author Jan Frömberg
  */
-@NoArgsConstructor(access=AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DataCiteConstants
 {
     public static final String IDENTIFIER = "identifier";
     public static final String VERSION = "version";
-    public static final String PUB_YEAR = "publicationYear";
-    public static final String DOC_TITLE = "title";
-    public static final String DOC_CREATORS = "creators";
-    public static final String DOC_CREATORNAME = "creatorName";
-    public static final String DOC_CREATOR_NAMEIDENT = "nameIdentifier";
-    public static final String DOC_CREATOR_NAMEIDENTSCHEME = "nameIdentifierScheme";
-    public static final String DOC_CREATOR_NAMEIDENTSCHEMEURI = "schemeURI";
-    public static final String DOC_CREATOR_AFFILIATION = "affiliation";
+    public static final String PUBLICATION_YEAR = "publicationYear";
+    public static final String SIZES = "sizes";
+    public static final String FORMATS = "formats";
+
+    public static final String TITLES = "titles";
+    public static final String TITLE_TYPE = "titleType";
 
     public static final String CONTRIBUTORS = "contributors";
-    public static final String CONTRIB_TYPE = "contributorType";
-    public static final String PUBLISHER = "publisher";
-    public static final String SUBJECT = "subject";
+    public static final String CONTRIBUTOR_NAME = "contributorName";
+    public static final String CONTRIBUTOR_TYPE = "contributorType";
+
+    public static final String CREATORS = "creators";
+    public static final String CREATOR_NAME = "creatorName";
+
+    public static final String GIVEN_NAME = "givenName";
+    public static final String FAMILY_NAME = "familyName";
+    public static final String AFFILIATION = "affiliation";
+
+    public static final String NAME_IDENTIFIER = "nameIdentifier";
+    public static final String NAME_IDENTIFIER_SCHEME = "nameIdentifierScheme";
+    public static final String NAME_TYPE = "nameType";
+
+    public static final String SUBJECTS = "subjects";
     public static final String SUBJECT_SCHEME = "subjectScheme";
-    public static final String METADATA_DATE = "date";
-    public static final String METADATA_DATETYPE = "dateType";
-    public static final String LANG = "language";
-    public static final String RES_TYPE = "resourceType";
-    public static final String RES_TYPE_GENERAL = "resourceTypeGeneral";
 
-    public static final String REL_IDENTIFIERS = "relatedIdentifiers";
-    public static final String REL_IDENT_TYPE = "relatedIdentifierType";
-    public static final String REL_TYPE = "relationType";
+    public static final String SCHEME_URI = "schemeURI";
+    public static final String SCHEME_TYPE = "schemeType";
+    public static final String VALUE_URI = "valueURI";
 
-    public static final String SIZE = "size";
-    public static final String METADATA_FORMATS = "formats";
+    public static final String DATES = "dates";
+    public static final String DATE_TYPE = "dateType";
+    public static final String DATE_INFORMATION = "dateInformation";
+
+    public static final String PUBLISHER = "publisher";
+    public static final String LANGUAGE = "language";
+    public static final String RESOURCE_TYPE = "resourceType";
+    public static final String RESOURCE_TYPE_GENERAL = "resourceTypeGeneral";
+
+    public static final String RELATED_IDENTIFIERS = "relatedIdentifiers";
+    public static final String RELATED_IDENTIFIER_TYPE = "relatedIdentifierType";
+    public static final String RELATION_TYPE = "relationType";
+    public static final String RELATED_METADATA_SCHEME = "relatedMetadataScheme";
+
     public static final String RIGHTS_LIST = "rightsList";
     public static final String RIGHTS_URI = "rightsURI";
+
     public static final String DESCRIPTIONS = "descriptions";
     public static final String DESC_TYPE = "descriptionType";
 
-    public static final String GEOLOCS = "geoLocations";
-    public static final String GEOLOC_BOX = "geolocationbox";
-    public static final String GEOLOC_POINT = "geolocationpoint";
-    public static final String GEOLOC_PLACE = "geolocationplace";
+    public static final String GEO_LOCATIONS = "geoLocations";
+    public static final String GEOLOCATION_BOX = "geoLocationBox";
+    public static final String GEOLOCATION_POINT = "geoLocationPoint";
+    public static final String GEOLOCATION_PLACE = "geoLocationPlace";
+    public static final String GEOLOCATION_POLYGON = "geoLocationPolygon";
+    public static final String POLYGON_POINT = "polygonPoint";
+
+    public static final String ALTERNATE_IDENTIFIERS = "alternateIdentifiers";
+    public static final String ALTERNATE_IDENTIFIER_TYPE = "alternateIdentifierType";
+
+    // DATACITE 3.0
+    public static final String CONTRIBUTOR_TYPE_FUNDER = "funder";
+
+    // DATACITE 4.1
+    public static final String FUNDING_REFERENCES = "fundingReferences";
+    public static final String FUNDER_NAME = "funderName";
+    public static final String FUNDER_IDENTIFIER = "funderIdentifier";
+    public static final String FUNDER_IDENTIFIER_TYPE = "funderIdentifierType";
+    public static final String AWARD_NUMBER = "awardNumber";
+    public static final String AWARD_TITLE = "awardTitle";
+    public static final String AWARD_URI = "awardURI";
+
+    // misc
+    public static final String URL_PREFIX = "http";
+    public static final String RESOURCE_LINK_NAME = "Resource";
+
 }

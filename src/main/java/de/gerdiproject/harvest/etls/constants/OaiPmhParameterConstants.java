@@ -27,7 +27,7 @@ import lombok.NoArgsConstructor;
  *
  * @author Robin Weiss
  */
-@NoArgsConstructor(access=AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OaiPmhParameterConstants
 {
     //

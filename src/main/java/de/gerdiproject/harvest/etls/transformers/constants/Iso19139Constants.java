@@ -28,7 +28,7 @@ import lombok.NoArgsConstructor;
  * @author Tobias Weber
  *
  */
-@NoArgsConstructor(access=AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Iso19139Constants
 {
     public static final String TITLE = "gmd|citation gmd|CI_Citation gmd|title";
@@ -50,7 +50,7 @@ public class Iso19139Constants
 
     public static final Map<String, DateType> DATE_TYPE_MAP = createDateTypeMap();
 
-    
+
     /**
      * Initializes the DateTypeMap
      */

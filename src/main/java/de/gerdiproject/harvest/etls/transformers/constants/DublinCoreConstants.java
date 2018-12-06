@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
  *
  * @author Jan Frömberg
  */
-@NoArgsConstructor(access=AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DublinCoreConstants
 {
     public static final String METADATA_IDENTIFIER = "dc|identifier";

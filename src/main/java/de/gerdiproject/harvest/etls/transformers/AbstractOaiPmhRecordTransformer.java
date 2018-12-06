@@ -16,8 +16,10 @@
  */
 package de.gerdiproject.harvest.etls.transformers;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -185,5 +187,169 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
         }
 
         return publicationYear;
+    }
+
+
+    /**
+     * Retrieves the text of the first occurrence of a specified tag.
+     *
+     * @param ele the HTML element that is to be parsed
+     * @param tagName the tag of which the text is to be retrieved
+     *
+     * @return the text inside the first occurrence of a specified tag,
+     *          or null if the tag could not be found
+     */
+    protected String getString(Element ele, String tagName)
+    {
+        final Elements stringElements = ele.select(tagName);
+
+        if (stringElements == null || stringElements.isEmpty())
+            return null;
+
+        final Element stringElement = stringElements.first();
+        return stringElement == null ? null : stringElement.text();
+    }
+
+
+    /**
+     * Retrieves the texts of all child tags of an {@linkplain Element}.
+     *
+     * @param ele the HTML {@linkplain Element} that contains the parent tag
+     * @param tagName the name of the parent {@linkplain Element} of the child tags
+     *
+     * @return a {@linkplain List} of {@linkplain String}s
+     *          or null if the tag could not be found
+     */
+    protected List<String> getStrings(Element ele, String tagName)
+    {
+        final Elements allElements = ele.select(tagName);
+
+        if (allElements == null || allElements.isEmpty())
+            return null;
+
+        final Element parent = allElements.first();
+
+        if (parent == null)
+            return null;
+
+        return elementsToStringList(parent.children());
+    }
+
+
+    /**
+     * Retrieves the first occurrence of a specified tag and maps it to a specified class.
+     *
+     * @param ele the HTML {@linkplain Element} that contains the requested tag
+     * @param tagName the name of the requested tag
+     * @param eleToObject a mapping function that generates the requested class
+     * @param <T> the requested type of the converted tag
+     *
+     * @return an object representation of the tag or null if it does not exist
+     */
+    protected <T> T getObject(Element ele, String tagName, Function<Element, T> eleToObject)
+    {
+        final Element requestedTag = ele.select(tagName).first();
+        return requestedTag == null ? null : eleToObject.apply(requestedTag);
+    }
+
+
+    /**
+     * Retrieves all child tags of a specified tag and maps them to a {@linkplain List} of a specified class.
+     *
+     * @param ele the HTML {@linkplain Element} that contains the parent tag
+     * @param tagName the name of the parent tag
+     * @param eleToObject a mapping function that maps a single child to the specified class
+     * @param <T> the requested type of the converted tag
+     *
+     * @return a {@linkplain List} of objects of the tag or null if it does not exist
+     */
+    protected <T> List<T> getObjects(Element ele, String tagName, Function<Element, T> eleToObject)
+    {
+        final Element parent = ele.select(tagName).first();
+        return parent == null
+               ? null
+               : elementsToList(parent.children(), eleToObject);
+    }
+
+
+    /**
+     * Retrieves the value of a HTML attribute.
+     *
+     * @param ele the HTML element that possibly has the attribute
+     * @param attributeKey the key of the attribute
+     *
+     * @return the attribute value, or null if no such attribute exists
+     */
+    protected String getAttribute(Element ele, String attributeKey)
+    {
+        final String attr = ele.attr(attributeKey);
+        return attr.isEmpty() ? null : attr;
+    }
+
+
+    /**
+     * Retrieves the value of a HTML attribute and attempts to map it to an {@linkplain Enum}.
+     *
+     * @param ele the HTML element that possibly has the attribute
+     * @param attributeKey the key of the attribute
+     * @param enumClass the class to which the attribute value must be mapped
+     * @param <T> the type of the {@linkplain Enum}
+     *
+     * @return the enum representation of the attribute value, or null if no such attribute exists or could not be mapped
+     */
+    protected <T extends Enum<T>> T getEnumAttribute(Element ele, String attributeKey, Class<T> enumClass)
+    {
+        T returnValue = null;
+
+        try {
+            if (ele.hasAttr(attributeKey))
+                returnValue = Enum.valueOf(enumClass, ele.attr(attributeKey));
+        } catch (IllegalArgumentException e) {
+            returnValue = null;
+        }
+
+        return returnValue;
+    }
+
+
+    /**
+     * Applies a mapping function to a {@linkplain Collection} of {@linkplain Element}s,
+     * generating a {@linkplain List} of specified objects.
+     *
+     * @param elements the elements that are to be mapped
+     * @param eleToObject the mapping function
+     * @param <T> the type to which the elements are to be mapped
+     *
+     * @return a list of objects that were mapped or null if no object could be mapped
+     */
+    protected <T> List<T> elementsToList(Collection<Element> elements, Function<Element, T> eleToObject)
+    {
+        if (elements == null || elements.isEmpty())
+            return null;
+
+        final List<T> list = new LinkedList<>();
+
+        for (Element ele : elements) {
+            final T obj = eleToObject.apply(ele);
+
+            if (obj != null)
+                list.add(obj);
+        }
+
+        return list.isEmpty() ? null : list;
+    }
+
+
+    /**
+     * Maps a {@linkplain Collection} of {@linkplain Element}s to a {@linkplain List} of {@linkplain String}s
+     * by retrieving the text of the tag elements.
+     *
+     * @param elements the elements that are to be converted to strings
+     *
+     * @return a {@linkplain List} of {@linkplain String}s
+     */
+    protected List<String> elementsToStringList(Collection<Element> elements)
+    {
+        return elementsToList(elements, (Element ele) -> ele.text());
     }
 }

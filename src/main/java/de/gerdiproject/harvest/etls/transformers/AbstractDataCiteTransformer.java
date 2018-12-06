@@ -1,7 +1,7 @@
 /*
  *  Copyright © 2018 Robin Weiss (http://www.gerdi-project.de/)
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  Licensed under the Apache License, Version 2.0 (the DataCiteConstants.License);
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
@@ -9,25 +9,24 @@
  *
  *  Unless required by applicable law or agreed to in writing,
  *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  DataCiteConstants.AS IS BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  *  KIND, either express or implied.  See the License for the
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package de.gerdiproject.harvest.etls.transformers.utils;
+package de.gerdiproject.harvest.etls.transformers;
 
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.Function;
 
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import de.gerdiproject.harvest.etls.constants.OaiPmhConstants;
+import de.gerdiproject.harvest.etls.transformers.constants.DataCiteConstants;
 import de.gerdiproject.json.datacite.AlternateIdentifier;
 import de.gerdiproject.json.datacite.Contributor;
 import de.gerdiproject.json.datacite.Creator;
+import de.gerdiproject.json.datacite.DataCiteJson;
 import de.gerdiproject.json.datacite.Date;
 import de.gerdiproject.json.datacite.DateRange;
 import de.gerdiproject.json.datacite.Description;
@@ -50,6 +49,8 @@ import de.gerdiproject.json.datacite.enums.RelatedIdentifierType;
 import de.gerdiproject.json.datacite.enums.RelationType;
 import de.gerdiproject.json.datacite.enums.ResourceTypeGeneral;
 import de.gerdiproject.json.datacite.enums.TitleType;
+import de.gerdiproject.json.datacite.extension.generic.WebLink;
+import de.gerdiproject.json.datacite.extension.generic.enums.WebLinkType;
 import de.gerdiproject.json.datacite.nested.AwardNumber;
 import de.gerdiproject.json.datacite.nested.FunderIdentifier;
 import de.gerdiproject.json.datacite.nested.NameIdentifier;
@@ -57,102 +58,14 @@ import de.gerdiproject.json.datacite.nested.PersonName;
 import de.gerdiproject.json.geo.GeoJson;
 import de.gerdiproject.json.geo.Point;
 import de.gerdiproject.json.geo.Polygon;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 
 /**
- * This class offers static helper methods for parsing {@linkplain Element}s 
- * of DataCite 4.1 HTML records.
+ * This class offers methods for transforming DataCite records to {@linkplain DataCiteJson} objects.
  *
  * @author Robin Weiss
  */
-@NoArgsConstructor(access=AccessLevel.PRIVATE)
-public class DataCite4ElementParser
+public abstract class AbstractDataCiteTransformer extends AbstractOaiPmhRecordTransformer
 {
-    /**
-     * Retrieves the text of the first occurrence of a specified tag.
-     *
-     * @param ele the HTML element that is to be parsed
-     * @param tagName the tag of which the text is to be retrieved
-     *
-     * @return the text inside the first occurrence of a specified tag,
-     *          or null if the tag could not be found
-     */
-    public static String getString(Element ele, String tagName)
-    {
-        final Elements stringElements = ele.select(tagName);
-
-        if (stringElements == null || stringElements.isEmpty())
-            return null;
-
-        final Element stringElement = stringElements.first();
-        return stringElement == null ? null : stringElement.text();
-    }
-
-
-    /**
-     * Retrieves the texts of all child tags of an {@linkplain Element}.
-     *
-     * @param ele the HTML {@linkplain Element} that contains the parent tag
-     * @param tagName the name of the parent {@linkplain Element} of the child tags
-     *
-     * @return a {@linkplain List} of {@linkplain String}s
-     *          or null if the tag could not be found
-     */
-    public static List<String> getStrings(Element ele, String tagName)
-    {
-        final Elements allElements = ele.select(tagName);
-
-        if (allElements == null || allElements.isEmpty())
-            return null;
-
-        final Element parent = allElements.first();
-
-        if (parent == null)
-            return null;
-
-        return elementsToStringList(parent.children());
-    }
-
-
-    /**
-     * Retrieves the first occurrence of a specified tag and maps it to a specified class.
-     *
-     * @param ele the HTML {@linkplain Element} that contains the requested tag
-     * @param tagName the name of the requested tag
-     * @param eleToObject a mapping function that generates the requested class
-     * @param <T> the requested type of the converted tag
-     *
-     * @return an object representation of the tag or null if it does not exist
-     */
-    public static <T> T getObject(Element ele, String tagName, Function<Element, T> eleToObject)
-    {
-        final Element requestedTag = ele.select(tagName).first();
-        return requestedTag == null ? null : eleToObject.apply(requestedTag);
-    }
-
-
-    /**
-     * Retrieves all child tags of a specified tag and maps them to a {@linkplain List} of a specified class.
-     *
-     * @param ele the HTML {@linkplain Element} that contains the parent tag
-     * @param tagName the name of the parent tag
-     * @param eleToObject a mapping function that maps a single child to the specified class
-     * @param <T> the requested type of the converted tag
-     *
-     * @return a {@linkplain List} of objects of the tag or null if it does not exist
-     */
-    public static <T> List<T> getObjects(Element ele, String tagName, Function<Element, T> eleToObject)
-    {
-        final Element parent = ele.select(tagName).first();
-
-        if (parent == null)
-            return null;
-
-        return elementsToList(parent.children(), eleToObject);
-    }
-
-
     /**
      * Retrieves a {@linkplain Identifier} from the HTML representation thereof.
      *
@@ -160,7 +73,7 @@ public class DataCite4ElementParser
      *
      * @return the {@linkplain Identifier} represented by the specified HTML element
      */
-    public static Identifier parseIdentifier(Element ele)
+    protected Identifier parseIdentifier(Element ele)
     {
         final String value = ele.text();
         return new Identifier(value);
@@ -174,13 +87,13 @@ public class DataCite4ElementParser
      *
      * @return the {@linkplain Creator} represented by the specified HTML element
      */
-    public static Creator parseCreator(Element ele)
+    protected Creator parseCreator(Element ele)
     {
-        final PersonName creatorName = parsePersonName(ele.selectFirst("creatorName"));
-        final String givenName = getString(ele, "givenName");
-        final String familyName = getString(ele, "familyName");
-        final List<String> affiliations = elementsToStringList(ele.select("affiliation"));
-        final List<NameIdentifier> nameIdentifiers = elementsToList(ele.select("nameIdentifier"), DataCite4ElementParser::parseNameIdentifier);
+        final PersonName creatorName = parsePersonName(ele.selectFirst(DataCiteConstants.CREATOR_NAME));
+        final String givenName = getString(ele, DataCiteConstants.GIVEN_NAME);
+        final String familyName = getString(ele, DataCiteConstants.FAMILY_NAME);
+        final List<String> affiliations = elementsToStringList(ele.select(DataCiteConstants.AFFILIATION));
+        final List<NameIdentifier> nameIdentifiers = elementsToList(ele.select(DataCiteConstants.NAME_IDENTIFIER), this::parseNameIdentifier);
 
         final Creator creator = new Creator(creatorName);
         creator.setGivenName(givenName);
@@ -199,14 +112,14 @@ public class DataCite4ElementParser
      *
      * @return the {@linkplain Contributor} represented by the specified HTML element
      */
-    public static Contributor parseContributor(Element ele)
+    protected Contributor parseContributor(Element ele)
     {
-        final PersonName contributorName = parsePersonName(ele.selectFirst("contributorName"));
-        final ContributorType contributorType = getEnumAttribute(ele, "contributorType", ContributorType.class);
-        final String givenName = getString(ele, "givenName");
-        final String familyName = getString(ele, "familyName");
-        final List<String> affiliations = elementsToStringList(ele.select("affiliation"));
-        final List<NameIdentifier> nameIdentifiers = elementsToList(ele.select("nameIdentifier"), DataCite4ElementParser::parseNameIdentifier);
+        final PersonName contributorName = parsePersonName(ele.selectFirst(DataCiteConstants.CONTRIBUTOR_NAME));
+        final ContributorType contributorType = getEnumAttribute(ele, DataCiteConstants.CONTRIBUTOR_TYPE, ContributorType.class);
+        final String givenName = getString(ele, DataCiteConstants.GIVEN_NAME);
+        final String familyName = getString(ele, DataCiteConstants.FAMILY_NAME);
+        final List<String> affiliations = elementsToStringList(ele.select(DataCiteConstants.AFFILIATION));
+        final List<NameIdentifier> nameIdentifiers = elementsToList(ele.select(DataCiteConstants.NAME_IDENTIFIER), this::parseNameIdentifier);
 
         final Contributor contributor = new Contributor(contributorName, contributorType);
         contributor.setGivenName(givenName);
@@ -225,11 +138,11 @@ public class DataCite4ElementParser
      *
      * @return the {@linkplain Title} represented by the specified HTML element
      */
-    public static Title parseTitle(Element ele)
+    protected Title parseTitle(Element ele)
     {
         final String value = ele.text();
         final String language = getAttribute(ele, OaiPmhConstants.LANGUAGE_ATTRIBUTE);
-        final TitleType titleType = getEnumAttribute(ele, "titleType", TitleType.class);
+        final TitleType titleType = getEnumAttribute(ele, DataCiteConstants.TITLE_TYPE, TitleType.class);
 
         final Title title = new Title(value);
         title.setLang(language);
@@ -246,10 +159,10 @@ public class DataCite4ElementParser
      *
      * @return the {@linkplain ResourceType} represented by the specified HTML element
      */
-    public static ResourceType parseResourceType(Element ele)
+    protected ResourceType parseResourceType(Element ele)
     {
         final String value = ele.text();
-        final ResourceTypeGeneral generalType = getEnumAttribute(ele, "resourceTypeGeneral", ResourceTypeGeneral.class);
+        final ResourceTypeGeneral generalType = getEnumAttribute(ele, DataCiteConstants.RESOURCE_TYPE_GENERAL, ResourceTypeGeneral.class);
         final ResourceType resourceType = new ResourceType(value, generalType);
         return resourceType;
     }
@@ -262,10 +175,10 @@ public class DataCite4ElementParser
      *
      * @return the {@linkplain Description} represented by the specified HTML element
      */
-    public static Description parseDescription(Element ele)
+    protected Description parseDescription(Element ele)
     {
         final String value = ele.text();
-        final DescriptionType descriptionType = getEnumAttribute(ele, "descriptionType", DescriptionType.class);
+        final DescriptionType descriptionType = getEnumAttribute(ele, DataCiteConstants.DESC_TYPE, DescriptionType.class);
         final String language = getAttribute(ele, OaiPmhConstants.LANGUAGE_ATTRIBUTE);
 
         final Description description = new Description(value, descriptionType);
@@ -282,12 +195,12 @@ public class DataCite4ElementParser
      *
      * @return the {@linkplain Subject} represented by the specified HTML element
      */
-    public static Subject parseSubject(Element ele)
+    protected Subject parseSubject(Element ele)
     {
         final String value = ele.text();
-        final String subjectScheme = getAttribute(ele, "subjectScheme");
-        final String schemeURI = getAttribute(ele, "schemeURI");
-        final String valueURI = getAttribute(ele, "valueURI");
+        final String subjectScheme = getAttribute(ele, DataCiteConstants.SUBJECT_SCHEME);
+        final String schemeURI = getAttribute(ele, DataCiteConstants.SCHEME_URI);
+        final String valueURI = getAttribute(ele, DataCiteConstants.VALUE_URI);
         final String language = getAttribute(ele, OaiPmhConstants.LANGUAGE_ATTRIBUTE);
 
         final Subject subject = new Subject(value);
@@ -306,15 +219,15 @@ public class DataCite4ElementParser
      *
      * @return the {@linkplain RelatedIdentifier} represented by the specified HTML element
      */
-    public static RelatedIdentifier parseRelatedIdentifier(Element ele)
+    protected RelatedIdentifier parseRelatedIdentifier(Element ele)
     {
         final String value = ele.text();
-        final RelatedIdentifierType relatedIdentifierType = getEnumAttribute(ele, "relatedIdentifierType", RelatedIdentifierType.class);
-        final ResourceTypeGeneral resourceTypeGeneral = getEnumAttribute(ele, "resourceTypeGeneral", ResourceTypeGeneral.class);
-        final RelationType relationType = getEnumAttribute(ele, "relationType", RelationType.class);
-        final String relatedMetadataScheme = getAttribute(ele, "relatedMetadataScheme");
-        final String schemeURI = getAttribute(ele, "schemeURI");
-        final String schemeType = getAttribute(ele, "schemeType");
+        final RelatedIdentifierType relatedIdentifierType = getEnumAttribute(ele, DataCiteConstants.RELATED_IDENTIFIER_TYPE, RelatedIdentifierType.class);
+        final ResourceTypeGeneral resourceTypeGeneral = getEnumAttribute(ele, DataCiteConstants.RESOURCE_TYPE_GENERAL, ResourceTypeGeneral.class);
+        final RelationType relationType = getEnumAttribute(ele, DataCiteConstants.RELATION_TYPE, RelationType.class);
+        final String relatedMetadataScheme = getAttribute(ele, DataCiteConstants.RELATED_METADATA_SCHEME);
+        final String schemeURI = getAttribute(ele, DataCiteConstants.SCHEME_URI);
+        final String schemeType = getAttribute(ele, DataCiteConstants.SCHEME_TYPE);
 
         final RelatedIdentifier relatedIdentifier = new RelatedIdentifier(value, relatedIdentifierType, relationType);
         relatedIdentifier.setResourceTypeGeneral(resourceTypeGeneral);
@@ -332,10 +245,10 @@ public class DataCite4ElementParser
      *
      * @return the {@linkplain AlternateIdentifier} represented by the specified HTML element
      */
-    public static AlternateIdentifier parseAlternateIdentifier(Element ele)
+    protected AlternateIdentifier parseAlternateIdentifier(Element ele)
     {
         final String value = ele.text();
-        final String alternateIdentifierType = getAttribute(ele, "alternateIdentifierType");
+        final String alternateIdentifierType = getAttribute(ele, DataCiteConstants.ALTERNATE_IDENTIFIER_TYPE);
 
         final AlternateIdentifier alternateIdentifier = new AlternateIdentifier(value, alternateIdentifierType);
         return alternateIdentifier;
@@ -349,11 +262,11 @@ public class DataCite4ElementParser
      *
      * @return the {@linkplain Rights} represented by the specified HTML element
      */
-    public static Rights parseRights(Element ele)
+    protected Rights parseRights(Element ele)
     {
         final String value = ele.text();
-        final String rightsURI = getAttribute(ele, "rightsURI");
-        final String language = getAttribute(ele, OaiPmhConstants.LANGUAGE_ATTRIBUTE);
+        final String rightsURI = getAttribute(ele, DataCiteConstants.RIGHTS_URI);
+        final String language = getAttribute(ele, DataCiteConstants.LANGUAGE);
 
         final Rights rights = new Rights(value);
         rights.setLang(language);
@@ -370,11 +283,11 @@ public class DataCite4ElementParser
      *
      * @return a {@linkplain Date} or {@linkplain DateRange} represented by the specified HTML element
      */
-    public static AbstractDate parseDate(Element ele)
+    protected AbstractDate parseDate(Element ele)
     {
         final String value = ele.text();
-        final DateType dateType = getEnumAttribute(ele, "dateType", DateType.class);
-        final String dateInformation = getAttribute(ele, "dateInformation");
+        final DateType dateType = getEnumAttribute(ele, DataCiteConstants.DATE_TYPE, DateType.class);
+        final String dateInformation = getAttribute(ele, DataCiteConstants.DATE_INFORMATION);
 
         final AbstractDate date = value.contains(DataCiteDateConstants.DATE_RANGE_SPLITTER)
                                   ? new DateRange(value, dateType)
@@ -386,18 +299,41 @@ public class DataCite4ElementParser
 
 
     /**
+     * Retrieves a {@linkplain FundingReference} from the HTML representation thereof.
+     *
+     * @param ele the HTML element that represents the {@linkplain FundingReference}
+     *
+     * @return the {@linkplain FundingReference} represented by the specified HTML element
+     */
+    protected FundingReference parseFundingReference(Element ele)
+    {
+        final String funderName = getString(ele, DataCiteConstants.FUNDER_NAME);
+        final FunderIdentifier funderIdentifier = getObject(ele, DataCiteConstants.FUNDER_IDENTIFIER, this::parseFunderIdentifier);
+        final AwardNumber awardNumber = getObject(ele, DataCiteConstants.AWARD_NUMBER, this::parseAwardNumber);
+        final String awardTitle = getString(ele, DataCiteConstants.AWARD_TITLE);
+
+        final FundingReference fundingReference = new FundingReference(funderName);
+        fundingReference.setFunderIdentifier(funderIdentifier);
+        fundingReference.setAwardNumber(awardNumber);
+        fundingReference.setAwardTitle(awardTitle);
+
+        return fundingReference;
+    }
+
+
+    /**
      * Retrieves a {@linkplain GeoLocation} from the HTML representation thereof.
      *
      * @param ele the HTML element that represents the {@linkplain GeoLocation}
      *
      * @return the {@linkplain GeoLocation} represented by the specified HTML element
      */
-    public static GeoLocation parseGeoLocation(Element ele)
+    protected GeoLocation parseGeoLocation(Element ele)
     {
-        final String geoLocationPlace = getString(ele, "geoLocationPlace");
-        final Point geoLocationPoint = getObject(ele, "geoLocationPoint", DataCite4ElementParser::parseGeoLocationPoint);
-        final List<GeoJson> geoLocationPolygons = elementsToList(ele.select("geoLocationPolygon"), DataCite4ElementParser::parseGeoLocationPolygon);
-        final double[] geoLocationBox = getObject(ele, "geoLocationBox", DataCite4ElementParser::parseGeoLocationBox);
+        final String geoLocationPlace = getString(ele, DataCiteConstants.GEOLOCATION_PLACE);
+        final Point geoLocationPoint = getObject(ele, DataCiteConstants.GEOLOCATION_POINT, this::parseGeoLocationPoint);
+        final List<GeoJson> geoLocationPolygons = elementsToList(ele.select(DataCiteConstants.GEOLOCATION_POLYGON), this::parseGeoLocationPolygon);
+        final double[] geoLocationBox = getObject(ele, DataCiteConstants.GEOLOCATION_BOX, this::parseGeoLocationBox);
 
         final GeoLocation geoLocation = new GeoLocation();
         geoLocation.setPlace(geoLocationPlace);
@@ -414,38 +350,15 @@ public class DataCite4ElementParser
 
 
     /**
-     * Retrieves a {@linkplain FundingReference} from the HTML representation thereof.
-     *
-     * @param ele the HTML element that represents the {@linkplain FundingReference}
-     *
-     * @return the {@linkplain FundingReference} represented by the specified HTML element
-     */
-    public static FundingReference parseFundingReference(Element ele)
-    {
-        final String funderName = getString(ele, "funderName");
-        final FunderIdentifier funderIdentifier = getObject(ele, "funderIdentifier", DataCite4ElementParser::parseFunderIdentifier);
-        final AwardNumber awardNumber = getObject(ele, "awardNumber", DataCite4ElementParser::parseAwardNumber);
-        final String awardTitle = getString(ele, "awardTitle");
-
-        final FundingReference fundingReference = new FundingReference(funderName);
-        fundingReference.setFunderIdentifier(funderIdentifier);
-        fundingReference.setAwardNumber(awardNumber);
-        fundingReference.setAwardTitle(awardTitle);
-
-        return fundingReference;
-    }
-
-
-    /**
      * Retrieves a {@linkplain GeoJson} {@linkplain Polygon} from the HTML representation thereof.
      *
      * @param ele the HTML element that represents the {@linkplain GeoJson} {@linkplain Polygon}
      *
      * @return the {@linkplain GeoJson} {@linkplain Polygon} represented by the specified HTML element
      */
-    private static GeoJson parseGeoLocationPolygon(Element ele)
+    protected GeoJson parseGeoLocationPolygon(Element ele)
     {
-        List<Point> polygonPoints = elementsToList(ele.select("polygonPoint"), DataCite4ElementParser::parseGeoLocationPoint);
+        List<Point> polygonPoints = elementsToList(ele.select(DataCiteConstants.POLYGON_POINT), this::parseGeoLocationPoint);
 
         final Polygon poly = new Polygon(polygonPoints);
 
@@ -460,7 +373,7 @@ public class DataCite4ElementParser
      *
      * @return the {@linkplain Point}  represented by the specified HTML element
      */
-    private static Point parseGeoLocationPoint(Element ele)
+    protected Point parseGeoLocationPoint(Element ele)
     {
         final String[] values = ele.text().split(" ");
         final double longitude = Double.parseDouble(values[0]);
@@ -483,7 +396,7 @@ public class DataCite4ElementParser
      *
      * @return a double array with four elements
      */
-    private static double[] parseGeoLocationBox(Element ele)
+    protected double[] parseGeoLocationBox(Element ele)
     {
         final String[] values = ele.text().split(" ");
         final double[] boxParameters = new double[4];
@@ -502,16 +415,92 @@ public class DataCite4ElementParser
 
 
     /**
+     * Retrieves {@linkplain WebLink}s from DataCite identifiers.
+     *
+     * @param identifier the identifier of a {@linkplain DataCiteJson}
+     * @param relatedIdentifiers related identifiers of a {@linkplain DataCiteJson}
+     *
+     * @return a list of {@linkplain WebLink}s
+     */
+    protected List<WebLink> createWebLinks(Identifier identifier, List<RelatedIdentifier> relatedIdentifiers)
+    {
+        final List<WebLink> webLinks = new LinkedList<>();
+
+        // get related URLs
+        if (relatedIdentifiers != null) {
+            for (RelatedIdentifier ri : relatedIdentifiers) {
+                final String relatedUrl;
+
+                switch (ri.getType()) {
+                    case DOI:
+                        relatedUrl = ri.getValue().startsWith(DataCiteConstants.URL_PREFIX)
+                                     ? ri.getValue()
+                                     : String.format(OaiPmhConstants.DOI_URL, ri.getValue());
+                        break;
+
+                    case URL:
+                        relatedUrl = ri.getValue();
+                        break;
+
+                    default:
+                        relatedUrl = null;
+                }
+
+                if (relatedUrl != null) {
+                    final WebLink relatedLink = new WebLink(relatedUrl);
+                    relatedLink.setType(WebLinkType.Related);
+                    relatedLink.setName(ri.getRelationType().toString());
+                    webLinks.add(relatedLink);
+                }
+            }
+        }
+
+        // convert identifier to view url
+        if (identifier != null) {
+            final String identifierURL = identifier.getValue().startsWith(DataCiteConstants.URL_PREFIX)
+                                         ? identifier.getValue()
+                                         : String.format(OaiPmhConstants.DOI_URL, identifier.getValue());
+
+            final WebLink viewLink = new WebLink(identifierURL);
+            viewLink.setType(WebLinkType.ViewURL);
+            viewLink.setName(DataCiteConstants.RESOURCE_LINK_NAME);
+            webLinks.add(viewLink);
+        }
+
+        return webLinks;
+    }
+
+
+    /**
+     * Attempts to parse the publication year from DataCite record metadata.
+     *
+     * @param metadata DataCite record metadata
+     *
+     * @return the publication year or null, if it does not exist
+     */
+    protected Integer parsePublicationYear(Element metadata)
+    {
+        try {
+            final String publicationYear = getString(metadata, DataCiteConstants.PUBLICATION_YEAR);
+            return Integer.parseInt(publicationYear);
+
+        } catch (NumberFormatException | NullPointerException e) {
+            return null;
+        }
+    }
+
+
+    /**
      * Retrieves a {@linkplain FunderIdentifier} from the HTML representation thereof.
      *
      * @param ele the HTML element that represents the {@linkplain FunderIdentifier}
      *
      * @return the {@linkplain FunderIdentifier} represented by the specified HTML element
      */
-    private static FunderIdentifier parseFunderIdentifier(Element ele)
+    protected FunderIdentifier parseFunderIdentifier(Element ele)
     {
         final String value = ele.text();
-        final FunderIdentifierType funderIdentifierType = getEnumAttribute(ele, "funderIdentifierType", FunderIdentifierType.class);
+        final FunderIdentifierType funderIdentifierType = getEnumAttribute(ele, DataCiteConstants.FUNDER_IDENTIFIER_TYPE, FunderIdentifierType.class);
 
         final FunderIdentifier funderIdentifier = new FunderIdentifier(value, funderIdentifierType);
         return funderIdentifier;
@@ -525,10 +514,10 @@ public class DataCite4ElementParser
      *
      * @return the {@linkplain AwardNumber} represented by the specified HTML element
      */
-    private static AwardNumber parseAwardNumber(Element ele)
+    protected AwardNumber parseAwardNumber(Element ele)
     {
         final String value = ele.text();
-        final String awardURI = getAttribute(ele, "awardURI");
+        final String awardURI = getAttribute(ele, DataCiteConstants.AWARD_URI);
 
         final AwardNumber awardNumber = new AwardNumber(value, awardURI);
         return awardNumber;
@@ -542,11 +531,11 @@ public class DataCite4ElementParser
      *
      * @return the {@linkplain NameIdentifier} represented by the specified HTML element
      */
-    private static NameIdentifier parseNameIdentifier(Element ele)
+    protected NameIdentifier parseNameIdentifier(Element ele)
     {
         final String value = ele.text();
-        final String nameIdentifierScheme = getAttribute(ele, "nameIdentifierScheme");
-        final String schemeURI = getAttribute(ele, "schemeURI");
+        final String nameIdentifierScheme = getAttribute(ele, DataCiteConstants.NAME_IDENTIFIER_SCHEME);
+        final String schemeURI = getAttribute(ele, DataCiteConstants.SCHEME_URI);
 
         final NameIdentifier nameIdentifier = new NameIdentifier(value, nameIdentifierScheme);
         nameIdentifier.setSchemeURI(schemeURI);
@@ -560,94 +549,10 @@ public class DataCite4ElementParser
      *
      * @return the {@linkplain PersonName} represented by the specified HTML element
      */
-    private static PersonName parsePersonName(Element ele)
+    protected PersonName parsePersonName(Element ele)
     {
         final String name = ele.text();
-        final NameType nameType = getEnumAttribute(ele, "nameType", NameType.class);
+        final NameType nameType = getEnumAttribute(ele, DataCiteConstants.NAME_TYPE, NameType.class);
         return new PersonName(name, nameType);
-    }
-
-
-    /**
-     * Retrieves the value of a HTML attribute.
-     *
-     * @param ele the HTML element that possibly has the attribute
-     * @param attributeKey the key of the attribute
-     *
-     * @return the attribute value, or null if no such attribute exists
-     */
-    private static String getAttribute(Element ele, String attributeKey)
-    {
-        if (ele.hasAttr(attributeKey))
-            return ele.attr(attributeKey);
-        else
-            return null;
-    }
-
-
-    /**
-     * Retrieves the value of a HTML attribute and attempts to map it to an {@linkplain Enum}.
-     *
-     * @param ele the HTML element that possibly has the attribute
-     * @param attributeKey the key of the attribute
-     * @param enumClass the class to which the attribute value must be mapped
-     * @param <T> the type of the {@linkplain Enum}
-     *
-     * @return the enum representation of the attribute value, or null if no such attribute exists or could not be mapped
-     */
-    private static <T extends Enum<T>> T getEnumAttribute(Element ele, String attributeKey, Class<T> enumClass)
-    {
-        T returnValue = null;
-
-        try {
-            if (ele.hasAttr(attributeKey))
-                returnValue = Enum.valueOf(enumClass, ele.attr(attributeKey));
-        } catch (IllegalArgumentException e) {
-            returnValue = null;
-        }
-
-        return returnValue;
-    }
-
-
-    /**
-     * Applies a mapping function to a {@linkplain Collection} of {@linkplain Element}s,
-     * generating a {@linkplain List} of specified objects.
-     *
-     * @param elements the elements that are to be mapped
-     * @param eleToObject the mapping function
-     * @param <T> the type to which the elements are to be mapped
-     *
-     * @return a list of objects that were mapped or null if no object could be mapped
-     */
-    private static <T> List<T> elementsToList(Collection<Element> elements, Function<Element, T> eleToObject)
-    {
-        if (elements == null || elements.isEmpty())
-            return null;
-
-        final List<T> list = new LinkedList<>();
-
-        for (Element ele : elements) {
-            final T obj = eleToObject.apply(ele);
-
-            if (obj != null)
-                list.add(obj);
-        }
-
-        return list.isEmpty() ? null : list;
-    }
-
-
-    /**
-     * Maps a {@linkplain Collection} of {@linkplain Element}s to a {@linkplain List} of {@linkplain String}s
-     * by retrieving the text of the tag elements.
-     *
-     * @param elements the elements that are to be converted to strings
-     *
-     * @return a {@linkplain List} of {@linkplain String}s
-     */
-    private static List<String> elementsToStringList(Collection<Element> elements)
-    {
-        return elementsToList(elements, (Element ele) -> ele.text());
     }
 }

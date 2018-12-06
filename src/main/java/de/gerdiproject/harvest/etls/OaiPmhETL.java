@@ -29,8 +29,8 @@ import de.gerdiproject.harvest.etls.constants.OaiPmhParameterConstants;
 import de.gerdiproject.harvest.etls.events.GetRepositoryNameEvent;
 import de.gerdiproject.harvest.etls.extractors.IExtractor;
 import de.gerdiproject.harvest.etls.extractors.OaiPmhRecordsExtractor;
-import de.gerdiproject.harvest.etls.transformers.Datacite3Transformer;
-import de.gerdiproject.harvest.etls.transformers.Datacite4Transformer;
+import de.gerdiproject.harvest.etls.transformers.DataCite3Transformer;
+import de.gerdiproject.harvest.etls.transformers.DataCite4Transformer;
 import de.gerdiproject.harvest.etls.transformers.DublinCoreTransformer;
 import de.gerdiproject.harvest.etls.transformers.ITransformer;
 import de.gerdiproject.harvest.etls.transformers.Iso19139Transformer;
@@ -81,12 +81,12 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
             case OaiPmhParameterConstants.DATACITE_3_METADATA_PREFIX:
             case OaiPmhParameterConstants.DATACITE_3_METADATA_PREFIX_2:
             case OaiPmhParameterConstants.DATACITE_3_METADATA_PREFIX_3:
-                return new Datacite3Transformer();
+                return new DataCite3Transformer();
 
             case OaiPmhParameterConstants.DATACITE_4_METADATA_PREFIX:
             case OaiPmhParameterConstants.DATACITE_4_METADATA_PREFIX_2:
             case OaiPmhParameterConstants.DATACITE_4_METADATA_PREFIX_3:
-                return new Datacite4Transformer();
+                return new DataCite4Transformer();
 
             case OaiPmhParameterConstants.DUBLIN_CORE_METADATA_PREFIX:
                 return new DublinCoreTransformer();
