@@ -170,7 +170,7 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
     private Integer parsePublicationYear(Element metadata, List<AbstractDate> dateList)
     {
         // first look for the publication year in already harvested dates
-        Integer publicationYear = parsePublicationYearFromDateList(dateList);
+        Integer publicationYear = parsePublicationYearFromDates(dateList);
 
         // fallback: use the datestamp of the record
         if (publicationYear == null) {

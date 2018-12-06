@@ -167,11 +167,11 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
      * Parses a list of already parsed {@linkplain AbstractDate}s and
      * attempts to retrieve the publication year.
      *
-     * @param datesList a list of parsed {@linkplain AbstractDate}s
+     * @param datesList a collection of parsed {@linkplain AbstractDate}s
      *
      * @return the publication year or null, if no such date exists
      */
-    protected Integer parsePublicationYearFromDateList(List<AbstractDate> datesList)
+    protected Integer parsePublicationYearFromDates(Collection<AbstractDate> datesList)
     {
         Integer publicationYear = null;
 

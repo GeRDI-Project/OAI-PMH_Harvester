@@ -26,21 +26,18 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DublinCoreConstants
 {
-    public static final String METADATA_IDENTIFIER = "dc|identifier";
-
-    public static final String DOC_TITLE = "dc|title";
-    public static final String DOC_CREATORS = "dc|creator";
-    public static final String DOC_CONTRIBUTORS = "dc|contributor";
-    public static final String DOC_DESCRIPTIONS = "dc|description";
-
+    public static final String IDENTIFIERS = "dc|identifier";
+    public static final String TITLES = "dc|title";
+    public static final String CREATORS = "dc|creator";
+    public static final String CONTRIBUTORS = "dc|contributor";
+    public static final String DESCRIPTIONS = "dc|description";
     public static final String PUBLISHER = "dc|publisher";
     public static final String SUBJECTS = "dc|subject";
-
-    public static final String METADATA_DATE = "dc|date";
-
+    public static final String DATES = "dc|date";
     public static final String LANG = "dc|language";
     public static final String RES_TYPE = "dc|type";
-
-    public static final String METADATA_FORMATS = "dc|format";
+    public static final String FORMATS = "dc|format";
     public static final String RIGHTS = "dc|rights";
+
+    public static final String VIEW_URL_TITLE = "View URL";
 }

@@ -17,11 +17,8 @@ package de.gerdiproject.harvest.etls.transformers;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.LinkedList;
-import java.util.List;
 
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import de.gerdiproject.harvest.etls.transformers.constants.DublinCoreConstants;
 import de.gerdiproject.json.datacite.Contributor;
@@ -29,10 +26,10 @@ import de.gerdiproject.json.datacite.Creator;
 import de.gerdiproject.json.datacite.DataCiteJson;
 import de.gerdiproject.json.datacite.Date;
 import de.gerdiproject.json.datacite.Description;
+import de.gerdiproject.json.datacite.Identifier;
 import de.gerdiproject.json.datacite.Rights;
 import de.gerdiproject.json.datacite.Subject;
 import de.gerdiproject.json.datacite.Title;
-import de.gerdiproject.json.datacite.abstr.AbstractDate;
 import de.gerdiproject.json.datacite.enums.ContributorType;
 import de.gerdiproject.json.datacite.enums.DateType;
 import de.gerdiproject.json.datacite.enums.DescriptionType;
@@ -52,248 +49,62 @@ public class DublinCoreTransformer extends AbstractOaiPmhRecordTransformer
         // get header and meta data for each record
         Element metadata = getMetadata(record);
 
-        // parse dates and publication date
-        final List<AbstractDate> dateList = parseDates(metadata);
-        document.addDates(dateList);
-        document.setPublicationYear(parsePublicationYearFromDateList(dateList));
+        document.setPublisher(getString(metadata, DublinCoreConstants.PUBLISHER));
+        document.setLanguage(getString(metadata, DublinCoreConstants.LANG));
+        document.addFormats(getStrings(metadata, DublinCoreConstants.FORMATS));
+        document.addFormats(getStrings(metadata, DublinCoreConstants.RES_TYPE));
 
-        document.addCreators(parseCreators(metadata));
-        document.addContributors(parseContributors(metadata));
-        document.addTitles(parseTitles(metadata));
-        document.addDescriptions(parseDescriptions(metadata));
-        document.setPublisher(parsePublisher(metadata));
-        document.addFormats(parseFormats(metadata));
-        document.addSubjects(parseSubjects(metadata));
-        document.addRights(parseRights(metadata));
-        document.setLanguage(parseLanguage(metadata));
+        document.setIdentifier(getObject(metadata, DublinCoreConstants.IDENTIFIERS,
+                                         (Element e) -> new Identifier(e.text())));
 
-        document.addWebLinks(parseWebLinks(metadata));
+        document.addDates(getObjects(metadata, DublinCoreConstants.DATES,
+                                     (Element e) -> new Date(e.text(), DateType.Issued)));
+
+        document.addCreators(getObjects(metadata, DublinCoreConstants.CREATORS,
+                                        (Element e) -> new Creator(e.text())));
+
+        document.addContributors(getObjects(metadata, DublinCoreConstants.CONTRIBUTORS,
+                                            (Element e) -> new Contributor(e.text(), ContributorType.ContactPerson)));
+
+        document.addTitles(getObjects(metadata, DublinCoreConstants.TITLES,
+                                      (Element e) -> new Title(e.text())));
+
+        document.addDescriptions(getObjects(metadata, DublinCoreConstants.DESCRIPTIONS,
+                                            (Element e) ->new Description(e.text(), DescriptionType.Abstract)));
+
+        document.addSubjects(getObjects(metadata, DublinCoreConstants.SUBJECTS,
+                                        (Element e) -> new Subject(e.text())));
+
+        document.addRights(getObjects(metadata, DublinCoreConstants.RIGHTS,
+                                      (Element e) -> new Rights(e.text())));
+
+        document.addWebLinks(getObjects(metadata, DublinCoreConstants.IDENTIFIERS, this::identifierToWebLink));
+
+        document.setPublicationYear(parsePublicationYearFromDates(document.getDates()));
     }
 
 
     /**
-     * Parses {@linkplain AbstractDate}s from the record metadata.
+     * Parses a {@linkplain WebLink} from a DublinCore identifier.
      *
-     * @param metadata the metadata that is to be parsed
+     * @param identifier the identifier that is to be parsed
      *
-     * @return a list of {@linkplain AbstractDate}s
+     * @return a {@linkplain WebLink}
      */
-    private List<AbstractDate> parseDates(Element metadata)
+    private WebLink identifierToWebLink(Element identifier)
     {
-        final List<AbstractDate> dateList = new LinkedList<>();
+        WebLink viewLink;
 
-        final Elements dateElements = metadata.select(DublinCoreConstants.METADATA_DATE);
+        try {
+            // check if URL is valid
+            new URL(identifier.text());
 
-        for (Element e : dateElements)
-            dateList.add(new Date(e.text(), DateType.Issued));
+            viewLink =  new WebLink(identifier.text(), DublinCoreConstants.VIEW_URL_TITLE, WebLinkType.ViewURL);
 
-        return dateList;
-    }
-
-
-    /**
-     * Parses {@linkplain WebLink}s from the record metadata.
-     *
-     * @param metadata the metadata that is to be parsed
-     *
-     * @return a list of {@linkplain WebLink}s
-     */
-    private List<WebLink> parseWebLinks(Element metadata)
-    {
-        final List<WebLink> webLinkList = new LinkedList<>();
-
-        final Elements resourceIdentifierElements = metadata.select(DublinCoreConstants.METADATA_IDENTIFIER);
-
-        for (Element e : resourceIdentifierElements) {
-            try {
-                // check if URL is valid
-                new URL(e.text());
-
-                webLinkList.add(new WebLink(e.text(), "View URL", WebLinkType.ViewURL));
-
-            } catch (MalformedURLException ex) {
-                continue;
-            }
+        } catch (MalformedURLException ex) {
+            viewLink = null;
         }
 
-        return webLinkList;
-    }
-
-    /**
-     * Parses {@linkplain Creator}s from the record metadata.
-     *
-     * @param metadata the metadata that is to be parsed
-     *
-     * @return a list of {@linkplain Creator}s
-     */
-    private List<Creator> parseCreators(Element metadata)
-    {
-        final List<Creator> creatorList = new LinkedList<>();
-
-        final Elements creatorElements = metadata.select(DublinCoreConstants.DOC_CREATORS);
-
-        for (Element e : creatorElements)
-            creatorList.add(new Creator(e.text()));
-
-        return creatorList;
-    }
-
-
-    /**
-     * Parses {@linkplain Contributor}s from the record metadata.
-     *
-     * @param metadata the metadata that is to be parsed
-     *
-     * @return a list of {@linkplain Contributor}s
-     */
-    private List<Contributor> parseContributors(Element metadata)
-    {
-        final List<Contributor> contributorList = new LinkedList<>();
-
-        final Elements contributorElements = metadata.select(DublinCoreConstants.DOC_CONTRIBUTORS);
-
-        for (Element e : contributorElements)
-            contributorList.add(new Contributor(e.text(), ContributorType.ContactPerson));
-
-        return contributorList;
-    }
-
-
-    /**
-     * Parses {@linkplain Title}s from the record metadata.
-     *
-     * @param metadata the metadata that is to be parsed
-     *
-     * @return a list of {@linkplain Title}s
-     */
-    private List<Title> parseTitles(Element metadata)
-    {
-        final List<Title> titleList = new LinkedList<>();
-
-        final Elements titleElements = metadata.select(DublinCoreConstants.DOC_TITLE);
-
-        for (Element title : titleElements)
-            titleList.add(new Title(title.text()));
-
-        return titleList;
-    }
-
-
-    /**
-     * Parses {@linkplain Description}s from the record metadata.
-     *
-     * @param metadata the metadata that is to be parsed
-     *
-     * @return a list of {@linkplain Description}s
-     */
-    private List<Description> parseDescriptions(Element metadata)
-    {
-        final List<Description> descriptionList = new LinkedList<>();
-
-        final Elements descriptionElements = metadata.select(DublinCoreConstants.DOC_DESCRIPTIONS);
-
-        for (Element descElement : descriptionElements)
-            descriptionList.add(new Description(descElement.text(), DescriptionType.Abstract));
-
-        return descriptionList;
-    }
-
-
-    /**
-     * Parses the publisher string from the record metadata.
-     *
-     * @param metadata the metadata that is to be parsed
-     *
-     * @return the publisher name or null, if it does not occur in the metadata
-     */
-    private String parsePublisher(Element metadata)
-    {
-        final Element publisherElement = metadata.selectFirst(DublinCoreConstants.PUBLISHER);
-        return publisherElement != null
-               ? publisherElement.text()
-               : null;
-    }
-
-
-    /**
-     * Parses formats from the record metadata.
-     *
-     * @param metadata the metadata that is to be parsed
-     *
-     * @return a list of format strings
-     */
-    private List<String> parseFormats(Element metadata)
-    {
-        final List<String> formatList = new LinkedList<>();
-
-        // parse formats
-        final Elements formatElements = metadata.select(DublinCoreConstants.METADATA_FORMATS);
-
-        for (Element e : formatElements)
-            formatList.add(e.text());
-
-        // parse DC types
-        final Elements typeElements = metadata.select(DublinCoreConstants.RES_TYPE);
-
-        for (Element e : typeElements)
-            formatList.add(e.text());
-
-        return formatList;
-    }
-
-
-    /**
-     * Parses {@linkplain Subject}s from the record metadata.
-     *
-     * @param metadata the metadata that is to be parsed
-     *
-     * @return a list of {@linkplain Subject}s
-     */
-    private List<Subject> parseSubjects(Element metadata)
-    {
-        final List<Subject> subjectList = new LinkedList<>();
-
-        final Elements subjectElements = metadata.select(DublinCoreConstants.SUBJECTS);
-
-        for (Element subject : subjectElements)
-            subjectList.add(new Subject(subject.text()));
-
-        return subjectList;
-    }
-
-
-    /**
-     * Parses a language string from the record metadata.
-     *
-     * @param metadata the metadata that is to be parsed
-     *
-     * @return a language string or null, if it is not part of the metadata
-     */
-    private String parseLanguage(Element metadata)
-    {
-        final Element languageElement = metadata.selectFirst(DublinCoreConstants.LANG);
-        return languageElement != null
-               ? languageElement.text()
-               : null;
-    }
-
-
-    /**
-     * Parses {@linkplain Rights} from the record metadata.
-     *
-     * @param metadata the metadata that is to be parsed
-     *
-     * @return a list of {@linkplain Rights}
-     */
-    private List<Rights> parseRights(Element metadata)
-    {
-        final List<Rights> rightsList = new LinkedList<>();
-
-        final Elements rightsElements = metadata.select(DublinCoreConstants.RIGHTS);
-
-        for (Element e : rightsElements)
-            rightsList.add(new Rights(e.text()));
-
-        return rightsList;
+        return viewLink;
     }
 }
