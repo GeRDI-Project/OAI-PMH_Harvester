@@ -138,7 +138,7 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
                     publicationYear = cal.get(Calendar.YEAR);
 
                 } catch (IllegalArgumentException e) {
-                    LOGGER.debug("Datestamp is not a date: {}", datestamp.text());
+                    LOGGER.debug(Iso19139Constants.DATE_PARSING_FAILED, datestamp.text());
                 }
             }
         }

@@ -40,6 +40,7 @@ import de.gerdiproject.json.geo.Point;
 public class DataCite3Transformer extends AbstractDataCiteTransformer
 {
     @Override
+    @SuppressWarnings("CPD-START") // we want to keep duplicates here, because there will be slight changes in other transformers
     protected void setDocumentFieldsFromRecord(DataCiteJson document, Element record)
     {
         final Element metadata = getMetadata(record);
@@ -73,7 +74,7 @@ public class DataCite3Transformer extends AbstractDataCiteTransformer
     }
 
 
-    @Override
+    @Override @SuppressWarnings("CPD-OFF")
     protected Point parseGeoLocationPoint(Element ele)
     {
         final String[] values = ele.text().split(" ");
