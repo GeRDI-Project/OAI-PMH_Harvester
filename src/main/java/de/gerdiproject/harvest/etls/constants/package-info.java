@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 /**
- * This package contains packages and classes used for harvesting
+ * This package contains constants used for harvesting
  * OAI-PMH compliant data providers.
  *
  * @author Robin Weiss
  */
-package de.gerdiproject.harvest.oaipmh;
+package de.gerdiproject.harvest.etls.constants;

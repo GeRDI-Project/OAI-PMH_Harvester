@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.gerdiproject.harvest.oaipmh.constants;
+package de.gerdiproject.harvest.etls.transformers.constants;
 
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 import de.gerdiproject.json.datacite.enums.DateType;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
  * A static collection of constant parameters for configuring the ISO19139 strategy.
@@ -26,24 +28,15 @@ import de.gerdiproject.json.datacite.enums.DateType;
  * @author Tobias Weber
  *
  */
-public class Iso19139StrategyConstants
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class Iso19139Constants
 {
-
-    public static final String RECORD_STATUS = "status";
-    public static final String RECORD_STATUS_DEL = "deleted";
-    public static final String RECORD_HEADER = "header";
-    public static final String RECORD_METADATA = "metadata";
-
-    public static final String REPOSITORY_IDENTIFIER = "DWD";
-
-    public static final String IDENTIFIER = "gmd|citation gmd|CI_Citation gmd|identifier gmd|code";
     public static final String TITLE = "gmd|citation gmd|CI_Citation gmd|title";
     public static final String PUBLISHER = "gmd|pointOfContact gmd|CI_ResponsibleParty gmd|organisationName";
     public static final String DATESTAMP = "gmd|dateStamp gco|DateTime";
     public static final String RESOURCE_TYPE = "gmd|hierarchyLevel gmd|MD_ScopeCode";
 
     public static final String RESEARCH_DATA = "gmd|transferOptions gmd|MD_DigitalTransferOptions gmd|onLine gmd|CI_OnlineResource gmd|linkage gmd|URL";
-
 
     public static final String DATES = "gmd|citation gmd|CI_citation gmd|date";
     public static final String DATE = "gmd|date gco|Date";
@@ -55,15 +48,10 @@ public class Iso19139StrategyConstants
     public static final String GEOLOCS_SOUTH = "gmd|southBoundLatitude gco|Decimal";
     public static final String GEOLOCS_NORTH = "gmd|northBoundLatitude gco|Decimal";
 
+    public static final String DATE_PARSING_FAILED = "Datestamp is not a date: {}";
+
     public static final Map<String, DateType> DATE_TYPE_MAP = createDateTypeMap();
 
-
-    /**
-     * Private Constructor, because this is a static class.
-     */
-    private Iso19139StrategyConstants()
-    {
-    }
 
     /**
      * Initializes the DateTypeMap
