@@ -175,14 +175,16 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
     {
         Integer publicationYear = null;
 
-        for (AbstractDate d : datesList) {
-            if (d.getType() == DateType.Issued) {
-                if (d instanceof Date)
-                    publicationYear = ((Date)d).getValueAsDateTime().getYear();
-                else if (d instanceof DateRange)
-                    publicationYear = ((DateRange)d).getRangeFromAsDateTime().getYear();
+        if (datesList != null) {
+            for (AbstractDate d : datesList) {
+                if (d.getType() == DateType.Issued) {
+                    if (d instanceof Date)
+                        publicationYear = ((Date)d).getValueAsDateTime().getYear();
+                    else if (d instanceof DateRange)
+                        publicationYear = ((DateRange)d).getRangeFromAsDateTime().getYear();
 
-                break;
+                    break;
+                }
             }
         }
 

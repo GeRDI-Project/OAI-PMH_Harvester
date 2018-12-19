@@ -210,7 +210,7 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
     {
         final List<ResearchData> researchDataList = new LinkedList<>();
 
-        if (!titleList.isEmpty()) {
+        if (titleList != null && !titleList.isEmpty()) {
             final String researchTitle = titleList.iterator().next().getValue();
 
             final String researchDataURL = getString(metadata, Iso19139Constants.RESEARCH_DATA);
