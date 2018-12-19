@@ -202,7 +202,7 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
                                                .filter((String key) -> OaiPmhParameterConstants.METADATA_SCHEMA_MAP.containsKey(schemaUrlMap.get(key)))
                                                .collect(Collectors.toSet())
                                                .toString();
-            errorMessageBuilder.append(" ");
+            errorMessageBuilder.append(' ');
             errorMessageBuilder.append(ParameterConstants.ALLOWED_VALUES);
             errorMessageBuilder.append(allowedValuesString.substring(1, allowedValuesString.length() - 1));
 

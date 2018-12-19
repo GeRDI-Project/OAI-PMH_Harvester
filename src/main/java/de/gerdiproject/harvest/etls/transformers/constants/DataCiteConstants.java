@@ -83,6 +83,12 @@ public class DataCiteConstants
     public static final String GEOLOCATION_PLACE = "geoLocationPlace";
     public static final String GEOLOCATION_POLYGON = "geoLocationPolygon";
     public static final String POLYGON_POINT = "polygonPoint";
+    public static final String POINT_LONG  = "pointLongitude";
+    public static final String POINT_LAT  = "pointLatitude";
+    public static final String BOX_WEST_LONG  = "westBoundLongitude";
+    public static final String BOX_EAST_LONG  = "eastBoundLongitude";
+    public static final String BOX_SOUTH_LAT  = "southBoundLatitude";
+    public static final String  BOX_NORTH_LAT = "northBoundLatitude";
 
     public static final String ALTERNATE_IDENTIFIERS = "alternateIdentifiers";
     public static final String ALTERNATE_IDENTIFIER_TYPE = "alternateIdentifierType";

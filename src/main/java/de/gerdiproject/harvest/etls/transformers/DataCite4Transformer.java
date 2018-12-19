@@ -23,6 +23,7 @@ import de.gerdiproject.harvest.etls.transformers.constants.DataCiteConstants;
 import de.gerdiproject.json.datacite.DataCiteJson;
 import de.gerdiproject.json.datacite.Identifier;
 import de.gerdiproject.json.datacite.RelatedIdentifier;
+import de.gerdiproject.json.geo.Point;
 
 /**
  * A transformer for records of the Datacite 4.1 metadata standard.<br>
@@ -61,5 +62,37 @@ public class DataCite4Transformer extends AbstractDataCiteTransformer
         document.addGeoLocations(getObjects(metadata, DataCiteConstants.GEO_LOCATIONS, this::parseGeoLocation));
         document.addFundingReferences(getObjects(metadata, DataCiteConstants.FUNDING_REFERENCES, this::parseFundingReference));
         document.addWebLinks(createWebLinks(identifier, relatedIdentifiers));
+    }
+
+
+    @Override
+    protected Point parseGeoLocationPoint(Element ele)
+    {
+        try {
+            final double longitude = Double.parseDouble(ele.selectFirst(DataCiteConstants.POINT_LONG).text());
+            final double latitude = Double.parseDouble(ele.selectFirst(DataCiteConstants.POINT_LAT).text());
+
+            return new Point(longitude, latitude);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+
+    @Override
+    protected double[] parseGeoLocationBox(Element ele)
+    {
+        try {
+            final double[] boxParameters = new double[4];
+
+            boxParameters[0] = Double.parseDouble(ele.selectFirst(DataCiteConstants.BOX_WEST_LONG).text());
+            boxParameters[1] = Double.parseDouble(ele.selectFirst(DataCiteConstants.BOX_EAST_LONG).text());
+            boxParameters[2] = Double.parseDouble(ele.selectFirst(DataCiteConstants.BOX_SOUTH_LAT).text());
+            boxParameters[3] = Double.parseDouble(ele.selectFirst(DataCiteConstants.BOX_NORTH_LAT).text());
+
+            return boxParameters;
+        } catch (NumberFormatException | NullPointerException e) {
+            return null;
+        }
     }
 }

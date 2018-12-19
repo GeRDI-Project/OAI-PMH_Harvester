@@ -373,18 +373,7 @@ public abstract class AbstractDataCiteTransformer extends AbstractOaiPmhRecordTr
      *
      * @return the {@linkplain Point}  represented by the specified HTML element
      */
-    protected Point parseGeoLocationPoint(Element ele)
-    {
-        final String[] values = ele.text().split(" ");
-        final double longitude = Double.parseDouble(values[0]);
-        final double latitude = Double.parseDouble(values[1]);
-
-        if (values.length == 3) {
-            final double elevation = Double.parseDouble(values[2]);
-            return new Point(longitude, latitude, elevation);
-        } else
-            return new Point(longitude, latitude);
-    }
+    protected abstract Point parseGeoLocationPoint(Element ele);
 
 
     /**
@@ -396,22 +385,7 @@ public abstract class AbstractDataCiteTransformer extends AbstractOaiPmhRecordTr
      *
      * @return a double array with four elements
      */
-    protected double[] parseGeoLocationBox(Element ele)
-    {
-        final String[] values = ele.text().split(" ");
-        final double[] boxParameters = new double[4];
-
-        try {
-            boxParameters[0] = Double.parseDouble(values[0]);
-            boxParameters[1] = Double.parseDouble(values[1]);
-            boxParameters[2] = Double.parseDouble(values[2]);
-            boxParameters[3] = Double.parseDouble(values[3]);
-        } catch (NumberFormatException e) {
-            return null;
-        }
-
-        return boxParameters;
-    }
+    protected abstract double[] parseGeoLocationBox(Element ele);
 
 
     /**
