@@ -75,9 +75,6 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
         this.recordsBaseUrl = oaiEtl.getListRecordsUrl();
         this.resumptionUrlFormat = oaiEtl.getResumptionUrl("%s");
 
-        if (recordsBaseUrl == null)
-            throw new IllegalStateException(OaiPmhConstants.NO_METADATA_PREFIX_ERROR);
-
         // retrieve version as first record
         final Document doc = httpRequester.getHtmlFromUrl(recordsBaseUrl);
         final Element identifier = doc != null ? doc.selectFirst(OaiPmhConstants.HEADER_IDENTIFIER) : null;
@@ -138,12 +135,16 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
             final Document doc = httpRequester.getHtmlFromUrl(recordsUrl);
 
             if (doc == null)
-                throw new ExtractorException(String.format(OaiPmhConstants.NO_RECORDS_ERROR, recordsUrl));
+                throw new ExtractorException(
+                    OaiPmhConstants.CANNOT_HARVEST
+                    + String.format(OaiPmhConstants.NO_RECORDS_ERROR, recordsUrl));
 
             final Elements newRecords = doc.select(OaiPmhConstants.RECORD_ELEMENT);
 
             if (newRecords.isEmpty())
-                throw new ExtractorException(String.format(OaiPmhConstants.NO_RECORDS_ERROR, recordsUrl));
+                throw new ExtractorException(
+                    OaiPmhConstants.CANNOT_HARVEST
+                    + String.format(OaiPmhConstants.NO_RECORDS_ERROR, recordsUrl));
 
             final Element resumptionToken = doc.selectFirst(OaiPmhConstants.RESUMPTION_TOKEN_ELEMENT);
 
