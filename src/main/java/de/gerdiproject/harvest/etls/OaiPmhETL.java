@@ -145,23 +145,29 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
     @Override
     protected ITransformer<Iterator<Element>, Iterator<DataCiteJson>> createTransformer()
     {
-        // if for the map is not initialized yet, do it
-        if (this.schemaUrlMap.isEmpty())
-            this.schemaUrlMap = createSchemaUrlMap();
+        // set the transformer to null, if something is broken
+        try {
+            // if for the map is not initialized yet, do it
+            if (this.schemaUrlMap.isEmpty())
+                this.schemaUrlMap = createSchemaUrlMap();
 
-        // get the metadata schema name
-        final String metadataPrefix = metadataPrefixParam.getValue();
+            // get the metadata schema name
+            final String metadataPrefix = metadataPrefixParam.getValue();
 
-        // check for errors
-        checkMetadataPrefix(metadataPrefix);
+            // check for errors
+            checkMetadataPrefix(metadataPrefix);
 
-        // get the unique schema URL of the metadata schema
-        final String schemaUrl = schemaUrlMap.get(metadataPrefix);
+            // get the unique schema URL of the metadata schema
+            final String schemaUrl = schemaUrlMap.get(metadataPrefix);
 
-        // execute the corresponding transformer constructor
-        return OaiPmhParameterConstants.METADATA_SCHEMA_MAP
-               .get(schemaUrl)
-               .get();
+            // execute the corresponding transformer constructor
+            return OaiPmhParameterConstants.METADATA_SCHEMA_MAP
+                   .get(schemaUrl)
+                   .get();
+        } catch (RuntimeException e) {
+            logger.warn(OaiPmhConstants.CANNOT_CREATE_TRANSFORMER, e);
+            return null;
+        }
     }
 
 
@@ -179,6 +185,10 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
 
         if (metadataPrefix == null || metadataPrefix.isEmpty())
             errorMessageBuilder.append(OaiPmhConstants.NO_METADATA_PREFIX_ERROR);
+
+        else if (schemaUrlMap.isEmpty())
+            errorMessageBuilder.append(OaiPmhConstants.NO_HOST_URL_ERROR);
+
         else {
             final String schemaUrl = schemaUrlMap.get(metadataPrefix);
 
@@ -195,16 +205,21 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
                                                metadataPrefix));
         }
 
-        // if there is an error, append the allowed values to it
         if (errorMessageBuilder.length() != 0) {
-            // intersect the metadata schema values of schemaUrlMap with the keys of the METADATA_SCHEMA_MAP
-            final String allowedValuesString = schemaUrlMap.keySet().stream()
-                                               .filter((String key) -> OaiPmhParameterConstants.METADATA_SCHEMA_MAP.containsKey(schemaUrlMap.get(key)))
-                                               .collect(Collectors.toSet())
-                                               .toString();
-            errorMessageBuilder.append(' ');
-            errorMessageBuilder.append(ParameterConstants.ALLOWED_VALUES);
-            errorMessageBuilder.append(allowedValuesString.substring(1, allowedValuesString.length() - 1));
+
+            // if there is an error, append the allowed values to it, if viable
+            if (!schemaUrlMap.keySet().isEmpty()) {
+
+                // intersect the metadata schema values of schemaUrlMap with the keys of the METADATA_SCHEMA_MAP
+                final String allowedValuesString =
+                    schemaUrlMap.keySet().stream()
+                    .filter((String key) -> OaiPmhParameterConstants.METADATA_SCHEMA_MAP.containsKey(schemaUrlMap.get(key)))
+                    .collect(Collectors.toSet())
+                    .toString();
+                errorMessageBuilder.append(' ');
+                errorMessageBuilder.append(ParameterConstants.ALLOWED_VALUES);
+                errorMessageBuilder.append(allowedValuesString.substring(1, allowedValuesString.length() - 1));
+            }
 
             throw new IllegalArgumentException(errorMessageBuilder.toString());
         }

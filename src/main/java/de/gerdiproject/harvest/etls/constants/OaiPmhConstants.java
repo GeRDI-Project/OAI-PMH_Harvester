@@ -63,6 +63,7 @@ public class OaiPmhConstants
 
     // Errors
     public static final String CANNOT_HARVEST = "Cannot harvest: ";
+    public static final String CANNOT_CREATE_TRANSFORMER = "Cannot create transformer!";
     public static final String CANNOT_GET_METADATA_SCHEMAS_ERROR = "Cannot retrieve list of viable metadata schemas!";
     public static final String REPOSITORY_UNSUPPORTED_METADATA_PREFIX_ERROR = "The '" + OaiPmhParameterConstants.METADATA_PREFIX_KEY + "'-parameter '%s' is not supported by this repository!";
     public static final String HARVESTER_UNSUPPORTED_METADATA_PREFIX_ERROR = "The '" + OaiPmhParameterConstants.METADATA_PREFIX_KEY + "'-parameter '%s' is not supported by the OAI-PMH harvester!";
