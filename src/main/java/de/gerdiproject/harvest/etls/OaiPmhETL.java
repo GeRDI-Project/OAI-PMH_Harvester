@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 import org.jsoup.nodes.Document;
@@ -342,12 +343,23 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
     public String getRepositoryName()
     {
         final HttpRequester httpRequester = new HttpRequester();
+        httpRequester.setTimeout(OaiPmhConstants.IDENTIFY_TIMEOUT);
 
         if (hostUrlParam.getValue() != null && !hostUrlParam.getValue().isEmpty()) {
             Document identifyDoc = httpRequester.getHtmlFromUrl(String.format(OaiPmhConstants.IDENTIFY_URL, hostUrlParam.getValue()));
 
             if (identifyDoc != null)
                 return identifyDoc.select(OaiPmhConstants.REPOSITORY_NAME_ELEMENT).first().text();
+            else {
+                // if the Identify URL does not work, retrieve the repository name from the URL as fallback
+                final Matcher matcher = OaiPmhConstants.REPOSITORY_URL_PATTERN.matcher(hostUrlParam.getValue());
+
+                if (matcher.find()) {
+                    // convert first letter to upper case, and append the rest of the host name
+                    return matcher.group(1).toUpperCase() + matcher.group(2);
+                }
+            }
+
         }
 
         return OaiPmhConstants.UNKNOWN_PROVIDER;
