@@ -229,12 +229,7 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
      */
     protected String getString(Element ele, String tagName)
     {
-        final Elements stringElements = ele.select(tagName);
-
-        if (stringElements == null || stringElements.isEmpty())
-            return null;
-
-        final Element stringElement = stringElements.first();
+        final Element stringElement = ele.selectFirst(tagName);
         return stringElement == null ? null : stringElement.text();
     }
 
@@ -250,17 +245,8 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
      */
     protected List<String> getStrings(Element ele, String tagName)
     {
-        final Elements allElements = ele.select(tagName);
-
-        if (allElements == null || allElements.isEmpty())
-            return null;
-
-        final Element parent = allElements.first();
-
-        if (parent == null)
-            return null;
-
-        return elementsToStringList(parent.children());
+        final Element parent = ele.selectFirst(tagName);
+        return parent == null ? null : elementsToStringList(parent.children());
     }
 
 
@@ -276,7 +262,7 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
      */
     protected <T> T getObject(Element ele, String tagName, Function<Element, T> eleToObject)
     {
-        final Element requestedTag = ele.select(tagName).first();
+        final Element requestedTag = ele.selectFirst(tagName);
         return requestedTag == null ? null : eleToObject.apply(requestedTag);
     }
 
@@ -293,7 +279,7 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
      */
     protected <T> List<T> getObjects(Element ele, String tagName, Function<Element, T> eleToObject)
     {
-        final Element parent = ele.select(tagName).first();
+        final Element parent = ele.selectFirst(tagName);
         return parent == null
                ? null
                : elementsToList(parent.children(), eleToObject);
