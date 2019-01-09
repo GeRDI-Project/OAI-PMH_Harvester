@@ -15,8 +15,6 @@
  */
 package de.gerdiproject.harvest.etls.constants;
 
-import java.util.regex.Pattern;
-
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -62,7 +60,6 @@ public class OaiPmhConstants
     public static final String ALL_METADATA_PREFIXES_SELECTION = "metadataFormat";
     public static final String METADATA_PREFIX_SELECTION = "metadataPrefix";
     public static final String METADATA_SCHEMA_SELECTION = "schema";
-    public static final int IDENTIFY_TIMEOUT = 2000;
 
     // Errors
     public static final String CANNOT_HARVEST = "Cannot harvest: ";
@@ -73,5 +70,4 @@ public class OaiPmhConstants
     public static final String NO_METADATA_PREFIX_ERROR = "You must set the '" + OaiPmhParameterConstants.METADATA_PREFIX_KEY + "'-parameter in the config!";
     public static final String NO_HOST_URL_ERROR = "You must set the '" + OaiPmhParameterConstants.HOST_URL_KEY + "'-parameter in the config!";
     public static final String NO_RECORDS_ERROR = "The URL '%s' did not yield any harvestable records! Change the parameters in the config!";
-    public static final Pattern REPOSITORY_URL_PATTERN = Pattern.compile(".+?([a-z])([^./]+)\\.[a-z]+/[^/]+");
 }
