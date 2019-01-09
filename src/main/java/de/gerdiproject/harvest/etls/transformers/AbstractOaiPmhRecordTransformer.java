@@ -16,6 +16,7 @@
  */
 package de.gerdiproject.harvest.etls.transformers;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,6 +35,8 @@ import de.gerdiproject.json.datacite.Identifier;
 import de.gerdiproject.json.datacite.Subject;
 import de.gerdiproject.json.datacite.abstr.AbstractDate;
 import de.gerdiproject.json.datacite.enums.DateType;
+import de.gerdiproject.json.datacite.extension.generic.WebLink;
+import de.gerdiproject.json.datacite.extension.generic.enums.WebLinkType;
 
 /**
  * This class offers a skeleton for transforming OAI-PMH records to {@linkplain DataCiteJson} objects.
@@ -45,6 +48,7 @@ import de.gerdiproject.json.datacite.enums.DateType;
 public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTransformer<Element, DataCiteJson>
 {
     protected String repositoryIdentifier = null;
+    protected String logoUrl = null;
 
 
     /**
@@ -61,9 +65,11 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
     public void init(AbstractETL<?, ?> etl)
     {
         super.init(etl);
+        final OaiPmhETL oaiEtl = (OaiPmhETL) etl;
 
-        // retrieve the repository name from the ETL
-        this.repositoryIdentifier = ((OaiPmhETL) etl).getRepositoryName();
+        // retrieve info from the ETL
+        this.repositoryIdentifier = oaiEtl.getRepositoryName();
+        this.logoUrl = oaiEtl.getLogoUrl();
     }
 
 
@@ -81,6 +87,7 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
             document.setIdentifier(new Identifier(identifierString));
             document.setRepositoryIdentifier(repositoryIdentifier);
             document.addSubjects(parseSubjectsFromHeader(header));
+            document.addWebLinks(Arrays.asList(createLogoWebLink()));
             setDocumentFieldsFromRecord(document, record);
         }
 
@@ -126,6 +133,25 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
     {
         final String recordStatus = header.attr(OaiPmhConstants.HEADER_STATUS_ATTRIBUTE);
         return  recordStatus.equals(OaiPmhConstants.HEADER_STATUS_ATTRIBUTE_DELETED);
+    }
+
+
+    /**
+     * Returns a {@linkplain WebLink} of the repository provider logo.
+     * The weblink is retrieved from the ETL by reading a corresponding parameter.
+     *
+     * @return a logo {@linkplain WebLink} or null, if no weblink was set in the configuration
+     */
+    protected WebLink createLogoWebLink()
+    {
+        WebLink logoLink = null;
+
+        if (logoUrl != null && !logoUrl.isEmpty()) {
+            logoLink = new WebLink(logoUrl);
+            logoLink.setType(WebLinkType.ProviderLogoURL);
+        }
+
+        return logoLink;
     }
 
 
