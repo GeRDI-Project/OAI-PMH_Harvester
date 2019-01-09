@@ -17,8 +17,11 @@ package de.gerdiproject.harvest.etls.transformers;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
+import java.util.function.Function;
 
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import de.gerdiproject.harvest.etls.transformers.constants.DublinCoreConstants;
 import de.gerdiproject.json.datacite.Contributor;
@@ -81,6 +84,42 @@ public class DublinCoreTransformer extends AbstractOaiPmhRecordTransformer
         document.addWebLinks(getObjects(metadata, DublinCoreConstants.IDENTIFIERS, this::identifierToWebLink));
 
         document.setPublicationYear(parsePublicationYearFromDates(document.getDates()));
+    }
+
+
+    /**
+     * Retrieves all occurrences of elements with a specified tag name
+     * that are descendants of a specified element and converts them to objects.
+     *
+     * @param ele the element from which the retrieved texts are descended
+     * @param tagName the name of the tag of which the strings are retrieved
+     * @param eleToObject a mapping function that maps a single element to the specified class
+     * @param <T> the requested type of the converted tag
+     *
+     * @return a list of converted objects or null if there are no matching tags
+     */
+    @Override
+    protected <T> List<T> getObjects(Element ele, String tagName, Function<Element, T> eleToObject)
+    {
+        final Elements eles = ele.select(tagName);
+        return eles == null ? null : elementsToList(eles, eleToObject);
+    }
+
+
+    /**
+     * Retrieves the texts of all occurrences of elements with a specified tag name
+     * that are descendants of a specified element.
+     *
+     * @param ele the element from which the retrieved texts are descended
+     * @param tagName the name of the tag of which the strings are retrieved
+     *
+     * @return a list of strings or null if there are no matching tags
+     */
+    @Override
+    protected List<String> getStrings(Element ele, String tagName)
+    {
+        final Elements eles = ele.select(tagName);
+        return eles == null ? null : elementsToStringList(eles);
     }
 
 
