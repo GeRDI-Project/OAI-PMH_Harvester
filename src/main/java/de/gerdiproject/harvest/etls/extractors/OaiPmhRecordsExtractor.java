@@ -149,7 +149,7 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
             final Element resumptionToken = doc.selectFirst(OaiPmhConstants.RESUMPTION_TOKEN_ELEMENT);
 
             this.records.addAll(newRecords);
-            this.recordsUrl = (resumptionToken != null)
+            this.recordsUrl = (resumptionToken != null && resumptionToken.text() != null && !resumptionToken.text().isEmpty())
                               ? String.format(resumptionUrlFormat, resumptionToken.text())
                               : null;
         }
