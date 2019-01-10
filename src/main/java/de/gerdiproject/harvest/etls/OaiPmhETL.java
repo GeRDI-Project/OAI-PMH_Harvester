@@ -320,7 +320,6 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
 
         queryBuilder.append(OaiPmhConstants.METADATA_PREFIX_QUERY).append(metadataPrefixParam.getValue());
 
-        logger.warn(String.format(OaiPmhConstants.LIST_RECORDS_URL, hostUrlParam.getValue(), queryBuilder.toString()));
         return String.format(OaiPmhConstants.LIST_RECORDS_URL, hostUrlParam.getValue(), queryBuilder.toString());
     }
 
