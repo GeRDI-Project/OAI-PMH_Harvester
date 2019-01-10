@@ -30,6 +30,7 @@ public class OaiPmhConstants
     public static final String DATE_FROM_QUERY = "&from=";
     public static final String DATE_TO_QUERY = "&until=";
     public static final String METADATA_PREFIX_QUERY = "&metadataPrefix=";
+    public static final String SET_QUERY = "&set=";
 
     // URLs
     public static final String LIST_RECORDS_URL = "%s?verb=ListRecords%s";
