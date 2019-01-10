@@ -58,6 +58,8 @@ public class OaiPmhParameterConstants
     public static final String LOGO_URL_KEY = "logoUrl";
     public static final String LOGO_URL_DEFAULT_VALUE = "";
 
+    public static final String SET_KEY = "set";
+    public static final String SET_DEFAULT_VALUE = "";
 
     /**
      * Creates a map for assigning {@linkplain AbstractIteratorTransformer} constructor calls to

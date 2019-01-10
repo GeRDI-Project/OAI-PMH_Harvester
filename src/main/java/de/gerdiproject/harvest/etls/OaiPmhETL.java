@@ -53,6 +53,7 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
     private StringParameter hostUrlParam;
     private StringParameter metadataPrefixParam;
     private StringParameter logoUrlParam;
+    private StringParameter setParam;
 
     private Map<String, String> schemaUrlMap = new HashMap<>();
 
@@ -129,6 +130,13 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
                                     getName(),
                                     OaiPmhParameterConstants.LOGO_URL_DEFAULT_VALUE,
                                     urlMappingFunction));
+
+        this.setParam = Configuration.registerParameter(
+                            new StringParameter(
+                                OaiPmhParameterConstants.SET_KEY,
+                                getName(),
+                                OaiPmhParameterConstants.SET_DEFAULT_VALUE,
+                                stringMappingFunction));
     }
 
 
@@ -306,6 +314,9 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
 
         if (untilParam.getValue() != null && !untilParam.getValue().isEmpty())
             queryBuilder.append(OaiPmhConstants.DATE_TO_QUERY).append(untilParam.getValue());
+
+        if (setParam.getValue() != null && !setParam.getValue().isEmpty())
+            queryBuilder.append(OaiPmhConstants.SET_QUERY).append(setParam.getValue());
 
         queryBuilder.append(OaiPmhConstants.METADATA_PREFIX_QUERY).append(metadataPrefixParam.getValue());
 
