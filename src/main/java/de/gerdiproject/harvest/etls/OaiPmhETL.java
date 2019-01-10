@@ -132,11 +132,11 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
                                     urlMappingFunction));
 
         this.setParam = Configuration.registerParameter(
-                                new StringParameter(
-                                    OaiPmhParameterConstants.SET_KEY,
-                                    getName(),
-                                    OaiPmhParameterConstants.SET_DEFAULT_VALUE,
-                                    stringMappingFunction));
+                            new StringParameter(
+                                OaiPmhParameterConstants.SET_KEY,
+                                getName(),
+                                OaiPmhParameterConstants.SET_DEFAULT_VALUE,
+                                stringMappingFunction));
     }
 
 
