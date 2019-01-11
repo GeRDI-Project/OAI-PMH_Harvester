@@ -61,6 +61,7 @@ public class OaiPmhConstants
     public static final String ALL_METADATA_PREFIXES_SELECTION = "metadataFormat";
     public static final String METADATA_PREFIX_SELECTION = "metadataPrefix";
     public static final String METADATA_SCHEMA_SELECTION = "schema";
+    public static final String LOGO_URL_TITLE = "logo";
 
     // Errors
     public static final String CANNOT_HARVEST = "Cannot harvest: ";

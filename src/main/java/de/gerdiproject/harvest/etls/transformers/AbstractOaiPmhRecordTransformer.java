@@ -48,7 +48,7 @@ import de.gerdiproject.json.datacite.extension.generic.enums.WebLinkType;
 public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTransformer<Element, DataCiteJson>
 {
     protected String repositoryIdentifier = null;
-    protected String logoUrl = null;
+    protected List<WebLink> defaultLinks = null;
 
 
     /**
@@ -69,7 +69,10 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
 
         // retrieve info from the ETL
         this.repositoryIdentifier = oaiEtl.getRepositoryName();
-        this.logoUrl = oaiEtl.getLogoUrl();
+
+        // set default links
+        final WebLink logoLink = createLogoWebLink(oaiEtl.getLogoUrl());
+        this.defaultLinks = logoLink != null ? Arrays.asList(logoLink) : null;
     }
 
 
@@ -87,7 +90,10 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
             document.setIdentifier(new Identifier(identifierString));
             document.setRepositoryIdentifier(repositoryIdentifier);
             document.addSubjects(parseSubjectsFromHeader(header));
-            document.addWebLinks(Arrays.asList(createLogoWebLink()));
+
+            if (defaultLinks != null)
+                document.addWebLinks(defaultLinks);
+
             setDocumentFieldsFromRecord(document, record);
         }
 
@@ -137,18 +143,21 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
 
 
     /**
-     * Returns a {@linkplain WebLink} of the repository provider logo.
-     * The weblink is retrieved from the ETL by reading a corresponding parameter.
+     * Returns a logo {@linkplain WebLink} of a specified URL.
      *
-     * @return a logo {@linkplain WebLink} or null, if no weblink was set in the configuration
+     * @param url a URL that points to a logo
+     *
+     * @return a logo {@linkplain WebLink} or null, if the URL is empty
      */
-    protected WebLink createLogoWebLink()
+    protected WebLink createLogoWebLink(String url)
     {
         WebLink logoLink = null;
 
-        if (logoUrl != null && !logoUrl.isEmpty()) {
-            logoLink = new WebLink(logoUrl);
-            logoLink.setType(WebLinkType.ProviderLogoURL);
+        if (url != null && !url.isEmpty()) {
+            logoLink = new WebLink(
+                url,
+                OaiPmhConstants.LOGO_URL_TITLE,
+                WebLinkType.ProviderLogoURL);
         }
 
         return logoLink;
