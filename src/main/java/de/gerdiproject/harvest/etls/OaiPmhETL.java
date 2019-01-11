@@ -202,8 +202,11 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
         if (metadataPrefix == null || metadataPrefix.isEmpty())
             errorMessageBuilder.append(OaiPmhConstants.NO_METADATA_PREFIX_ERROR);
 
-        else if (schemaUrlMap.isEmpty())
+        else if (hostUrlParam.getValue() == null || hostUrlParam.getValue().isEmpty())
             errorMessageBuilder.append(OaiPmhConstants.NO_HOST_URL_ERROR);
+
+        else if (schemaUrlMap.isEmpty())
+            errorMessageBuilder.append(OaiPmhConstants.CANNOT_GET_METADATA_SCHEMAS_ERROR);
 
         else {
             final String schemaUrl = schemaUrlMap.get(metadataPrefix);
@@ -269,23 +272,19 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
         final Map<String, String> map = new HashMap<>();
 
         // make a request to retrieve metadata formats
-        final Elements schemaElements;
-
         try {
             final String metadataFormatsUrl = getMetadataFormatsUrl();
             final Document schemasDoc = new HttpRequester().getHtmlFromUrl(metadataFormatsUrl);
 
-            schemaElements =
+            final Elements schemaElements =
                 schemasDoc.select(OaiPmhConstants.ALL_METADATA_PREFIXES_SELECTION);
 
-        } catch (IllegalStateException | NullPointerException e) {
-            logger.error(OaiPmhConstants.CANNOT_GET_METADATA_SCHEMAS_ERROR, e);
-            return map;
-        }
+            for (Element ele : schemaElements)
+                map.put(ele.selectFirst(OaiPmhConstants.METADATA_PREFIX_SELECTION).text(),
+                        ele.selectFirst(OaiPmhConstants.METADATA_SCHEMA_SELECTION).text());
 
-        for (Element ele : schemaElements)
-            map.put(ele.selectFirst(OaiPmhConstants.METADATA_PREFIX_SELECTION).text(),
-                    ele.selectFirst(OaiPmhConstants.METADATA_SCHEMA_SELECTION).text());
+        } catch (IllegalStateException | NullPointerException e) { // NOPMD errors are handled when the schema map is used
+        }
 
         return map;
     }
