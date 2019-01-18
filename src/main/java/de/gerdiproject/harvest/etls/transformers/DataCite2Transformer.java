@@ -1,5 +1,5 @@
 /**
- * Copyright © 2018 Robin Weiss (http://www.gerdi-project.de)
+ * Copyright © 2019 Robin Weiss (http://www.gerdi-project.de)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package de.gerdiproject.harvest.etls.transformers;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.jsoup.nodes.Element;
@@ -25,15 +26,19 @@ import de.gerdiproject.json.datacite.DataCiteJson;
 import de.gerdiproject.json.datacite.FundingReference;
 import de.gerdiproject.json.datacite.Identifier;
 import de.gerdiproject.json.datacite.RelatedIdentifier;
+import de.gerdiproject.json.datacite.enums.FunderIdentifierType;
+import de.gerdiproject.json.datacite.enums.ResourceTypeGeneral;
+import de.gerdiproject.json.datacite.nested.FunderIdentifier;
+import de.gerdiproject.json.datacite.nested.NameIdentifier;
 import de.gerdiproject.json.geo.Point;
 
 /**
- * A transformer for the Datacite3 metadata standard.<br>
- * https://schema.datacite.org/meta/kernel-3.0/doc/DataCite-MetadataKernel_v3.0.pdf
+ * A transformer for the Datacite2 metadata standard.<br>
+ * https://schema.datacite.org/meta/kernel-2.2/doc/DataCite-MetadataKernel_v2.2.pdf
  *
  * @author Robin Weiss
  */
-public class DataCite3Transformer extends AbstractDataCiteTransformer
+public class DataCite2Transformer extends AbstractDataCiteTransformer
 {
     @Override
     @SuppressWarnings("CPD-START") // we want to keep duplicates here, because there will be slight changes in other transformers
@@ -60,10 +65,11 @@ public class DataCite3Transformer extends AbstractDataCiteTransformer
         document.addDescriptions(getObjects(metadata, DataCiteConstants.DESCRIPTIONS, this::parseDescription));
         document.addSubjects(getObjects(metadata, DataCiteConstants.SUBJECTS, this::parseSubject));
         document.addAlternateIdentifiers(getObjects(metadata, DataCiteConstants.ALTERNATE_IDENTIFIERS, this::parseAlternateIdentifier));
-        document.addRights(getObjects(metadata, DataCiteConstants.RIGHTS_LIST, this::parseRights));
         document.addDates(getObjects(metadata, DataCiteConstants.DATES, this::parseDate));
-        document.addGeoLocations(getObjects(metadata, DataCiteConstants.GEO_LOCATIONS, this::parseGeoLocation));
         document.addWebLinks(createWebLinks(identifier, relatedIdentifiers));
+
+        // in DataCite 2 and earlier, there is only one "rights" object
+        document.addRights(Arrays.asList(getObject(metadata, DataCiteConstants.RIGHTS, this::parseRights)));
 
         // in DataCite 3 and earlier, fundingReferences are contributors with type "funder"
         document.addFundingReferences(getObjects(metadata, DataCiteConstants.CONTRIBUTORS, this::parseFundingReference));
@@ -71,39 +77,14 @@ public class DataCite3Transformer extends AbstractDataCiteTransformer
 
 
     @Override @SuppressWarnings("CPD-OFF")
-    protected Point parseGeoLocationPoint(Element ele)
+    protected ResourceTypeGeneral parseResourceTypeGeneral(Element ele)
     {
-        final String[] values = ele.text().split(" ");
+        final String rawResType = getAttribute(ele, DataCiteConstants.RESOURCE_TYPE_GENERAL);
 
-        // in DataCite 3 and earlier versions, longitude and latitude are switched
-        final double latitude = Double.parseDouble(values[0]);
-        final double longitude = Double.parseDouble(values[1]);
-
-        if (values.length == 3) {
-            final double elevation = Double.parseDouble(values[2]);
-            return new Point(longitude, latitude, elevation);
-        } else
-            return new Point(longitude, latitude);
-    }
-
-
-    @Override
-    protected double[] parseGeoLocationBox(Element ele)
-    {
-        final String[] values = ele.text().split(" ");
-        final double[] boxParameters = new double[4];
-
-        // since DataCite 4, the order of box parameters has changed
-        try {
-            boxParameters[0] = Double.parseDouble(values[1]);
-            boxParameters[1] = Double.parseDouble(values[3]);
-            boxParameters[2] = Double.parseDouble(values[0]);
-            boxParameters[3] = Double.parseDouble(values[2]);
-        } catch (NumberFormatException e) {
-            return null;
-        }
-
-        return boxParameters;
+        if (rawResType != null && rawResType.equals(DataCiteConstants.RESOURCE_TYPE_GENERAL_FILM))
+            return ResourceTypeGeneral.Audiovisual;
+        else
+            return super.parseResourceTypeGeneral(ele);
     }
 
 
@@ -128,8 +109,59 @@ public class DataCite3Transformer extends AbstractDataCiteTransformer
         FundingReference funder = null;
 
         if (contributorType.equals(DataCiteConstants.CONTRIBUTOR_TYPE_FUNDER))
-            funder = DataCite2Transformer.contributorToFunder(parseContributor(ele));
+            funder = contributorToFunder(parseContributor(ele));
 
         return funder;
+    }
+
+
+    @Override
+    protected Point parseGeoLocationPoint(Element ele)
+    {
+        // this function is never called, because there are no GeoLocations
+        // in DataCite 2 and earlier versions
+        return null;
+    }
+
+
+    @Override
+    protected double[] parseGeoLocationBox(Element ele)
+    {
+        // this function is never called, because there are no GeoLocations
+        // in DataCite 2 and earlier versions
+        return null;
+    }
+
+
+    /**
+     * This static method converts a contributor to a {@linkplain FundingReference}.
+     * It is used to make DataCite 3 and earlier versions compatible with DataCite 4.
+     *
+     * @param funderContributor a contributor with type "funder"
+     *
+     * @return a makeshift {@linkplain FundingReference}
+     */
+    public static FundingReference contributorToFunder(Contributor funderContributor)
+    {
+        FunderIdentifier funderIdentifier = null;
+
+        // convert nameIdentifier to funder identifier
+        if (funderContributor.getNameIdentifiers() != null) {
+            final NameIdentifier nameIdentifier = funderContributor.getNameIdentifiers().iterator().next();
+            FunderIdentifierType funderIdentifierType;
+
+            try {
+                funderIdentifierType = FunderIdentifierType.valueOf(nameIdentifier.getNameIdentifierScheme());
+            } catch (IllegalArgumentException e) {
+                funderIdentifierType = FunderIdentifierType.Other;
+            }
+
+            funderIdentifier = new FunderIdentifier(nameIdentifier.getValue(), funderIdentifierType);
+        }
+
+        final FundingReference fundingReference = new FundingReference(funderContributor.getName().getValue());
+        fundingReference.setFunderIdentifier(funderIdentifier);
+
+        return fundingReference;
     }
 }

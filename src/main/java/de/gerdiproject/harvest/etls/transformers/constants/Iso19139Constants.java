@@ -50,6 +50,8 @@ public class Iso19139Constants
 
     public static final String DATE_PARSING_FAILED = "Datestamp is not a date: {}";
 
+    public static final String SCHEMA_URL = "http://www.isotc211.org/2005/gmd/gmd.xsd";
+
     public static final Map<String, DateType> DATE_TYPE_MAP = createDateTypeMap();
 
 

@@ -326,7 +326,7 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
 
         try {
             if (ele.hasAttr(attributeKey))
-                returnValue = Enum.valueOf(enumClass, ele.attr(attributeKey));
+                returnValue = Enum.valueOf(enumClass, ele.attr(attributeKey).trim());
         } catch (IllegalArgumentException e) {
             returnValue = null;
         }

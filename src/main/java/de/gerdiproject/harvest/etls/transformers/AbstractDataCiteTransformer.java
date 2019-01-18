@@ -162,9 +162,22 @@ public abstract class AbstractDataCiteTransformer extends AbstractOaiPmhRecordTr
     protected ResourceType parseResourceType(Element ele)
     {
         final String value = ele.text();
-        final ResourceTypeGeneral generalType = getEnumAttribute(ele, DataCiteConstants.RESOURCE_TYPE_GENERAL, ResourceTypeGeneral.class);
+        final ResourceTypeGeneral generalType = parseResourceTypeGeneral(ele);
         final ResourceType resourceType = new ResourceType(value, generalType);
         return resourceType;
+    }
+
+
+    /**
+     * Retrieves a {@linkplain ResourceTypeGeneral} from an HTML element.
+     *
+     * @param ele an HTML element that has the resourceTypeGeneral attribute
+     *
+     * @return the {@linkplain ResourceTypeGeneral} of the HTML element
+     */
+    protected ResourceTypeGeneral parseResourceTypeGeneral(Element ele)
+    {
+        return getEnumAttribute(ele, DataCiteConstants.RESOURCE_TYPE_GENERAL, ResourceTypeGeneral.class);
     }
 
 
@@ -223,7 +236,7 @@ public abstract class AbstractDataCiteTransformer extends AbstractOaiPmhRecordTr
     {
         final String value = ele.text();
         final RelatedIdentifierType relatedIdentifierType = getEnumAttribute(ele, DataCiteConstants.RELATED_IDENTIFIER_TYPE, RelatedIdentifierType.class);
-        final ResourceTypeGeneral resourceTypeGeneral = getEnumAttribute(ele, DataCiteConstants.RESOURCE_TYPE_GENERAL, ResourceTypeGeneral.class);
+        final ResourceTypeGeneral resourceTypeGeneral = parseResourceTypeGeneral(ele);
         final RelationType relationType = getEnumAttribute(ele, DataCiteConstants.RELATION_TYPE, RelationType.class);
         final String relatedMetadataScheme = getAttribute(ele, DataCiteConstants.RELATED_METADATA_SCHEME);
         final String schemeURI = getAttribute(ele, DataCiteConstants.SCHEME_URI);
@@ -236,6 +249,7 @@ public abstract class AbstractDataCiteTransformer extends AbstractOaiPmhRecordTr
         relatedIdentifier.setSchemeType(schemeType);
         return relatedIdentifier;
     }
+
 
 
     /**

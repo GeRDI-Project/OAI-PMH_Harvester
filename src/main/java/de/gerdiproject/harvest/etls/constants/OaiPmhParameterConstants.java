@@ -23,10 +23,14 @@ import java.util.function.Supplier;
 import org.jsoup.nodes.Element;
 
 import de.gerdiproject.harvest.etls.transformers.AbstractIteratorTransformer;
+import de.gerdiproject.harvest.etls.transformers.DataCite2Transformer;
 import de.gerdiproject.harvest.etls.transformers.DataCite3Transformer;
 import de.gerdiproject.harvest.etls.transformers.DataCite4Transformer;
 import de.gerdiproject.harvest.etls.transformers.DublinCoreTransformer;
 import de.gerdiproject.harvest.etls.transformers.Iso19139Transformer;
+import de.gerdiproject.harvest.etls.transformers.constants.DataCiteConstants;
+import de.gerdiproject.harvest.etls.transformers.constants.DublinCoreConstants;
+import de.gerdiproject.harvest.etls.transformers.constants.Iso19139Constants;
 import de.gerdiproject.json.datacite.DataCiteJson;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -71,11 +75,18 @@ public class OaiPmhParameterConstants
     {
         final Map<String, Supplier<AbstractIteratorTransformer<Element, DataCiteJson>>> map = new HashMap<>();
 
-        map.put("http://www.openarchives.org/OAI/2.0/oai_dc.xsd", () -> new DublinCoreTransformer());
-        map.put("http://www.isotc211.org/2005/gmd/gmd.xsd", () -> new Iso19139Transformer());
-        map.put("http://schema.datacite.org/meta/kernel-3/metadata.xsd", () -> new DataCite3Transformer());
-        map.put("http://schema.datacite.org/meta/kernel-4.0/metadata.xsd", () -> new DataCite4Transformer());
-        map.put("http://schema.datacite.org/meta/kernel-4.1/metadata.xsd", () -> new DataCite4Transformer());
+        map.put(DublinCoreConstants.SCHEMA_URL, () -> new DublinCoreTransformer());
+        map.put(Iso19139Constants.SCHEMA_URL, () -> new Iso19139Transformer());
+        map.put(DataCiteConstants.SCHEMA_2_URL, () -> new DataCite2Transformer());
+        map.put(DataCiteConstants.SCHEMA_2_0_URL, () -> new DataCite2Transformer());
+        map.put(DataCiteConstants.SCHEMA_2_1_URL, () -> new DataCite2Transformer());
+        map.put(DataCiteConstants.SCHEMA_2_2_URL, () -> new DataCite2Transformer());
+        map.put(DataCiteConstants.SCHEMA_3_URL, () -> new DataCite3Transformer());
+        map.put(DataCiteConstants.SCHEMA_3_0_URL, () -> new DataCite3Transformer());
+        map.put(DataCiteConstants.SCHEMA_3_1_URL, () -> new DataCite3Transformer());
+        map.put(DataCiteConstants.SCHEMA_4_URL, () -> new DataCite4Transformer());
+        map.put(DataCiteConstants.SCHEMA_4_0_URL, () -> new DataCite4Transformer());
+        map.put(DataCiteConstants.SCHEMA_4_1_URL, () -> new DataCite4Transformer());
 
         // NOT IMPLEMENTED:
         //map.put("http://schema.datacite.org/oai/oai-1.0/oai.xsd", () -> new DataCite1Transformer());
