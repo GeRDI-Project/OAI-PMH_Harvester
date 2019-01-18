@@ -26,6 +26,7 @@ import de.gerdiproject.harvest.etls.transformers.AbstractIteratorTransformer;
 import de.gerdiproject.harvest.etls.transformers.DataCite2Transformer;
 import de.gerdiproject.harvest.etls.transformers.DataCite3Transformer;
 import de.gerdiproject.harvest.etls.transformers.DataCite4Transformer;
+import de.gerdiproject.harvest.etls.transformers.DataCiteFlexTransformer;
 import de.gerdiproject.harvest.etls.transformers.DublinCoreTransformer;
 import de.gerdiproject.harvest.etls.transformers.Iso19139Transformer;
 import de.gerdiproject.harvest.etls.transformers.constants.DataCiteConstants;
@@ -87,9 +88,11 @@ public class OaiPmhParameterConstants
         map.put(DataCiteConstants.SCHEMA_4_URL, () -> new DataCite4Transformer());
         map.put(DataCiteConstants.SCHEMA_4_0_URL, () -> new DataCite4Transformer());
         map.put(DataCiteConstants.SCHEMA_4_1_URL, () -> new DataCite4Transformer());
+        map.put(DataCiteConstants.OAI_SCHEMA_1_0_URL, () -> new DataCiteFlexTransformer());
+        map.put(DataCiteConstants.OAI_SCHEMA_1_1_URL, () -> new DataCiteFlexTransformer());
+        map.put(DataCiteConstants.NO_SCHEMA_URL, () -> new DataCiteFlexTransformer());
 
         // NOT IMPLEMENTED:
-        //map.put("http://schema.datacite.org/oai/oai-1.0/oai.xsd", () -> new DataCite1Transformer());
         //map.put("http://www.openarchives.org/OAI/2.0/rdf.xsd", () -> new RdfTransformer());
         //map.put("https://www.openaire.eu/cerif_schema/cerif-1.6-2_openaire-1.0.xsd", () -> new CerifTransformer());
         //map.put("https://api.figshare.com/v2/static/figshare-oai-qdc.xsd", () -> new QdcTransformer());
