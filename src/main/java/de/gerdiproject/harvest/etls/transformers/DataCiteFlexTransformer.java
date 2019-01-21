@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import de.gerdiproject.harvest.etls.AbstractETL;
 import de.gerdiproject.harvest.etls.transformers.constants.DataCiteConstants;
+import de.gerdiproject.harvest.etls.transformers.constants.HtmlUtils;
 import de.gerdiproject.json.datacite.DataCiteJson;
 
 /**
@@ -35,7 +36,7 @@ import de.gerdiproject.json.datacite.DataCiteJson;
 public class DataCiteFlexTransformer extends AbstractOaiPmhRecordTransformer
 {
     private final static Logger LOGGER = LoggerFactory.getLogger(DataCiteFlexTransformer.class);
-    private final Map<String, AbstractDataCiteTransformer> transformerMap;
+    private final Map<String, AbstractOaiPmhRecordTransformer> transformerMap;
 
 
     /**
@@ -67,7 +68,7 @@ public class DataCiteFlexTransformer extends AbstractOaiPmhRecordTransformer
     @Override
     public void init(AbstractETL<?, ?> etl)
     {
-        for (AbstractDataCiteTransformer transformer : transformerMap.values())
+        for (AbstractOaiPmhRecordTransformer transformer : transformerMap.values())
             transformer.init(etl);
     }
 
@@ -75,7 +76,7 @@ public class DataCiteFlexTransformer extends AbstractOaiPmhRecordTransformer
     @Override
     public void clear()
     {
-        for (AbstractDataCiteTransformer transformer : transformerMap.values())
+        for (AbstractOaiPmhRecordTransformer transformer : transformerMap.values())
             transformer.clear();
     }
 
@@ -85,7 +86,7 @@ public class DataCiteFlexTransformer extends AbstractOaiPmhRecordTransformer
     {
         // try to find a fitting transformer for the record
         final String schemaUrl = getSchemaUrl(record);
-        final AbstractDataCiteTransformer transformer = transformerMap.get(schemaUrl);
+        final AbstractOaiPmhRecordTransformer transformer = transformerMap.get(schemaUrl);
 
         // log error if the schema is unknown
         if (transformer == null)
@@ -94,7 +95,6 @@ public class DataCiteFlexTransformer extends AbstractOaiPmhRecordTransformer
                              schemaUrl));
         else
             transformer.setDocumentFieldsFromRecord(document, record);
-
     }
 
 
@@ -108,12 +108,18 @@ public class DataCiteFlexTransformer extends AbstractOaiPmhRecordTransformer
     private String getSchemaUrl(Element record)
     {
         final Element resource = record.selectFirst(DataCiteConstants.RESOURCE_ELEMENT);
-        String schemaLocation = getAttribute(resource, DataCiteConstants.SCHEMA_LOCATION_ATTRIBUTE);
+        String schemaLocation = HtmlUtils.getAttribute(resource, DataCiteConstants.SCHEMA_LOCATION_ATTRIBUTE);
 
         // try alternative schema attribute
         if (schemaLocation == null)
-            schemaLocation = getAttribute(resource, DataCiteConstants.NO_SCHEMA_LOCATION_ATTRIBUTE);
+            schemaLocation = HtmlUtils.getAttribute(resource, DataCiteConstants.NO_SCHEMA_LOCATION_ATTRIBUTE);
 
-        return schemaLocation == null ? null : schemaLocation.substring(schemaLocation.indexOf(' ') + 1);
+        // if still there is no attribute, abort
+        if (schemaLocation == null)
+            return null;
+
+        // if multiple, space-separated schema URLs exist, choose the last one
+        final String schemaUrl = schemaLocation.substring(schemaLocation.lastIndexOf(' ') + 1);
+        return schemaUrl;
     }
 }

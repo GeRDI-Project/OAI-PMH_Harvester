@@ -19,7 +19,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 /**
- * A static collection of constant parameters for configuring the DataCite3 strategy.
+ * A static collection of constant parameters used by DataCite transformations.
  *
  * @author Jan Frömberg
  */

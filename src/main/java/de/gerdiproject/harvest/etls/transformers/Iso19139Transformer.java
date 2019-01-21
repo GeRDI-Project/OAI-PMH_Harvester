@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.gerdiproject.harvest.etls.transformers.constants.Iso19139Constants;
+import de.gerdiproject.harvest.etls.transformers.constants.HtmlUtils;
 import de.gerdiproject.json.datacite.Creator;
 import de.gerdiproject.json.datacite.DataCiteJson;
 import de.gerdiproject.json.datacite.Date;
@@ -76,32 +77,32 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
         final Element metadata = getMetadata(record);
 
         // creators (D2) : use publisher metadata
-        document.addCreators(getObjects(metadata, Iso19139Constants.PUBLISHER,
-                                        (Element e) -> new Creator(e.text())));
+        document.addCreators(HtmlUtils.getObjectsFromParent(metadata, Iso19139Constants.PUBLISHER,
+                                                            (Element e) -> new Creator(e.text())));
 
         // titles (D3)
-        document.addTitles(getObjects(metadata, Iso19139Constants.TITLE,
-                                      (Element e) -> new Title(e.text())));
+        document.addTitles(HtmlUtils.getObjectsFromParent(metadata, Iso19139Constants.TITLE,
+                                                          (Element e) -> new Title(e.text())));
 
         // publisher (D4)
-        document.setPublisher(getString(metadata, Iso19139Constants.PUBLISHER));
+        document.setPublisher(HtmlUtils.getString(metadata, Iso19139Constants.PUBLISHER));
 
         // dates (D8)
-        document.addDates(getObjects(metadata, Iso19139Constants.DATES, this::parseDate));
+        document.addDates(HtmlUtils.getObjectsFromParent(metadata, Iso19139Constants.DATES, this::parseDate));
 
         // publication year (D5)
         document.setPublicationYear(parsePublicationYear(metadata, document.getDates()));
 
         // resource type (D10)
-        document.setResourceType(getObject(metadata, Iso19139Constants.RESOURCE_TYPE,
-                                           (Element e) -> new ResourceType(e.text(), ResourceTypeGeneral.Dataset)));
+        document.setResourceType(HtmlUtils.getObject(metadata, Iso19139Constants.RESOURCE_TYPE,
+                                                     (Element e) -> new ResourceType(e.text(), ResourceTypeGeneral.Dataset)));
 
         // descriptions (D17)
-        document.addDescriptions(getObjects(metadata, Iso19139Constants.DESCRIPTIONS,
-                                            (Element e) -> new Description(e.text(), DescriptionType.Abstract)));
+        document.addDescriptions(HtmlUtils.getObjectsFromParent(metadata, Iso19139Constants.DESCRIPTIONS,
+                                                                (Element e) -> new Description(e.text(), DescriptionType.Abstract)));
 
         // geolocations (D18)
-        document.addGeoLocations(getObjects(metadata, Iso19139Constants.GEOLOCS, this::parseGeoLocation));
+        document.addGeoLocations(HtmlUtils.getObjectsFromParent(metadata, Iso19139Constants.GEOLOCS, this::parseGeoLocation));
 
         // research data (E3)
         document.addResearchData(parseResearchData(metadata, document.getTitles()));
@@ -177,10 +178,10 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
         GeoLocation geoLocation;
 
         try {
-            double west = Double.parseDouble(getString(isoGeoLocation, Iso19139Constants.GEOLOCS_WEST));
-            double east = Double.parseDouble(getString(isoGeoLocation, Iso19139Constants.GEOLOCS_EAST));
-            double south = Double.parseDouble(getString(isoGeoLocation, Iso19139Constants.GEOLOCS_SOUTH));
-            double north = Double.parseDouble(getString(isoGeoLocation, Iso19139Constants.GEOLOCS_NORTH));
+            double west = Double.parseDouble(HtmlUtils.getString(isoGeoLocation, Iso19139Constants.GEOLOCS_WEST));
+            double east = Double.parseDouble(HtmlUtils.getString(isoGeoLocation, Iso19139Constants.GEOLOCS_EAST));
+            double south = Double.parseDouble(HtmlUtils.getString(isoGeoLocation, Iso19139Constants.GEOLOCS_SOUTH));
+            double north = Double.parseDouble(HtmlUtils.getString(isoGeoLocation, Iso19139Constants.GEOLOCS_NORTH));
             geoLocation = new GeoLocation();
 
             // is it a point or a polygon?
@@ -212,8 +213,7 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
 
         if (titleList != null && !titleList.isEmpty()) {
             final String researchTitle = titleList.iterator().next().getValue();
-
-            final String researchDataURL = getString(metadata, Iso19139Constants.RESEARCH_DATA);
+            final String researchDataURL = HtmlUtils.getString(metadata, Iso19139Constants.RESEARCH_DATA);
 
             if (researchDataURL != null)
                 researchDataList.add(new ResearchData(researchDataURL, researchTitle));
