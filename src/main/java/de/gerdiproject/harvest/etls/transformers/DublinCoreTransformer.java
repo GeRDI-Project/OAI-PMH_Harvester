@@ -21,7 +21,7 @@ import java.net.URL;
 import org.jsoup.nodes.Element;
 
 import de.gerdiproject.harvest.etls.transformers.constants.DublinCoreConstants;
-import de.gerdiproject.harvest.etls.transformers.constants.HtmlUtils;
+import de.gerdiproject.harvest.utils.HtmlUtils;
 import de.gerdiproject.json.datacite.Contributor;
 import de.gerdiproject.json.datacite.Creator;
 import de.gerdiproject.json.datacite.DataCiteJson;

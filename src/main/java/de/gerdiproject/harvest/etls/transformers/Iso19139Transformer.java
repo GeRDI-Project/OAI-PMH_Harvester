@@ -27,7 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.gerdiproject.harvest.etls.transformers.constants.Iso19139Constants;
-import de.gerdiproject.harvest.etls.transformers.constants.HtmlUtils;
+import de.gerdiproject.harvest.utils.HtmlUtils;
 import de.gerdiproject.json.datacite.Creator;
 import de.gerdiproject.json.datacite.DataCiteJson;
 import de.gerdiproject.json.datacite.Date;

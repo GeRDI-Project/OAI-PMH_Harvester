@@ -23,7 +23,7 @@ import org.jsoup.nodes.Element;
 
 import de.gerdiproject.harvest.etls.constants.OaiPmhConstants;
 import de.gerdiproject.harvest.etls.transformers.constants.DataCiteConstants;
-import de.gerdiproject.harvest.etls.transformers.constants.HtmlUtils;
+import de.gerdiproject.harvest.utils.HtmlUtils;
 import de.gerdiproject.json.datacite.AlternateIdentifier;
 import de.gerdiproject.json.datacite.Contributor;
 import de.gerdiproject.json.datacite.Creator;

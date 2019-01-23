@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import de.gerdiproject.harvest.etls.AbstractETL;
 import de.gerdiproject.harvest.etls.transformers.constants.DataCiteConstants;
-import de.gerdiproject.harvest.etls.transformers.constants.HtmlUtils;
+import de.gerdiproject.harvest.utils.HtmlUtils;
 import de.gerdiproject.json.datacite.DataCiteJson;
 
 /**
