@@ -1,21 +1,21 @@
-/*
- *  Copyright © 2018 Robin Weiss (http://www.gerdi-project.de/)
+/**
+ * Copyright © 2019 Robin Weiss (http://www.gerdi-project.de)
  *
- *  Licensed under the Apache License, Version 2.0 (the DataCiteConstants.License);
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing,
- *  software distributed under the License is distributed on an
- *  DataCiteConstants.AS IS BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- *  KIND, either express or implied.  See the License for the
- *  specific language governing permissions and limitations
- *  under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package de.gerdiproject.harvest.etls.transformers;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -23,6 +23,7 @@ import org.jsoup.nodes.Element;
 
 import de.gerdiproject.harvest.etls.constants.OaiPmhConstants;
 import de.gerdiproject.harvest.etls.transformers.constants.DataCiteConstants;
+import de.gerdiproject.harvest.utils.HtmlUtils;
 import de.gerdiproject.json.datacite.AlternateIdentifier;
 import de.gerdiproject.json.datacite.Contributor;
 import de.gerdiproject.json.datacite.Creator;
@@ -31,7 +32,6 @@ import de.gerdiproject.json.datacite.Date;
 import de.gerdiproject.json.datacite.DateRange;
 import de.gerdiproject.json.datacite.Description;
 import de.gerdiproject.json.datacite.FundingReference;
-import de.gerdiproject.json.datacite.GeoLocation;
 import de.gerdiproject.json.datacite.Identifier;
 import de.gerdiproject.json.datacite.RelatedIdentifier;
 import de.gerdiproject.json.datacite.ResourceType;
@@ -44,28 +44,60 @@ import de.gerdiproject.json.datacite.enums.ContributorType;
 import de.gerdiproject.json.datacite.enums.DateType;
 import de.gerdiproject.json.datacite.enums.DescriptionType;
 import de.gerdiproject.json.datacite.enums.FunderIdentifierType;
-import de.gerdiproject.json.datacite.enums.NameType;
 import de.gerdiproject.json.datacite.enums.RelatedIdentifierType;
 import de.gerdiproject.json.datacite.enums.RelationType;
 import de.gerdiproject.json.datacite.enums.ResourceTypeGeneral;
 import de.gerdiproject.json.datacite.enums.TitleType;
 import de.gerdiproject.json.datacite.extension.generic.WebLink;
 import de.gerdiproject.json.datacite.extension.generic.enums.WebLinkType;
-import de.gerdiproject.json.datacite.nested.AwardNumber;
 import de.gerdiproject.json.datacite.nested.FunderIdentifier;
 import de.gerdiproject.json.datacite.nested.NameIdentifier;
 import de.gerdiproject.json.datacite.nested.PersonName;
-import de.gerdiproject.json.geo.GeoJson;
-import de.gerdiproject.json.geo.Point;
-import de.gerdiproject.json.geo.Polygon;
 
 /**
- * This class offers methods for transforming DataCite records to {@linkplain DataCiteJson} objects.
+ * A transformer for the Datacite2 metadata standard.<br>
+ * https://schema.datacite.org/meta/kernel-2.2/doc/DataCite-MetadataKernel_v2.2.pdf
  *
  * @author Robin Weiss
  */
-public abstract class AbstractDataCiteTransformer extends AbstractOaiPmhRecordTransformer
+public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
 {
+    @Override
+    //@SuppressWarnings("CPD-START") // we want to keep duplicates here, because there will be slight changes in other transformers
+    protected void setDocumentFieldsFromRecord(DataCiteJson document, Element record)
+    {
+        final Element metadata = getMetadata(record);
+
+        final Identifier identifier = HtmlUtils.getObject(metadata, DataCiteConstants.IDENTIFIER, this::parseIdentifier);
+        document.setIdentifier(identifier);
+
+        final List<RelatedIdentifier> relatedIdentifiers = HtmlUtils.getObjectsFromParent(metadata, DataCiteConstants.RELATED_IDENTIFIERS, this::parseRelatedIdentifier);
+        document.addRelatedIdentifiers(relatedIdentifiers);
+
+        document.setPublisher(HtmlUtils.getString(metadata, DataCiteConstants.PUBLISHER));
+        document.setLanguage(HtmlUtils.getString(metadata, DataCiteConstants.LANGUAGE));
+        document.setVersion(HtmlUtils.getString(metadata, DataCiteConstants.VERSION));
+        document.setPublicationYear(parsePublicationYear(metadata));
+        document.addSizes(HtmlUtils.getStringsFromParent(metadata, DataCiteConstants.SIZES));
+        document.addFormats(HtmlUtils.getStringsFromParent(metadata, DataCiteConstants.FORMATS));
+        document.setResourceType(HtmlUtils.getObject(metadata, DataCiteConstants.RESOURCE_TYPE, this::parseResourceType));
+        document.addCreators(HtmlUtils.getObjectsFromParent(metadata, DataCiteConstants.CREATORS, this::parseCreator));
+        document.addContributors(HtmlUtils.getObjectsFromParent(metadata, DataCiteConstants.CONTRIBUTORS, this::parseContributor));
+        document.addTitles(HtmlUtils.getObjectsFromParent(metadata, DataCiteConstants.TITLES, this::parseTitle));
+        document.addDescriptions(HtmlUtils.getObjectsFromParent(metadata, DataCiteConstants.DESCRIPTIONS, this::parseDescription));
+        document.addSubjects(HtmlUtils.getObjectsFromParent(metadata, DataCiteConstants.SUBJECTS, this::parseSubject));
+        document.addAlternateIdentifiers(HtmlUtils.getObjectsFromParent(metadata, DataCiteConstants.ALTERNATE_IDENTIFIERS, this::parseAlternateIdentifier));
+        document.addDates(HtmlUtils.getObjectsFromParent(metadata, DataCiteConstants.DATES, this::parseDate));
+        document.addWebLinks(createWebLinks(identifier, relatedIdentifiers));
+
+        // to be compliant to DC 4.1, convert the single rights-object to a rightsList
+        document.addRights(Arrays.asList(HtmlUtils.getObject(metadata, DataCiteConstants.RIGHTS, this::parseRights)));
+
+        // to be compliant to DC 4.1, convert contributors with type "funder" to fundingReferences
+        document.addFundingReferences(HtmlUtils.getObjectsFromParent(metadata, DataCiteConstants.CONTRIBUTORS, this::parseFundingReference));
+    }
+
+
     /**
      * Retrieves a {@linkplain Identifier} from the HTML representation thereof.
      *
@@ -90,15 +122,9 @@ public abstract class AbstractDataCiteTransformer extends AbstractOaiPmhRecordTr
     protected Creator parseCreator(Element ele)
     {
         final PersonName creatorName = parsePersonName(ele.selectFirst(DataCiteConstants.CREATOR_NAME));
-        final String givenName = getString(ele, DataCiteConstants.GIVEN_NAME);
-        final String familyName = getString(ele, DataCiteConstants.FAMILY_NAME);
-        final List<String> affiliations = elementsToStringList(ele.select(DataCiteConstants.AFFILIATION));
-        final List<NameIdentifier> nameIdentifiers = elementsToList(ele.select(DataCiteConstants.NAME_IDENTIFIER), this::parseNameIdentifier);
+        final List<NameIdentifier> nameIdentifiers = HtmlUtils.elementsToList(ele.select(DataCiteConstants.NAME_IDENTIFIER), this::parseNameIdentifier);
 
         final Creator creator = new Creator(creatorName);
-        creator.setGivenName(givenName);
-        creator.setFamilyName(familyName);
-        creator.addAffiliations(affiliations);
         creator.addNameIdentifiers(nameIdentifiers);
 
         return creator;
@@ -114,17 +140,17 @@ public abstract class AbstractDataCiteTransformer extends AbstractOaiPmhRecordTr
      */
     protected Contributor parseContributor(Element ele)
     {
+        final String contributorTypeString = HtmlUtils.getAttribute(ele, DataCiteConstants.CONTRIBUTOR_TYPE);
+
+        // to be compliant to DataCite 4.1, the type "funder" must be skipped
+        if (contributorTypeString.equals(DataCiteConstants.CONTRIBUTOR_TYPE_FUNDER))
+            return null;
+
         final PersonName contributorName = parsePersonName(ele.selectFirst(DataCiteConstants.CONTRIBUTOR_NAME));
-        final ContributorType contributorType = getEnumAttribute(ele, DataCiteConstants.CONTRIBUTOR_TYPE, ContributorType.class);
-        final String givenName = getString(ele, DataCiteConstants.GIVEN_NAME);
-        final String familyName = getString(ele, DataCiteConstants.FAMILY_NAME);
-        final List<String> affiliations = elementsToStringList(ele.select(DataCiteConstants.AFFILIATION));
-        final List<NameIdentifier> nameIdentifiers = elementsToList(ele.select(DataCiteConstants.NAME_IDENTIFIER), this::parseNameIdentifier);
+        final ContributorType contributorType = HtmlUtils.getEnumAttribute(ele, DataCiteConstants.CONTRIBUTOR_TYPE, ContributorType.class);
+        final List<NameIdentifier> nameIdentifiers = HtmlUtils.elementsToList(ele.select(DataCiteConstants.NAME_IDENTIFIER), this::parseNameIdentifier);
 
         final Contributor contributor = new Contributor(contributorName, contributorType);
-        contributor.setGivenName(givenName);
-        contributor.setFamilyName(familyName);
-        contributor.addAffiliations(affiliations);
         contributor.addNameIdentifiers(nameIdentifiers);
 
         return contributor;
@@ -141,11 +167,9 @@ public abstract class AbstractDataCiteTransformer extends AbstractOaiPmhRecordTr
     protected Title parseTitle(Element ele)
     {
         final String value = ele.text();
-        final String language = getAttribute(ele, OaiPmhConstants.LANGUAGE_ATTRIBUTE);
-        final TitleType titleType = getEnumAttribute(ele, DataCiteConstants.TITLE_TYPE, TitleType.class);
+        final TitleType titleType = HtmlUtils.getEnumAttribute(ele, DataCiteConstants.TITLE_TYPE, TitleType.class);
 
         final Title title = new Title(value);
-        title.setLang(language);
         title.setType(titleType);
 
         return title;
@@ -162,9 +186,31 @@ public abstract class AbstractDataCiteTransformer extends AbstractOaiPmhRecordTr
     protected ResourceType parseResourceType(Element ele)
     {
         final String value = ele.text();
-        final ResourceTypeGeneral generalType = getEnumAttribute(ele, DataCiteConstants.RESOURCE_TYPE_GENERAL, ResourceTypeGeneral.class);
+        final ResourceTypeGeneral generalType = parseResourceTypeGeneral(ele);
         final ResourceType resourceType = new ResourceType(value, generalType);
         return resourceType;
+    }
+
+
+    /**
+     * Retrieves a {@linkplain ResourceTypeGeneral} from an HTML element.
+     *
+     * @param ele an HTML element that has the resourceTypeGeneral attribute
+     *
+     * @return the {@linkplain ResourceTypeGeneral} of the HTML element
+     */
+    protected ResourceTypeGeneral parseResourceTypeGeneral(Element ele)
+    {
+        final String rawResType = HtmlUtils.getAttribute(ele, DataCiteConstants.RESOURCE_TYPE_GENERAL);
+
+        if (DataCiteConstants.RESOURCE_TYPE_GENERAL_FILM.equals(rawResType))
+            return ResourceTypeGeneral.Audiovisual;
+
+        else
+            return HtmlUtils.getEnumAttribute(
+                       ele,
+                       DataCiteConstants.RESOURCE_TYPE_GENERAL,
+                       ResourceTypeGeneral.class);
     }
 
 
@@ -178,13 +224,8 @@ public abstract class AbstractDataCiteTransformer extends AbstractOaiPmhRecordTr
     protected Description parseDescription(Element ele)
     {
         final String value = ele.text();
-        final DescriptionType descriptionType = getEnumAttribute(ele, DataCiteConstants.DESC_TYPE, DescriptionType.class);
-        final String language = getAttribute(ele, OaiPmhConstants.LANGUAGE_ATTRIBUTE);
-
-        final Description description = new Description(value, descriptionType);
-        description.setLang(language);
-
-        return description;
+        final DescriptionType descriptionType = HtmlUtils.getEnumAttribute(ele, DataCiteConstants.DESC_TYPE, DescriptionType.class);
+        return new Description(value, descriptionType);
     }
 
 
@@ -198,16 +239,10 @@ public abstract class AbstractDataCiteTransformer extends AbstractOaiPmhRecordTr
     protected Subject parseSubject(Element ele)
     {
         final String value = ele.text();
-        final String subjectScheme = getAttribute(ele, DataCiteConstants.SUBJECT_SCHEME);
-        final String schemeURI = getAttribute(ele, DataCiteConstants.SCHEME_URI);
-        final String valueURI = getAttribute(ele, DataCiteConstants.VALUE_URI);
-        final String language = getAttribute(ele, OaiPmhConstants.LANGUAGE_ATTRIBUTE);
+        final String subjectScheme = HtmlUtils.getAttribute(ele, DataCiteConstants.SUBJECT_SCHEME);
 
         final Subject subject = new Subject(value);
         subject.setSubjectScheme(subjectScheme);
-        subject.setSchemeURI(schemeURI);
-        subject.setValueURI(valueURI);
-        subject.setLang(language);
         return subject;
     }
 
@@ -222,20 +257,20 @@ public abstract class AbstractDataCiteTransformer extends AbstractOaiPmhRecordTr
     protected RelatedIdentifier parseRelatedIdentifier(Element ele)
     {
         final String value = ele.text();
-        final RelatedIdentifierType relatedIdentifierType = getEnumAttribute(ele, DataCiteConstants.RELATED_IDENTIFIER_TYPE, RelatedIdentifierType.class);
-        final ResourceTypeGeneral resourceTypeGeneral = getEnumAttribute(ele, DataCiteConstants.RESOURCE_TYPE_GENERAL, ResourceTypeGeneral.class);
-        final RelationType relationType = getEnumAttribute(ele, DataCiteConstants.RELATION_TYPE, RelationType.class);
-        final String relatedMetadataScheme = getAttribute(ele, DataCiteConstants.RELATED_METADATA_SCHEME);
-        final String schemeURI = getAttribute(ele, DataCiteConstants.SCHEME_URI);
-        final String schemeType = getAttribute(ele, DataCiteConstants.SCHEME_TYPE);
+        final RelatedIdentifierType relatedIdentifierType = HtmlUtils.getEnumAttribute(ele, DataCiteConstants.RELATED_IDENTIFIER_TYPE, RelatedIdentifierType.class);
+
+        final RelationType relationType = HtmlUtils.getEnumAttribute(ele, DataCiteConstants.RELATION_TYPE, RelationType.class);
+        final String relatedMetadataScheme = HtmlUtils.getAttribute(ele, DataCiteConstants.RELATED_METADATA_SCHEME);
+        final String schemeURI = HtmlUtils.getAttribute(ele, DataCiteConstants.SCHEME_URI);
+        final String schemeType = HtmlUtils.getAttribute(ele, DataCiteConstants.SCHEME_TYPE);
 
         final RelatedIdentifier relatedIdentifier = new RelatedIdentifier(value, relatedIdentifierType, relationType);
-        relatedIdentifier.setResourceTypeGeneral(resourceTypeGeneral);
         relatedIdentifier.setRelatedMetadataScheme(relatedMetadataScheme);
         relatedIdentifier.setSchemeURI(schemeURI);
         relatedIdentifier.setSchemeType(schemeType);
         return relatedIdentifier;
     }
+
 
 
     /**
@@ -248,7 +283,7 @@ public abstract class AbstractDataCiteTransformer extends AbstractOaiPmhRecordTr
     protected AlternateIdentifier parseAlternateIdentifier(Element ele)
     {
         final String value = ele.text();
-        final String alternateIdentifierType = getAttribute(ele, DataCiteConstants.ALTERNATE_IDENTIFIER_TYPE);
+        final String alternateIdentifierType = HtmlUtils.getAttribute(ele, DataCiteConstants.ALTERNATE_IDENTIFIER_TYPE);
 
         final AlternateIdentifier alternateIdentifier = new AlternateIdentifier(value, alternateIdentifierType);
         return alternateIdentifier;
@@ -264,15 +299,7 @@ public abstract class AbstractDataCiteTransformer extends AbstractOaiPmhRecordTr
      */
     protected Rights parseRights(Element ele)
     {
-        final String value = ele.text();
-        final String rightsURI = getAttribute(ele, DataCiteConstants.RIGHTS_URI);
-        final String language = getAttribute(ele, DataCiteConstants.LANGUAGE);
-
-        final Rights rights = new Rights(value);
-        rights.setLang(language);
-        rights.setUri(rightsURI);
-
-        return rights;
+        return new Rights(ele.text());
     }
 
 
@@ -286,106 +313,12 @@ public abstract class AbstractDataCiteTransformer extends AbstractOaiPmhRecordTr
     protected AbstractDate parseDate(Element ele)
     {
         final String value = ele.text();
-        final DateType dateType = getEnumAttribute(ele, DataCiteConstants.DATE_TYPE, DateType.class);
-        final String dateInformation = getAttribute(ele, DataCiteConstants.DATE_INFORMATION);
+        final DateType dateType = HtmlUtils.getEnumAttribute(ele, DataCiteConstants.DATE_TYPE, DateType.class);
 
-        final AbstractDate date = value.contains(DataCiteDateConstants.DATE_RANGE_SPLITTER)
-                                  ? new DateRange(value, dateType)
-                                  : new Date(value, dateType);
-
-        date.setDateInformation(dateInformation);
-        return date;
+        return value.contains(DataCiteDateConstants.DATE_RANGE_SPLITTER)
+               ? new DateRange(value, dateType)
+               : new Date(value, dateType);
     }
-
-
-    /**
-     * Retrieves a {@linkplain FundingReference} from the HTML representation thereof.
-     *
-     * @param ele the HTML element that represents the {@linkplain FundingReference}
-     *
-     * @return the {@linkplain FundingReference} represented by the specified HTML element
-     */
-    protected FundingReference parseFundingReference(Element ele)
-    {
-        final String funderName = getString(ele, DataCiteConstants.FUNDER_NAME);
-        final FunderIdentifier funderIdentifier = getObject(ele, DataCiteConstants.FUNDER_IDENTIFIER, this::parseFunderIdentifier);
-        final AwardNumber awardNumber = getObject(ele, DataCiteConstants.AWARD_NUMBER, this::parseAwardNumber);
-        final String awardTitle = getString(ele, DataCiteConstants.AWARD_TITLE);
-
-        final FundingReference fundingReference = new FundingReference(funderName);
-        fundingReference.setFunderIdentifier(funderIdentifier);
-        fundingReference.setAwardNumber(awardNumber);
-        fundingReference.setAwardTitle(awardTitle);
-
-        return fundingReference;
-    }
-
-
-    /**
-     * Retrieves a {@linkplain GeoLocation} from the HTML representation thereof.
-     *
-     * @param ele the HTML element that represents the {@linkplain GeoLocation}
-     *
-     * @return the {@linkplain GeoLocation} represented by the specified HTML element
-     */
-    protected GeoLocation parseGeoLocation(Element ele)
-    {
-        final String geoLocationPlace = getString(ele, DataCiteConstants.GEOLOCATION_PLACE);
-        final Point geoLocationPoint = getObject(ele, DataCiteConstants.GEOLOCATION_POINT, this::parseGeoLocationPoint);
-        final List<GeoJson> geoLocationPolygons = elementsToList(ele.select(DataCiteConstants.GEOLOCATION_POLYGON), this::parseGeoLocationPolygon);
-        final double[] geoLocationBox = getObject(ele, DataCiteConstants.GEOLOCATION_BOX, this::parseGeoLocationBox);
-
-        final GeoLocation geoLocation = new GeoLocation();
-        geoLocation.setPlace(geoLocationPlace);
-        geoLocation.setPolygons(geoLocationPolygons);
-
-        if (geoLocationPoint != null)
-            geoLocation.setPoint(new GeoJson(geoLocationPoint));
-
-        if (geoLocationBox != null)
-            geoLocation.setBox(geoLocationBox[0], geoLocationBox[1], geoLocationBox[2], geoLocationBox[3]);
-
-        return geoLocation;
-    }
-
-
-    /**
-     * Retrieves a {@linkplain GeoJson} {@linkplain Polygon} from the HTML representation thereof.
-     *
-     * @param ele the HTML element that represents the {@linkplain GeoJson} {@linkplain Polygon}
-     *
-     * @return the {@linkplain GeoJson} {@linkplain Polygon} represented by the specified HTML element
-     */
-    protected GeoJson parseGeoLocationPolygon(Element ele)
-    {
-        List<Point> polygonPoints = elementsToList(ele.select(DataCiteConstants.POLYGON_POINT), this::parseGeoLocationPoint);
-
-        final Polygon poly = new Polygon(polygonPoints);
-
-        return new GeoJson(poly);
-    }
-
-
-    /**
-     * Retrieves a {@linkplain Point} from the HTML representation of a GeoJson point.
-     *
-     * @param ele the HTML element that represents the {@linkplain Point}
-     *
-     * @return the {@linkplain Point}  represented by the specified HTML element
-     */
-    protected abstract Point parseGeoLocationPoint(Element ele);
-
-
-    /**
-     * Retrieves a double array with four elements that represent the
-     * west-bound longitude, east-bound longitude, south-bound latitude, and north-bound latitude
-     * of a {@linkplain GeoJson} box.
-     *
-     * @param ele the HTML element that represents the GeoJson box
-     *
-     * @return a double array with four elements
-     */
-    protected abstract double[] parseGeoLocationBox(Element ele);
 
 
     /**
@@ -455,7 +388,7 @@ public abstract class AbstractDataCiteTransformer extends AbstractOaiPmhRecordTr
     protected Integer parsePublicationYear(Element metadata)
     {
         try {
-            final String publicationYear = getString(metadata, DataCiteConstants.PUBLICATION_YEAR);
+            final String publicationYear = HtmlUtils.getString(metadata, DataCiteConstants.PUBLICATION_YEAR);
             return Integer.parseInt(publicationYear);
 
         } catch (NumberFormatException | NullPointerException e) {
@@ -465,36 +398,41 @@ public abstract class AbstractDataCiteTransformer extends AbstractOaiPmhRecordTr
 
 
     /**
-     * Retrieves a {@linkplain FunderIdentifier} from the HTML representation thereof.
+     * Parses a {@linkplain Contributor} from the HTML representation thereof, verifies
+     * that it has the type "funder", and converts it to a {@linkplain FundingReference}.
      *
-     * @param ele the HTML element that represents the {@linkplain FunderIdentifier}
+     * @param ele the HTML element that represents a {@linkplain Contributor}
      *
-     * @return the {@linkplain FunderIdentifier} represented by the specified HTML element
+     * @return the {@linkplain FundingReference} represented by the specified HTML element, or null
+     * if the contributor is not a funder or cannot be parsed
      */
-    protected FunderIdentifier parseFunderIdentifier(Element ele)
+    protected FundingReference parseFundingReference(Element ele)
     {
-        final String value = ele.text();
-        final FunderIdentifierType funderIdentifierType = getEnumAttribute(ele, DataCiteConstants.FUNDER_IDENTIFIER_TYPE, FunderIdentifierType.class);
+        final String contributorType = HtmlUtils.getAttribute(ele, DataCiteConstants.CONTRIBUTOR_TYPE);
 
-        final FunderIdentifier funderIdentifier = new FunderIdentifier(value, funderIdentifierType);
-        return funderIdentifier;
-    }
+        if (!contributorType.equals(DataCiteConstants.CONTRIBUTOR_TYPE_FUNDER))
+            return null;
 
+        final PersonName contributorName = parsePersonName(ele.selectFirst(DataCiteConstants.CONTRIBUTOR_NAME));
+        final NameIdentifier nameIdentifier = parseNameIdentifier(ele.selectFirst(DataCiteConstants.NAME_IDENTIFIER));
+        FunderIdentifier funderIdentifier = null;
 
-    /**
-     * Retrieves a {@linkplain AwardNumber} from the HTML representation thereof.
-     *
-     * @param ele the HTML element that represents the {@linkplain AwardNumber}
-     *
-     * @return the {@linkplain AwardNumber} represented by the specified HTML element
-     */
-    protected AwardNumber parseAwardNumber(Element ele)
-    {
-        final String value = ele.text();
-        final String awardURI = getAttribute(ele, DataCiteConstants.AWARD_URI);
+        // convert nameIdentifier to funder identifier
+        if (nameIdentifier != null) {
+            FunderIdentifierType funderIdentifierType;
 
-        final AwardNumber awardNumber = new AwardNumber(value, awardURI);
-        return awardNumber;
+            try {
+                funderIdentifierType = FunderIdentifierType.valueOf(nameIdentifier.getNameIdentifierScheme());
+            } catch (IllegalArgumentException e) {
+                funderIdentifierType = FunderIdentifierType.Other;
+            }
+
+            funderIdentifier = new FunderIdentifier(nameIdentifier.getValue(), funderIdentifierType);
+        }
+
+        final FundingReference fundingReference = new FundingReference(contributorName.getValue());
+        fundingReference.setFunderIdentifier(funderIdentifier);
+        return fundingReference;
     }
 
 
@@ -508,13 +446,12 @@ public abstract class AbstractDataCiteTransformer extends AbstractOaiPmhRecordTr
     protected NameIdentifier parseNameIdentifier(Element ele)
     {
         final String value = ele.text();
-        final String nameIdentifierScheme = getAttribute(ele, DataCiteConstants.NAME_IDENTIFIER_SCHEME);
-        final String schemeURI = getAttribute(ele, DataCiteConstants.SCHEME_URI);
+        final String nameIdentifierScheme = HtmlUtils.getAttribute(ele, DataCiteConstants.NAME_IDENTIFIER_SCHEME);
 
         final NameIdentifier nameIdentifier = new NameIdentifier(value, nameIdentifierScheme);
-        nameIdentifier.setSchemeURI(schemeURI);
         return nameIdentifier;
     }
+
 
     /**
      * Retrieves a {@linkplain PersonName} from the HTML representation thereof.
@@ -525,8 +462,6 @@ public abstract class AbstractDataCiteTransformer extends AbstractOaiPmhRecordTr
      */
     protected PersonName parsePersonName(Element ele)
     {
-        final String name = ele.text();
-        final NameType nameType = getEnumAttribute(ele, DataCiteConstants.NAME_TYPE, NameType.class);
-        return new PersonName(name, nameType);
+        return new PersonName(ele.text());
     }
 }

@@ -17,13 +17,11 @@ package de.gerdiproject.harvest.etls.transformers;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.List;
-import java.util.function.Function;
 
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import de.gerdiproject.harvest.etls.transformers.constants.DublinCoreConstants;
+import de.gerdiproject.harvest.utils.HtmlUtils;
 import de.gerdiproject.json.datacite.Contributor;
 import de.gerdiproject.json.datacite.Creator;
 import de.gerdiproject.json.datacite.DataCiteJson;
@@ -52,74 +50,38 @@ public class DublinCoreTransformer extends AbstractOaiPmhRecordTransformer
         // get header and meta data for each record
         Element metadata = getMetadata(record);
 
-        document.setPublisher(getString(metadata, DublinCoreConstants.PUBLISHER));
-        document.setLanguage(getString(metadata, DublinCoreConstants.LANG));
-        document.addFormats(getStrings(metadata, DublinCoreConstants.FORMATS));
-        document.addFormats(getStrings(metadata, DublinCoreConstants.RES_TYPE));
+        document.setPublisher(HtmlUtils.getString(metadata, DublinCoreConstants.PUBLISHER));
+        document.setLanguage(HtmlUtils.getString(metadata, DublinCoreConstants.LANG));
+        document.addFormats(HtmlUtils.getStrings(metadata, DublinCoreConstants.FORMATS));
+        document.addFormats(HtmlUtils.getStrings(metadata, DublinCoreConstants.RES_TYPE));
 
-        document.setIdentifier(getObject(metadata, DublinCoreConstants.IDENTIFIERS,
-                                         (Element e) -> new Identifier(e.text())));
+        document.setIdentifier(HtmlUtils.getObject(metadata, DublinCoreConstants.IDENTIFIERS,
+                                                   (Element e) -> new Identifier(e.text())));
 
-        document.addDates(getObjects(metadata, DublinCoreConstants.DATES,
-                                     (Element e) -> new Date(e.text(), DateType.Issued)));
+        document.addDates(HtmlUtils.getObjects(metadata, DublinCoreConstants.DATES,
+                                               (Element e) -> new Date(e.text(), DateType.Issued)));
 
-        document.addCreators(getObjects(metadata, DublinCoreConstants.CREATORS,
-                                        (Element e) -> new Creator(e.text())));
+        document.addCreators(HtmlUtils.getObjects(metadata, DublinCoreConstants.CREATORS,
+                                                  (Element e) -> new Creator(e.text())));
 
-        document.addContributors(getObjects(metadata, DublinCoreConstants.CONTRIBUTORS,
-                                            (Element e) -> new Contributor(e.text(), ContributorType.ContactPerson)));
+        document.addContributors(HtmlUtils.getObjects(metadata, DublinCoreConstants.CONTRIBUTORS,
+                                                      (Element e) -> new Contributor(e.text(), ContributorType.ContactPerson)));
 
-        document.addTitles(getObjects(metadata, DublinCoreConstants.TITLES,
-                                      (Element e) -> new Title(e.text())));
+        document.addTitles(HtmlUtils.getObjects(metadata, DublinCoreConstants.TITLES,
+                                                (Element e) -> new Title(e.text())));
 
-        document.addDescriptions(getObjects(metadata, DublinCoreConstants.DESCRIPTIONS,
-                                            (Element e) ->new Description(e.text(), DescriptionType.Abstract)));
+        document.addDescriptions(HtmlUtils.getObjects(metadata, DublinCoreConstants.DESCRIPTIONS,
+                                                      (Element e) ->new Description(e.text(), DescriptionType.Abstract)));
 
-        document.addSubjects(getObjects(metadata, DublinCoreConstants.SUBJECTS,
-                                        (Element e) -> new Subject(e.text())));
+        document.addSubjects(HtmlUtils.getObjects(metadata, DublinCoreConstants.SUBJECTS,
+                                                  (Element e) -> new Subject(e.text())));
 
-        document.addRights(getObjects(metadata, DublinCoreConstants.RIGHTS,
-                                      (Element e) -> new Rights(e.text())));
+        document.addRights(HtmlUtils.getObjects(metadata, DublinCoreConstants.RIGHTS,
+                                                (Element e) -> new Rights(e.text())));
 
-        document.addWebLinks(getObjects(metadata, DublinCoreConstants.IDENTIFIERS, this::identifierToWebLink));
+        document.addWebLinks(HtmlUtils.getObjects(metadata, DublinCoreConstants.IDENTIFIERS, this::identifierToWebLink));
 
         document.setPublicationYear(parsePublicationYearFromDates(document.getDates()));
-    }
-
-
-    /**
-     * Retrieves all occurrences of elements with a specified tag name
-     * that are descendants of a specified element and converts them to objects.
-     *
-     * @param ele the element from which the retrieved texts are descended
-     * @param tagName the name of the tag of which the strings are retrieved
-     * @param eleToObject a mapping function that maps a single element to the specified class
-     * @param <T> the requested type of the converted tag
-     *
-     * @return a list of converted objects or null if there are no matching tags
-     */
-    @Override
-    protected <T> List<T> getObjects(Element ele, String tagName, Function<Element, T> eleToObject)
-    {
-        final Elements eles = ele.select(tagName);
-        return eles == null ? null : elementsToList(eles, eleToObject);
-    }
-
-
-    /**
-     * Retrieves the texts of all occurrences of elements with a specified tag name
-     * that are descendants of a specified element.
-     *
-     * @param ele the element from which the retrieved texts are descended
-     * @param tagName the name of the tag of which the strings are retrieved
-     *
-     * @return a list of strings or null if there are no matching tags
-     */
-    @Override
-    protected List<String> getStrings(Element ele, String tagName)
-    {
-        final Elements eles = ele.select(tagName);
-        return eles == null ? null : elementsToStringList(eles);
     }
 
 

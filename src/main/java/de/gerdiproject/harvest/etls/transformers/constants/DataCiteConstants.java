@@ -19,7 +19,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 /**
- * A static collection of constant parameters for configuring the DataCite3 strategy.
+ * A static collection of constant parameters used by DataCite transformations.
  *
  * @author Jan Frömberg
  */
@@ -93,10 +93,14 @@ public class DataCiteConstants
     public static final String ALTERNATE_IDENTIFIERS = "alternateIdentifiers";
     public static final String ALTERNATE_IDENTIFIER_TYPE = "alternateIdentifierType";
 
-    // DATACITE 3.0
+    // DATACITE 2
+    public static final Object RESOURCE_TYPE_GENERAL_FILM = "film";
+    public static final String RIGHTS = "rights";
+
+    // DATACITE 3
     public static final String CONTRIBUTOR_TYPE_FUNDER = "funder";
 
-    // DATACITE 4.1
+    // DATACITE 4
     public static final String FUNDING_REFERENCES = "fundingReferences";
     public static final String FUNDER_NAME = "funderName";
     public static final String FUNDER_IDENTIFIER = "funderIdentifier";
@@ -105,8 +109,29 @@ public class DataCiteConstants
     public static final String AWARD_TITLE = "awardTitle";
     public static final String AWARD_URI = "awardURI";
 
-    // misc
+    // Misc
     public static final String URL_PREFIX = "http";
     public static final String RESOURCE_LINK_NAME = "Resource";
+    public static final String RESOURCE_ELEMENT = "resource";
+    public static final String SCHEMA_LOCATION_ATTRIBUTE = "xsi:schemalocation";
+    public static final String NO_SCHEMA_LOCATION_ATTRIBUTE = "xsi:nonamespaceschemalocation";
+
+    // Schema URLs
+    public static final String SCHEMA_2_URL = "http://schema.datacite.org/meta/kernel-2/metadata.xsd";
+    public static final String SCHEMA_2_0_URL = "http://schema.datacite.org/meta/kernel-2.0/metadata.xsd";
+    public static final String SCHEMA_2_1_URL = "http://schema.datacite.org/meta/kernel-2.1/metadata.xsd";
+    public static final String SCHEMA_2_2_URL = "http://schema.datacite.org/meta/kernel-2.2/metadata.xsd";
+    public static final String SCHEMA_3_URL = "http://schema.datacite.org/meta/kernel-3/metadata.xsd";
+    public static final String SCHEMA_3_0_URL = "http://schema.datacite.org/meta/kernel-3.0/metadata.xsd";
+    public static final String SCHEMA_3_1_URL = "http://schema.datacite.org/meta/kernel-3.1/metadata.xsd";
+    public static final String SCHEMA_4_URL = "http://schema.datacite.org/meta/kernel-4/metadata.xsd";
+    public static final String SCHEMA_4_0_URL = "http://schema.datacite.org/meta/kernel-4.0/metadata.xsd";
+    public static final String SCHEMA_4_1_URL = "http://schema.datacite.org/meta/kernel-4.1/metadata.xsd";
+    public static final String OAI_SCHEMA_1_0_URL = "http://schema.datacite.org/oai/oai-1.0/oai.xsd";
+    public static final String OAI_SCHEMA_1_1_URL = "http://schema.datacite.org/oai/oai-1.1/oai.xsd";
+    public static final String NO_SCHEMA_URL = "http://schema.datacite.org/meta/nonexistant/nonexistant.xsd";
+
+    // Errors
+    public static final String UNKNOWN_SCHEMA_ERROR = "Cannot harvest record! Unknown DataCite schema: %s";
 
 }

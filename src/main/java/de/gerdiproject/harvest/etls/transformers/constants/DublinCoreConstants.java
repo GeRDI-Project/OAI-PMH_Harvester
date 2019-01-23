@@ -40,4 +40,6 @@ public class DublinCoreConstants
     public static final String RIGHTS = "dc|rights";
 
     public static final String VIEW_URL_TITLE = "View URL";
+
+    public static final String SCHEMA_URL = "http://www.openarchives.org/OAI/2.0/oai_dc.xsd";
 }
