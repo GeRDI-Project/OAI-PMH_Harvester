@@ -35,33 +35,34 @@ import lombok.NoArgsConstructor;
 public class HtmlUtils
 {
     /**
-     * Retrieves the text of the first occurrence of a specified tag.
+     * Retrieves the text of the first occurrence of a specified tag
+     * derived from a specified {@linkplain Element}.
      *
-     * @param ele the HTML element that is to be parsed
-     * @param tagName the tag of which the text is to be retrieved
+     * @param element the HTML {@linkplain Element} that contains the tag
+     * @param tagName the name of the tag of which the text is to be retrieved
      *
      * @return the text inside the first occurrence of a specified tag,
      *          or null if the tag could not be found
      */
-    public static String getString(Element ele, String tagName)
+    public static String getString(Element element, String tagName)
     {
-        final Element stringElement = ele.selectFirst(tagName);
+        final Element stringElement = element.selectFirst(tagName);
         return stringElement == null ? null : stringElement.text();
     }
 
 
     /**
-     * Retrieves the texts of all child tags of an {@linkplain Element}.
+     * Retrieves the texts of all children of a specified parent {@linkplain Element}.
      *
-     * @param ele the HTML {@linkplain Element} that contains the parent tag
+     * @param element the HTML {@linkplain Element} that contains the parent tag
      * @param parentTagName the name of the parent {@linkplain Element} of the child tags
      *
      * @return a {@linkplain List} of {@linkplain String}s
      *          or null if the tag could not be found
      */
-    public static List<String> getStringsFromParent(Element ele, String parentTagName)
+    public static List<String> getStringsFromParent(Element element, String parentTagName)
     {
-        final Element parent = ele.selectFirst(parentTagName);
+        final Element parent = element.selectFirst(parentTagName);
         return parent == null ? null : elementsToStringList(parent.children());
     }
 
@@ -69,66 +70,69 @@ public class HtmlUtils
     /**
      * Retrieves the texts of all occurrences of {@linkplain Element}s with a specified tag name.
      *
-     * @param ele the HTML {@linkplain Element} that contains the elements
+     * @param element the HTML {@linkplain Element} that contains the elements
      * @param tagName the tag name of the {@linkplain Element}s to be retrieved
      *
      * @return a {@linkplain List} of {@linkplain String}s
      *          or null if no tag could not be found
      */
-    public static List<String> getStrings(Element ele, String tagName)
+    public static List<String> getStrings(Element element, String tagName)
     {
-        final Elements eles = ele.select(tagName);
-        return eles == null ? null : elementsToStringList(eles);
+        return elementsToStringList(element.select(tagName));
     }
 
 
     /**
-     * Retrieves the first occurrence of a specified tag and maps it to a specified class.
+     * Retrieves the first occurrence of an {@linkplain Element} with a specified
+     * tag and maps it to an object via a specified mapping function.
      *
-     * @param ele the HTML {@linkplain Element} that contains the requested tag
+     * @param element the HTML {@linkplain Element} that contains the requested tag
      * @param tagName the name of the requested tag
-     * @param eleToObject a mapping function that generates the requested class
-     * @param <T> the requested type of the converted tag
+     * @param eleToObject a function that maps the found {@linkplain Element} to T
+     * @param <T> the output type of the mapping function
      *
      * @return an object representation of the tag or null if it does not exist
      */
-    public static <T> T getObject(Element ele, String tagName, Function<Element, T> eleToObject)
+    public static <T> T getObject(Element element, String tagName, Function<Element, T> eleToObject)
     {
-        final Element requestedTag = ele.selectFirst(tagName);
+        final Element requestedTag = element.selectFirst(tagName);
         return requestedTag == null ? null : eleToObject.apply(requestedTag);
     }
 
 
     /**
-     * Retrieves all occurrence of a specified tag and maps it to a List of a specified class.
+     * Retrieves all occurrences of {@linkplain Element}s with specified tags
+     * and maps them to a {@linkplain List} of objects via a specified mapping function.
      *
-     * @param ele the HTML {@linkplain Element} that contains the requested tag
+     * @param element the HTML {@linkplain Element} that contains the requested tags
      * @param tagName the name of the requested tag
-     * @param eleToObject a mapping function that generates the requested class
-     * @param <T> the requested type of the converted list
+     * @param eleToObject a function that maps the found {@linkplain Element}s to T
+     * @param <T> the output type of the mapping function
      *
-     * @return a {@linkplain List} of objects of the tag or null if it does not exist
+     * @return a {@linkplain List} of object representations of the tag,
+     * or null if no matching tags were found
      */
-    public static <T> List<T> getObjects(Element ele, String tagName, Function<Element, T> eleToObject)
+    public static <T> List<T> getObjects(Element element, String tagName, Function<Element, T> eleToObject)
     {
-        final Elements eles = ele.select(tagName);
+        final Elements eles = element.select(tagName);
         return eles == null ? null : elementsToList(eles, eleToObject);
     }
 
 
     /**
-     * Retrieves all child tags of a specified tag and maps them to a {@linkplain List} of a specified class.
+     * Retrieves all child {@linkplain Element}s of a specified parent tag and
+     * maps them to a {@linkplain List} of objects via a specified mapping function.
      *
-     * @param ele the HTML {@linkplain Element} that contains the parent tag
-     * @param tagName the name of the parent tag
-     * @param eleToObject a mapping function that maps a single child to the specified class
-     * @param <T> the requested type of the converted tag
+     * @param element the HTML {@linkplain Element} that contains the parent tag
+     * @param parentTagName the name of the parent tag
+     * @param eleToObject a function that maps the child {@linkplain Element}s to T
+     * @param <T> the output type of the mapping function
      *
      * @return a {@linkplain List} of objects of the tag or null if it does not exist
      */
-    public static <T> List<T> getObjectsFromParent(Element ele, String tagName, Function<Element, T> eleToObject)
+    public static <T> List<T> getObjectsFromParent(Element element, String parentTagName, Function<Element, T> eleToObject)
     {
-        final Element parent = ele.selectFirst(tagName);
+        final Element parent = element.selectFirst(parentTagName);
         return parent == null
                ? null
                : elementsToList(parent.children(), eleToObject);
@@ -136,37 +140,39 @@ public class HtmlUtils
 
 
     /**
-     * Retrieves the value of a HTML attribute.
+     * Retrieves an attribute value of an HTML {@linkplain Element}.
      *
-     * @param ele the HTML element that possibly has the attribute
+     * @param element the HTML {@linkplain Element} from which the attribute is retrieved
      * @param attributeKey the key of the attribute
      *
      * @return the attribute value, or null if no such attribute exists
      */
-    public static String getAttribute(Element ele, String attributeKey)
+    public static String getAttribute(Element element, String attributeKey)
     {
-        final String attr = ele.attr(attributeKey);
+        final String attr = element.attr(attributeKey);
         return attr.isEmpty() ? null : attr;
     }
 
 
     /**
-     * Retrieves the value of a HTML attribute and attempts to map it to an {@linkplain Enum}.
+     * Retrieves an attribute value of an HTML {@linkplain Element}
+     * and attempts to map it to an {@linkplain Enum}.
      *
-     * @param ele the HTML element that possibly has the attribute
+     * @param element the HTML {@linkplain Element} from which the attribute is retrieved
      * @param attributeKey the key of the attribute
-     * @param enumClass the class to which the attribute value must be mapped
+     * @param enumClass the {@linkplain Enum} class to which the attribute value must be mapped
      * @param <T> the type of the {@linkplain Enum}
      *
-     * @return the enum representation of the attribute value, or null if no such attribute exists or could not be mapped
+     * @return the enum representation of the attribute value,
+     * or null if the attribute is missing or could not be mapped
      */
-    public static <T extends Enum<T>> T getEnumAttribute(Element ele, String attributeKey, Class<T> enumClass)
+    public static <T extends Enum<T>> T getEnumAttribute(Element element, String attributeKey, Class<T> enumClass)
     {
         T returnValue = null;
 
         try {
-            if (ele.hasAttr(attributeKey))
-                returnValue = Enum.valueOf(enumClass, ele.attr(attributeKey).trim());
+            if (element.hasAttr(attributeKey))
+                returnValue = Enum.valueOf(enumClass, element.attr(attributeKey).trim());
         } catch (IllegalArgumentException e) {
             returnValue = null;
         }
@@ -176,14 +182,14 @@ public class HtmlUtils
 
 
     /**
-     * Applies a mapping function to a {@linkplain Collection} of {@linkplain Element}s,
-     * generating a {@linkplain List} of specified objects.
+     * Applies a specified mapping function to every {@linkplain Element} of a {@linkplain Collection},
+     * to generate a {@linkplain List} of mapped objects.
      *
-     * @param elements the elements that are to be mapped
-     * @param eleToObject the mapping function
-     * @param <T> the type to which the elements are to be mapped
+     * @param elements the {@linkplain Element} that are to be mapped to objects
+     * @param eleToObject a function that maps the {@linkplain Element}s to T
+     * @param <T> the output type of the mapping function
      *
-     * @return a list of objects that were mapped or null if no object could be mapped
+     * @return a {@linkplain LinkedList} of objects that were mapped or null if no object could be mapped
      */
     public static <T> List<T> elementsToList(Collection<Element> elements, Function<Element, T> eleToObject)
     {
@@ -204,12 +210,12 @@ public class HtmlUtils
 
 
     /**
-     * Maps a {@linkplain Collection} of {@linkplain Element}s to a {@linkplain List} of {@linkplain String}s
-     * by retrieving the text of the tag elements.
+     * Maps a {@linkplain Collection} of {@linkplain Element}s to a {@linkplain List}
+     * of {@linkplain String}s by retrieving the text of the {@linkplain Element}s.
      *
-     * @param elements the elements that are to be converted to strings
+     * @param elements the {@linkplain Element}s that are to be converted to {@linkplain String}s
      *
-     * @return a {@linkplain List} of {@linkplain String}s
+     * @return a {@linkplain LinkedList} of {@linkplain String}s
      */
     public static List<String> elementsToStringList(Collection<Element> elements)
     {
