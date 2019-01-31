@@ -59,9 +59,11 @@ public class OaiPmhParameterConstants
     public static final String HOST_URL_KEY = "hostUrl";
     public static final String HOST_URL_DEFAULT_VALUE = "";
 
-
     public static final String LOGO_URL_KEY = "logoUrl";
     public static final String LOGO_URL_DEFAULT_VALUE = "";
+
+    public static final String VIEW_URL_KEY = "viewUrl";
+    public static final String VIEW_URL_DEFAULT_VALUE = "";
 
     public static final String SET_KEY = "set";
     public static final String SET_DEFAULT_VALUE = "";

@@ -71,7 +71,8 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
 
         // set default links
         final WebLink logoLink = createLogoWebLink(oaiEtl.getLogoUrl());
-        this.defaultLinks = logoLink != null ? Arrays.asList(logoLink) : null;
+        final WebLink viewLink = createViewWebLink(oaiEtl.getViewUrl());
+        this.defaultLinks = Arrays.asList(logoLink, viewLink);
     }
 
 
@@ -160,6 +161,29 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
         }
 
         return logoLink;
+    }
+
+
+    /**
+     * Returns an optional {@linkplain WebLink} that points to an official
+     * record browser of the repository.
+     *
+     * @param url a URL that points to an official record browser of the repository
+     *
+     * @return a view {@linkplain WebLink} or null, if the URL is empty
+     */
+    protected WebLink createViewWebLink(String url)
+    {
+        WebLink viewLink = null;
+
+        if (url != null && !url.isEmpty()) {
+            viewLink = new WebLink(
+                url,
+                OaiPmhConstants.VIEW_URL_NAME,
+                WebLinkType.ViewURL);
+        }
+
+        return viewLink;
     }
 
 
