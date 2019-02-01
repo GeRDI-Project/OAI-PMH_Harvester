@@ -53,6 +53,7 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
     private StringParameter hostUrlParam;
     private StringParameter metadataPrefixParam;
     private StringParameter logoUrlParam;
+    private StringParameter viewUrlParam;
     private StringParameter setParam;
 
     private Map<String, String> schemaUrlMap = new HashMap<>();
@@ -129,6 +130,13 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
                                     OaiPmhParameterConstants.LOGO_URL_KEY,
                                     getName(),
                                     OaiPmhParameterConstants.LOGO_URL_DEFAULT_VALUE,
+                                    urlMappingFunction));
+
+        this.viewUrlParam = Configuration.registerParameter(
+                                new StringParameter(
+                                    OaiPmhParameterConstants.VIEW_URL_KEY,
+                                    getName(),
+                                    OaiPmhParameterConstants.VIEW_URL_DEFAULT_VALUE,
                                     urlMappingFunction));
 
         this.setParam = Configuration.registerParameter(
@@ -381,5 +389,16 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
     public String getLogoUrl()
     {
         return logoUrlParam.getValue();
+    }
+
+    /**
+     * Returns a URL that should point to a central repository access point.
+     * The URL is directly retrieved from the corresponding parameter.
+     *
+     * @return a logo URL set up by the "logoUrl"-parameter
+     */
+    public String getViewUrl()
+    {
+        return viewUrlParam.getValue();
     }
 }
