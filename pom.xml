@@ -6,11 +6,11 @@
     <parent>
         <groupId>de.gerdi-project</groupId>
         <artifactId>GeRDI-parent-harvester</artifactId>
-        <version>7.3.4-SNAPSHOT</version>
+        <version>7.3.6-SNAPSHOT</version>
     </parent>
 
     <artifactId>OAIPMH-HarvesterService</artifactId>
-    <version>7.4.2-SNAPSHOT</version>
+    <version>7.4.5-SNAPSHOT</version>
     <packaging>war</packaging>
     <name>OAI-PMH Harvester Service</name>
     <description>This is a Harvester implementation for OAI-PMH Databases.</description>
