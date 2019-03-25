@@ -224,7 +224,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
     protected Description parseDescription(Element ele)
     {
         final String value = ele.text();
-        final DescriptionType descriptionType = HtmlUtils.getEnumAttribute(ele, DataCiteConstants.DESC_TYPE, DescriptionType.class);
+        final DescriptionType descriptionType = HtmlUtils.getEnumAttribute(ele, DataCiteConstants.DESCRIPTION_TYPE, DescriptionType.class);
         return new Description(value, descriptionType);
     }
 
