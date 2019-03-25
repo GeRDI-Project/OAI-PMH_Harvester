@@ -266,9 +266,12 @@ public class DataCite4Transformer extends DataCite3Transformer
     {
         final AbstractDate date = super.parseDate(ele);
 
-        // in DataCite 4.0, dateinformation is added
-        final String dateInformation = HtmlUtils.getAttribute(ele, DataCiteConstants.DATE_INFORMATION);
-        date.setDateInformation(dateInformation);
+        // check if the retrieved date is valid
+        if (date != null) {
+            // in DataCite 4.0, dateinformation is added
+            final String dateInformation = HtmlUtils.getAttribute(ele, DataCiteConstants.DATE_INFORMATION);
+            date.setDateInformation(dateInformation);
+        }
 
         return date;
     }
