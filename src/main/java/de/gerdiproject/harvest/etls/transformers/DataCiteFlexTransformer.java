@@ -79,9 +79,12 @@ public class DataCiteFlexTransformer extends AbstractOaiPmhRecordTransformer
 
         // edge case: abort if schema location is not specified at all
         if (schemaLocation == null) {
-            LOGGER.error(
-                getErrorPrefix(record)
-                + DataCiteConstants.MISSING_SCHEMA_ERROR_SUFFIX);
+            if (LOGGER.isErrorEnabled()) {
+                LOGGER.error(
+                    getErrorPrefix(record)
+                    + DataCiteConstants.MISSING_SCHEMA_ERROR_SUFFIX);
+            }
+
             return;
         }
 
@@ -93,9 +96,12 @@ public class DataCiteFlexTransformer extends AbstractOaiPmhRecordTransformer
 
         // abort if the no transformer exists for the major version
         if (transformer == null) {
-            LOGGER.error(
-                getErrorPrefix(record)
-                + String.format(DataCiteConstants.UNKNOWN_SCHEMA_ERROR_SUFFIX, schemaLocation));
+            if (LOGGER.isErrorEnabled()) {
+                LOGGER.error(
+                    getErrorPrefix(record)
+                    + String.format(DataCiteConstants.UNKNOWN_SCHEMA_ERROR_SUFFIX, schemaLocation));
+            }
+
             return;
         }
 

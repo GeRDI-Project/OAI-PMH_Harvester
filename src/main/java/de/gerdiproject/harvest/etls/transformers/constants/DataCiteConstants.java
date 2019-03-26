@@ -136,7 +136,7 @@ public class DataCiteConstants
     public static final String NO_SCHEMA_URL = "http://schema.datacite.org/meta/nonexistant/nonexistant.xsd";
 
     // Errors
-    public static final String RECORD_ERROR_PREFIX = "Cannot harvest record with identifier %s and date stamp %s:\n";
+    public static final String RECORD_ERROR_PREFIX = "Cannot harvest record with identifier %s and date stamp %s: ";
     public static final String UNKNOWN_SCHEMA_ERROR_SUFFIX = "No strategy defined for harvesting records with schemaLocation attribute '%s'!";
     public static final String MISSING_SCHEMA_ERROR_SUFFIX = "Missing schemaLocation attribute!";
 
