@@ -24,6 +24,7 @@ import org.jsoup.nodes.Element;
 import de.gerdiproject.harvest.etls.constants.OaiPmhConstants;
 import de.gerdiproject.harvest.etls.transformers.constants.DataCiteConstants;
 import de.gerdiproject.harvest.utils.HtmlUtils;
+import de.gerdiproject.json.DateUtils;
 import de.gerdiproject.json.datacite.AlternateIdentifier;
 import de.gerdiproject.json.datacite.Contributor;
 import de.gerdiproject.json.datacite.Creator;
@@ -39,7 +40,6 @@ import de.gerdiproject.json.datacite.Rights;
 import de.gerdiproject.json.datacite.Subject;
 import de.gerdiproject.json.datacite.Title;
 import de.gerdiproject.json.datacite.abstr.AbstractDate;
-import de.gerdiproject.json.datacite.constants.DataCiteDateConstants;
 import de.gerdiproject.json.datacite.enums.ContributorType;
 import de.gerdiproject.json.datacite.enums.DateType;
 import de.gerdiproject.json.datacite.enums.DescriptionType;
@@ -88,6 +88,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
         document.addSubjects(HtmlUtils.getObjectsFromParent(metadata, DataCiteConstants.SUBJECTS, this::parseSubject));
         document.addAlternateIdentifiers(HtmlUtils.getObjectsFromParent(metadata, DataCiteConstants.ALTERNATE_IDENTIFIERS, this::parseAlternateIdentifier));
         document.addDates(HtmlUtils.getObjectsFromParent(metadata, DataCiteConstants.DATES, this::parseDate));
+        document.addDates(parseDateRanges(metadata));
         document.addWebLinks(createWebLinks(identifier, relatedIdentifiers));
 
         // to be compliant to DC 4.1, convert the single rights-object to a rightsList
@@ -312,12 +313,12 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
      */
     protected AbstractDate parseDate(Element ele)
     {
-        final String value = ele.text();
+        final String dateString = ele.text();
         final DateType dateType = HtmlUtils.getEnumAttribute(ele, DataCiteConstants.DATE_TYPE, DateType.class);
 
-        return value.contains(DataCiteDateConstants.DATE_RANGE_SPLITTER)
-               ? new DateRange(value, dateType)
-               : new Date(value, dateType);
+        return dateType != null
+               ? DateUtils.parseAbstractDate(dateString, dateType)
+               : null;
     }
 
 
@@ -463,5 +464,62 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
     protected PersonName parsePersonName(Element ele)
     {
         return new PersonName(ele.text());
+    }
+
+
+    /**
+     * Retrieves a {@linkplain List} of {@linkplain AbstractDate} from the HTML representation of dates.
+     * In DataCite 2.2 and earlier, date ranges were defined via dedicated elements with dateTypes
+     * "StartDate" and "EndDate", and must therefore be handled separately.
+     *
+     * @param metadata the record metadata HTML element
+     *
+     * @return a list of {@linkplain DateRange}s
+     */
+    private List<AbstractDate> parseDateRanges(Element metadata)
+    {
+        final Element datesParent = metadata.selectFirst(DataCiteConstants.DATES);
+
+        if (datesParent == null)
+            return null;
+
+        final List<AbstractDate> dateList = new LinkedList<>();
+
+        // retrieve date elements from record
+        final List<Element> dateElements = datesParent.children();
+        String startDate = null;
+        String endDate = null;
+
+        // look for dates with datetype "StartDate" and "EndDate"
+        for (Element ele : dateElements) {
+            final String dateTypeRaw = HtmlUtils.getAttribute(ele, DataCiteConstants.DATE_TYPE);
+
+            // memorize start date
+            if (dateTypeRaw.equals(DataCiteConstants.DATE_TYPE_RANGE_START))
+                startDate = ele.text();
+
+            // memorize end date
+            else if (dateTypeRaw.equals(DataCiteConstants.DATE_TYPE_RANGE_END))
+                endDate = ele.text();
+
+            // skip normal dates
+            else
+                continue;
+
+            // if a date range pair is complete, add it to the list
+            if (startDate != null && endDate != null) {
+                dateList.add(new DateRange(startDate, endDate, DateType.Other));
+
+                // reset memorized dates
+                startDate = null;
+                endDate = null;
+            }
+        }
+
+        // if there are left-over date ranges that are missing end or start, add a partial date range
+        if (startDate != null || endDate != null)
+            dateList.add(new DateRange(startDate, endDate, DateType.Other));
+
+        return dateList;
     }
 }
