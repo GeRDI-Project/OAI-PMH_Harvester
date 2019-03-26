@@ -78,21 +78,29 @@ public class OaiPmhParameterConstants
     {
         final Map<String, Supplier<AbstractIteratorTransformer<Element, DataCiteJson>>> map = new HashMap<>();
 
+        // add DataCite transformers
+        final DataCite2Transformer dataCite2Transformer = new DataCite2Transformer();
+        final DataCite2Transformer dataCite3Transformer = new DataCite3Transformer();
+        final DataCite2Transformer dataCite4Transformer = new DataCite4Transformer();
+        final DataCiteFlexTransformer dataCiteTransformer = new DataCiteFlexTransformer();
+
+        map.put(DataCiteConstants.SCHEMA_2_URL, () -> dataCite2Transformer);
+        map.put(DataCiteConstants.SCHEMA_2_0_URL, () -> dataCite2Transformer);
+        map.put(DataCiteConstants.SCHEMA_2_1_URL, () -> dataCite2Transformer);
+        map.put(DataCiteConstants.SCHEMA_2_2_URL, () -> dataCite2Transformer);
+        map.put(DataCiteConstants.SCHEMA_3_URL, () -> dataCite3Transformer);
+        map.put(DataCiteConstants.SCHEMA_3_0_URL, () -> dataCite3Transformer);
+        map.put(DataCiteConstants.SCHEMA_3_1_URL, () -> dataCite3Transformer);
+        map.put(DataCiteConstants.SCHEMA_4_URL, () -> dataCite4Transformer);
+        map.put(DataCiteConstants.SCHEMA_4_0_URL, () -> dataCite4Transformer);
+        map.put(DataCiteConstants.SCHEMA_4_1_URL, () -> dataCite4Transformer);
+        map.put(DataCiteConstants.OAI_SCHEMA_1_0_URL, () -> dataCiteTransformer);
+        map.put(DataCiteConstants.OAI_SCHEMA_1_1_URL, () -> dataCiteTransformer);
+        map.put(DataCiteConstants.NO_SCHEMA_URL, () -> dataCiteTransformer);
+
+        // add other transformers
         map.put(DublinCoreConstants.SCHEMA_URL, () -> new DublinCoreTransformer());
         map.put(Iso19139Constants.SCHEMA_URL, () -> new Iso19139Transformer());
-        map.put(DataCiteConstants.SCHEMA_2_URL, () -> new DataCite2Transformer());
-        map.put(DataCiteConstants.SCHEMA_2_0_URL, () -> new DataCite2Transformer());
-        map.put(DataCiteConstants.SCHEMA_2_1_URL, () -> new DataCite2Transformer());
-        map.put(DataCiteConstants.SCHEMA_2_2_URL, () -> new DataCite2Transformer());
-        map.put(DataCiteConstants.SCHEMA_3_URL, () -> new DataCite3Transformer());
-        map.put(DataCiteConstants.SCHEMA_3_0_URL, () -> new DataCite3Transformer());
-        map.put(DataCiteConstants.SCHEMA_3_1_URL, () -> new DataCite3Transformer());
-        map.put(DataCiteConstants.SCHEMA_4_URL, () -> new DataCite4Transformer());
-        map.put(DataCiteConstants.SCHEMA_4_0_URL, () -> new DataCite4Transformer());
-        map.put(DataCiteConstants.SCHEMA_4_1_URL, () -> new DataCite4Transformer());
-        map.put(DataCiteConstants.OAI_SCHEMA_1_0_URL, () -> new DataCiteFlexTransformer());
-        map.put(DataCiteConstants.OAI_SCHEMA_1_1_URL, () -> new DataCiteFlexTransformer());
-        map.put(DataCiteConstants.NO_SCHEMA_URL, () -> new DataCiteFlexTransformer());
 
         // NOT IMPLEMENTED:
         //map.put("http://www.openarchives.org/OAI/2.0/rdf.xsd", () -> new RdfTransformer());

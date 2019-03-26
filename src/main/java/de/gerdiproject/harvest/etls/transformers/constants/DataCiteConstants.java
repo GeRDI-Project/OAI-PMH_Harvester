@@ -119,6 +119,7 @@ public class DataCiteConstants
     public static final String SCHEMA_LOCATION = "schemalocation";
 
     // Schema URLs
+    public static final String SCHEMA_KERNEL_SUBSTRING = "kernel-";
     public static final String SCHEMA_2_URL = "http://schema.datacite.org/meta/kernel-2/metadata.xsd";
     public static final String SCHEMA_2_0_URL = "http://schema.datacite.org/meta/kernel-2.0/metadata.xsd";
     public static final String SCHEMA_2_1_URL = "http://schema.datacite.org/meta/kernel-2.1/metadata.xsd";
@@ -129,11 +130,14 @@ public class DataCiteConstants
     public static final String SCHEMA_4_URL = "http://schema.datacite.org/meta/kernel-4/metadata.xsd";
     public static final String SCHEMA_4_0_URL = "http://schema.datacite.org/meta/kernel-4.0/metadata.xsd";
     public static final String SCHEMA_4_1_URL = "http://schema.datacite.org/meta/kernel-4.1/metadata.xsd";
+
     public static final String OAI_SCHEMA_1_0_URL = "http://schema.datacite.org/oai/oai-1.0/oai.xsd";
     public static final String OAI_SCHEMA_1_1_URL = "http://schema.datacite.org/oai/oai-1.1/oai.xsd";
     public static final String NO_SCHEMA_URL = "http://schema.datacite.org/meta/nonexistant/nonexistant.xsd";
 
     // Errors
-    public static final String UNKNOWN_SCHEMA_ERROR = "Cannot harvest record with identifier '%s'! Unknown DataCite schema: %s";
+    public static final String RECORD_ERROR_PREFIX = "Cannot harvest record with identifier %s and date stamp %s:\n";
+    public static final String UNKNOWN_SCHEMA_ERROR_SUFFIX = "No strategy defined for harvesting records with schemaLocation attribute '%s'!";
+    public static final String MISSING_SCHEMA_ERROR_SUFFIX = "Missing schemaLocation attribute!";
 
 }
