@@ -401,4 +401,22 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
     {
         return viewUrlParam.getValue();
     }
+
+
+    @Override
+    protected void finishHarvestExceptionally(Throwable reason)
+    {
+        super.finishHarvestExceptionally(reason);
+
+        // make sure the extractor was initialized
+        if (extractor != null) {
+            // retrieve the datestamp of the records at which the harvest failed
+            final String lastHarvestedDate = ((OaiPmhRecordsExtractor)extractor).getLastHarvestedDate();
+
+            // log the record date stamp if it was retrieved
+            if (lastHarvestedDate != null)
+                logger.info(String.format(OaiPmhConstants.LAST_DATE_INFO, lastHarvestedDate, getName()));
+        }
+
+    }
 }

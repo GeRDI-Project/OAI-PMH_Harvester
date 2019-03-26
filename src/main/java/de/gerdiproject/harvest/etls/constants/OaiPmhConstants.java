@@ -73,4 +73,8 @@ public class OaiPmhConstants
     public static final String NO_METADATA_PREFIX_ERROR = "You must set the '" + OaiPmhParameterConstants.METADATA_PREFIX_KEY + "'-parameter in the config!";
     public static final String NO_HOST_URL_ERROR = "You must set the '" + OaiPmhParameterConstants.HOST_URL_KEY + "'-parameter in the config!";
     public static final String NO_RECORDS_ERROR = "The URL '%s' did not yield any harvestable records! Change the parameters in the config!";
+    public static final String LAST_DATE_INFO =
+        "The harvest stopped at date stamp: %s%nYou may try to harvest the remaining records by setting the '%s."
+        + OaiPmhParameterConstants.FROM_KEY
+        + "' parameter accordingly!";
 }

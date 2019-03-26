@@ -27,6 +27,7 @@ import org.jsoup.select.Elements;
 import de.gerdiproject.harvest.etls.AbstractETL;
 import de.gerdiproject.harvest.etls.OaiPmhETL;
 import de.gerdiproject.harvest.etls.constants.OaiPmhConstants;
+import de.gerdiproject.harvest.utils.HtmlUtils;
 import de.gerdiproject.harvest.utils.data.HttpRequester;
 
 /**
@@ -41,7 +42,8 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
     private String recordsBaseUrl;
     private String resumptionUrlFormat;
 
-    private String versionString;
+    private String versionString = null;
+    private String lastHarvestedDate = null;
     private int size = -1;
 
 
@@ -71,6 +73,8 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
     {
         super.init(etl);
 
+        this.lastHarvestedDate = null;
+
         final OaiPmhETL oaiEtl = (OaiPmhETL) etl;
         this.recordsBaseUrl = oaiEtl.getListRecordsUrl();
         this.resumptionUrlFormat = oaiEtl.getResumptionUrl("%s");
@@ -84,6 +88,19 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
         final Element resumptionToken = doc != null ? doc.selectFirst(OaiPmhConstants.RESUMPTION_TOKEN_ELEMENT) : null;
         final String listSizeString = resumptionToken != null ? resumptionToken.attr(OaiPmhConstants.LIST_SIZE_ATTRIBUTE) : "";
         this.size = listSizeString.isEmpty() ? -1 : Integer.parseInt(listSizeString);
+    }
+
+
+    /**
+     * Retrieves the date stamp of the most recent extracted batch of records.
+     * This date can be logged if the harvest fails, and can be used to re-attempt
+     * the harvest from where it left off.
+     *
+     * @return the Datestamp header field of the first record of the currently extracted batch
+     */
+    public String getLastHarvestedDate()
+    {
+        return lastHarvestedDate;
     }
 
 
@@ -147,6 +164,9 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
                     + String.format(OaiPmhConstants.NO_RECORDS_ERROR, recordsUrl));
 
             final Element resumptionToken = doc.selectFirst(OaiPmhConstants.RESUMPTION_TOKEN_ELEMENT);
+
+            // memorize the datestamp of the first record, in case the harvest fails
+            lastHarvestedDate = HtmlUtils.getString(newRecords.get(0), OaiPmhConstants.HEADER_DATESTAMP);
 
             this.records.addAll(newRecords);
             this.recordsUrl = resumptionToken != null && resumptionToken.text() != null && !resumptionToken.text().isEmpty()
