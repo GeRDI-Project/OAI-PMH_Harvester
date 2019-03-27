@@ -36,7 +36,7 @@ public class OaiPmhConstants
     public static final String LIST_RECORDS_URL = "%s?verb=ListRecords%s";
     public static final String IDENTIFY_URL = "%s?verb=Identify";
     public static final String METADATA_FORMATS_URL = "%s?verb=ListMetadataFormats";
-    public static final String RESUMPTION_URL =  "%s?verb=ListRecords&resumptionToken=%s";
+    public static final String RESUMPTION_URL =  "%s?verb=ListRecords&resumptionToken=%%s";
     public static final String DOI_URL = "https://doi.org/%s";
 
     // Elements and Attributes
@@ -65,16 +65,18 @@ public class OaiPmhConstants
     public static final String VIEW_URL_NAME = "Browse Repository";
 
     // Errors
-    public static final String CANNOT_HARVEST = "Cannot harvest: ";
     public static final String CANNOT_CREATE_TRANSFORMER = "Cannot create transformer!";
     public static final String CANNOT_GET_METADATA_SCHEMAS_ERROR = "Cannot retrieve list of viable metadata schemas!";
     public static final String REPOSITORY_UNSUPPORTED_METADATA_PREFIX_ERROR = "The '" + OaiPmhParameterConstants.METADATA_PREFIX_KEY + "'-parameter '%s' is not supported by this repository!";
     public static final String HARVESTER_UNSUPPORTED_METADATA_PREFIX_ERROR = "The '" + OaiPmhParameterConstants.METADATA_PREFIX_KEY + "'-parameter '%s' is not supported by the OAI-PMH harvester!";
     public static final String NO_METADATA_PREFIX_ERROR = "You must set the '" + OaiPmhParameterConstants.METADATA_PREFIX_KEY + "'-parameter in the config!";
     public static final String NO_HOST_URL_ERROR = "You must set the '" + OaiPmhParameterConstants.HOST_URL_KEY + "'-parameter in the config!";
-    public static final String NO_RECORDS_ERROR = "The URL '%s' did not yield any harvestable records! Change the parameters in the config!";
+    public static final String NO_RECORDS_ERROR = "The URL '%s' did not yield any harvestable records! A possible reason for this can be an outage of the harvested repository, or an incorrectly configured harvester.";
+    public static final String NO_RECORDS_RESUMED_ERROR = "The resumption URL '%s' did not yield any harvestable records! This can be caused by an outage of the harvested repository.";
+
     public static final String LAST_DATE_INFO =
         "The harvest stopped at date stamp: %s%nYou may try to harvest the remaining records by setting the '%s."
         + OaiPmhParameterConstants.FROM_KEY
         + "' parameter accordingly!";
+    public static final String FALLBACK_URL_INFO = "The resumption URL '%s' did not yield any harvestable records! Attempting to continue the harvest via the fallback URL '%s'.";
 }
