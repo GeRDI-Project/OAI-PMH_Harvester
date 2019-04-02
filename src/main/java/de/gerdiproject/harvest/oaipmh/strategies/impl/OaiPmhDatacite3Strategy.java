@@ -21,12 +21,10 @@ import java.util.List;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
 
 import de.gerdiproject.harvest.IDocument;
 import de.gerdiproject.harvest.oaipmh.constants.DataCiteStrategyConstants;
-import de.gerdiproject.harvest.oaipmh.constants.OaiPmhUrlConstants;
+import de.gerdiproject.harvest.oaipmh.constants.OaiPmhConstants;
 import de.gerdiproject.harvest.oaipmh.strategies.IStrategy;
 import de.gerdiproject.json.datacite.Contributor;
 import de.gerdiproject.json.datacite.Creator;
@@ -62,11 +60,17 @@ import de.gerdiproject.json.geo.Point;
  */
 public class OaiPmhDatacite3Strategy implements IStrategy
 {
-    //private static final Logger LOGGER = LoggerFactory.getLogger(OaiPmhDatacite3Strategy.class);
 
     @Override
     public IDocument harvestRecord(Element record)
     {
+        Elements children = record.children();
+        Boolean deleted = children.first().attr(DataCiteStrategyConstants.RECORD_STATUS).equals(
+                              DataCiteStrategyConstants.RECORD_STATUS_DEL) ? true : false;
+
+        // check if entry/record is "deleted" from repository
+        if (deleted)
+            return null;
 
         List<RelatedIdentifier> relatedIdentifiers = new LinkedList<>();
         List<AbstractDate> dates = new LinkedList<>();
@@ -82,12 +86,7 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         List<String> affiliations = new LinkedList<>();
         List<WebLink> links = new LinkedList<>();
 
-        // get header and meta data stuff for each record
-        Elements children = record.children();
-
-        Boolean deleted = children.first().attr(DataCiteStrategyConstants.RECORD_STATUS).equals(
-                              DataCiteStrategyConstants.RECORD_STATUS_DEL) ? true : false;
-
+        // get header and meta data for each record
         Elements header = children.select(DataCiteStrategyConstants.RECORD_HEADER);
         Elements metadata = children.select(DataCiteStrategyConstants.RECORD_METADATA);
 
@@ -102,29 +101,25 @@ public class OaiPmhDatacite3Strategy implements IStrategy
         Date updatedDate = new Date(recorddate, DateType.Updated);
         dates.add(updatedDate);
 
-        // check if entry/record is "deleted" from repository
-        // stop crawling and create empty doc; maybe left out?
-        if (deleted) {
-            document.setVersion(DataCiteStrategyConstants.RECORD_STATUS_DEL);
-
-            // add dates if there are any
-            if (!dates.isEmpty())
-                document.setDates(dates);
-
-            return document;
-        }
-
-        // based DataCite3 schema -> http://schema.datacite.org/meta/kernel-3.0/metadata.xsd
-
         // get identifiers (normally one element/identifier)
-        Element docident = metadata.select(DataCiteStrategyConstants.IDENTIFIER).first();
-        Identifier i = new Identifier(docident.text());
-        document.setIdentifier(i);
+        Identifier doiIdentifier = new Identifier(metadata.select(DataCiteStrategyConstants.IDENTIFIER).first().text());
+        document.setIdentifier(doiIdentifier);
+
+        // set URL of the article
+        final String doiUrl = doiIdentifier.getValue().startsWith("http")
+                              ? doiIdentifier.getValue()
+                              : String.format(OaiPmhConstants.DOI_URL, doiIdentifier.getValue());
+
+        WebLink viewLink = new WebLink(doiUrl);
+        viewLink.setType(WebLinkType.ViewURL);
+        viewLink.setName("View URL");
+        links.add(viewLink);
+        document.setWebLinks(links);
 
         // get creators
-        Elements ecreators = metadata.select(DataCiteStrategyConstants.DOC_CREATORS);
+        Elements creatorElements = metadata.select(DataCiteStrategyConstants.DOC_CREATORS);
 
-        for (Element e : ecreators) {
+        for (Element e : creatorElements) {
             Elements ccreator = e.children();
             Creator creator;
 
@@ -165,13 +160,6 @@ public class OaiPmhDatacite3Strategy implements IStrategy
             titles.add(new Title(e.text()));
 
         document.setTitles(titles);
-
-        // set URL of the article
-        WebLink viewLink = new WebLink(String.format(OaiPmhUrlConstants.DOI_URL, i.getValue()));
-        viewLink.setType(WebLinkType.ViewURL);
-        viewLink.setName("View URL");
-        links.add(viewLink);
-        document.setWebLinks(links);
 
         // get publisher
         Elements epubs = metadata.select(DataCiteStrategyConstants.PUBLISHER);

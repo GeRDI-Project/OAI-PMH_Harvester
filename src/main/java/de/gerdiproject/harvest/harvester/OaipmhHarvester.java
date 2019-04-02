@@ -23,10 +23,13 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import de.gerdiproject.harvest.IDocument;
+import de.gerdiproject.harvest.harvester.events.GetProviderNameEvent;
+import de.gerdiproject.harvest.oaipmh.constants.DublinCoreStrategyConstants;
+import de.gerdiproject.harvest.oaipmh.constants.OaiPmhConstants;
 import de.gerdiproject.harvest.oaipmh.constants.OaiPmhParameterConstants;
-import de.gerdiproject.harvest.oaipmh.constants.OaiPmhUrlConstants;
 import de.gerdiproject.harvest.oaipmh.strategies.IStrategy;
 import de.gerdiproject.harvest.oaipmh.strategies.OaiPmhStrategyFactory;
+import de.gerdiproject.harvest.utils.HashGenerator;
 
 /**
  * An OAI-PMH-Protocol Harvester capable to harvest oai_dc, oai_datacite and
@@ -39,15 +42,42 @@ import de.gerdiproject.harvest.oaipmh.strategies.OaiPmhStrategyFactory;
  */
 public class OaipmhHarvester extends AbstractHarvester
 {
+    private String repositoryUrl;
+    private String queryMetadataPrefix;
+    private String queryFrom;
+    private String queryUntil;
+
+
     @Override
-    protected boolean harvestInternal(int startIndex, int endIndex) throws Exception // NOPMD
+    public void init()
     {
-        String metadataPrefix = getProperty(OaiPmhParameterConstants.METADATA_PREFIX_KEY);
-        IStrategy strategy = OaiPmhStrategyFactory.createStrategy(metadataPrefix);
+        queryFrom = getProperty(OaiPmhParameterConstants.DATE_FROM_KEY);
+        queryUntil = getProperty(OaiPmhParameterConstants.DATE_TO_KEY);
+        repositoryUrl = getProperty(OaiPmhParameterConstants.HOST_URL_KEY);
+        queryMetadataPrefix = getProperty(OaiPmhParameterConstants.METADATA_PREFIX_KEY);
 
-        String url = assembleMainUrl();
+        super.init();
+    }
 
-        while (url != null) {
+
+    @Override
+    protected boolean harvestInternal(int startIndex, int endIndex) throws Exception // NOPMD - we want this inheriting class to be able to throw any exception
+    {
+        final IStrategy harvestingStrategy = OaiPmhStrategyFactory.createStrategy(queryMetadataPrefix);
+        final boolean hasNoUpperBound = endIndex == -1;
+
+        final String entryUrl = getListRecordsUrl();
+
+        if (entryUrl == null)
+            throw new IllegalArgumentException(OaiPmhConstants.NO_METADATA_PREFIX_ERROR);
+
+        Document doc = httpRequester.getHtmlFromUrl(entryUrl);
+
+        if (doc == null || doc.select(OaiPmhConstants.RECORD_ELEMENT).isEmpty())
+            throw new IllegalArgumentException(String.format(OaiPmhConstants.NO_RECORDS_ERROR, entryUrl));
+
+        int processedRecords = 0;
+        urlLoop: while (doc != null) {
 
             // abort harvest, if it is flagged for cancellation
             if (isAborting) {
@@ -55,30 +85,49 @@ public class OaipmhHarvester extends AbstractHarvester
                 return false;
             }
 
-            Document doc = httpRequester.getHtmlFromUrl(url);
-
-            if (doc == null)
-                break;
-
             // add records to list
-            Elements records = doc.select("record");
+            final Elements records = doc.select(OaiPmhConstants.RECORD_ELEMENT);
+            final int numberOfRecords = records.size();
 
-            for (Element r : records) {
-                // abort this inner loop if we abort the harvest
-                if (isAborting)
-                    break;
+            // skip records if they are out of range
+            if (startIndex >= processedRecords + numberOfRecords)
+                processedRecords += numberOfRecords;
+            else {
+                final int from = Math.max(0, startIndex - processedRecords);
+                final int until = hasNoUpperBound
+                                  ? numberOfRecords
+                                  : Math.min(numberOfRecords, endIndex - processedRecords);
 
-                IDocument jsonRecord = strategy.harvestRecord(r);
-                addDocument(jsonRecord);
+                processedRecords += from;
+
+                for (int i = from; i < until; i++) {
+                    // abort this inner loop if we abort the harvest
+                    if (isAborting)
+                        break urlLoop;
+
+                    IDocument jsonRecord = harvestingStrategy.harvestRecord(records.get(i));
+                    addDocument(jsonRecord);
+                    processedRecords++;
+                }
             }
 
-            // get next URL
-            Element token = doc.select("resumptionToken").first();
-            url = (token != null) ? assembleResumptionUrl(token.text()) : null;
+            // get next URL if we have not reached our max range yet
+            if (hasNoUpperBound || processedRecords < endIndex) {
+                final Element token = doc.select(OaiPmhConstants.RESUMPTION_TOKEN_ELEMENT).first();
+                final String resumptionUrl = (token != null) ? getResumptionUrl(token.text()) : null;
+
+                if (resumptionUrl != null) {
+                    doc = httpRequester.getHtmlFromUrl(resumptionUrl);
+                    continue;
+                }
+            }
+
+            doc = null;
         }
 
         return true;
     }
+
 
     @Override
     protected int initMaxNumberOfDocuments()
@@ -88,38 +137,49 @@ public class OaipmhHarvester extends AbstractHarvester
         return -1;
     }
 
-    /**
-     * Assemble an OAI-PMH compliant Query-URL. Harvester preconfigured parameters
-     * are used, but can also be manually configured via REST.
-     */
-    private String assembleMainUrl()
+
+    @Override
+    protected String onGetDataProviderName(GetProviderNameEvent event)
     {
-        String mainUrl = null;
-        String host = getProperty(OaiPmhParameterConstants.HOST_URL_KEY);
+        String providerName = OaiPmhConstants.DEFAULT_PROVIDER;
 
-        if (host != null) {
-            StringBuilder queryBuilder = new StringBuilder();
+        if (repositoryUrl != null) {
+            Document identifyDoc = httpRequester.getHtmlFromUrl(String.format(OaiPmhConstants.IDENTIFY_URL, repositoryUrl));
 
-            String from = getProperty(OaiPmhParameterConstants.DATE_FROM_KEY);
-
-            if (from != null && !from.isEmpty())
-                queryBuilder.append(OaiPmhUrlConstants.DATE_FROM_QUERY).append(from);
-
-            String until = getProperty(OaiPmhParameterConstants.DATE_TO_KEY);
-
-            if (until != null && !until.isEmpty())
-                queryBuilder.append(OaiPmhUrlConstants.DATE_TO_QUERY).append(until);
-
-            String metadataPrefix = getProperty(OaiPmhParameterConstants.METADATA_PREFIX_KEY);
-
-            if (metadataPrefix != null && !metadataPrefix.isEmpty())
-                queryBuilder.append(OaiPmhUrlConstants.METADATA_PREFIX_QUERY).append(metadataPrefix);
-
-            mainUrl = String.format(OaiPmhUrlConstants.BASE_URL, host, queryBuilder.toString());
+            if (identifyDoc != null)
+                providerName = identifyDoc.select(OaiPmhConstants.REPOSITORY_NAME_ELEMENT).first().text();
         }
 
-        return mainUrl;
+        return providerName;
     }
+
+
+    /**
+     * Assemble an OAI-PMH compliant Query-URL for retrieving a record list. Harvester preconfigured parameters
+     * are used, but can also be manually configured via REST.
+     */
+    private String getListRecordsUrl()
+    {
+        String listRecordsUrl = null;
+
+        if (repositoryUrl != null) {
+            StringBuilder queryBuilder = new StringBuilder();
+
+            if (queryFrom != null && !queryFrom.isEmpty())
+                queryBuilder.append(OaiPmhConstants.DATE_FROM_QUERY).append(queryFrom);
+
+            if (queryUntil != null && !queryUntil.isEmpty())
+                queryBuilder.append(OaiPmhConstants.DATE_TO_QUERY).append(queryUntil);
+
+            if (queryMetadataPrefix != null && !queryMetadataPrefix.isEmpty())
+                queryBuilder.append(OaiPmhConstants.METADATA_PREFIX_QUERY).append(queryMetadataPrefix);
+
+            listRecordsUrl = String.format(OaiPmhConstants.LIST_RECORDS_URL, repositoryUrl, queryBuilder.toString());
+        }
+
+        return listRecordsUrl;
+    }
+
 
     /**
      * To fully support the OAI-PMH resumption Token for very large data-query
@@ -128,17 +188,51 @@ public class OaipmhHarvester extends AbstractHarvester
      *
      * @return an URL-string to retrieve the next batch of records
      */
-    private String assembleResumptionUrl(String resumptionToken)
+    private String getResumptionUrl(String resumptionToken)
     {
-        String host = getProperty(OaiPmhParameterConstants.HOST_URL_KEY);
-        return String.format(OaiPmhUrlConstants.RESUMPTION_URL, host, resumptionToken);
+        return String.format(OaiPmhConstants.RESUMPTION_URL, repositoryUrl, resumptionToken);
     }
+
+
+    @Override
+    protected void setProperty(String key, String value)
+    {
+        super.setProperty(key, value);
+
+        // if the query or URL changes, init() must be called again
+        switch (key) {
+            case OaiPmhParameterConstants.DATE_FROM_KEY:
+            case OaiPmhParameterConstants.DATE_TO_KEY:
+            case OaiPmhParameterConstants.HOST_URL_KEY:
+            case OaiPmhParameterConstants.METADATA_PREFIX_KEY:
+                init();
+                break;
+
+            default:
+                // do nothing
+        }
+    }
+
 
     @Override
     protected String initHash() throws NoSuchAlgorithmException, NullPointerException
     {
-        // TODO the hash cannot be calculated over such a large amount of records, a
-        // solution needs to be found once it becomes relevant
+        final String baseUrl = getListRecordsUrl();
+
+        if (baseUrl == null)
+            return null;
+
+        // retrieve records
+        final Document recordsDoc = httpRequester.getHtmlFromUrl(baseUrl);
+
+        // retrieve identifier of the latest record
+        if (recordsDoc != null) {
+            final Element identifier = recordsDoc.select(DublinCoreStrategyConstants.IDENTIFIER).first();
+
+            if (identifier != null)
+                return HashGenerator.instance().getShaHash(identifier.text());
+        }
+
         return null;
     }
 }
