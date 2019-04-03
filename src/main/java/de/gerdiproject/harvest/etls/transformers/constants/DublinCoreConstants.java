@@ -13,46 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.gerdiproject.harvest.oaipmh.constants;
+package de.gerdiproject.harvest.etls.transformers.constants;
+
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
  * A static collection of constant parameters for configuring the Dublin Core strategy.
  *
  * @author Jan Frömberg
- *
  */
-public class DublinCoreStrategyConstants
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class DublinCoreConstants
 {
-
-    public static final String RECORD_STATUS = "status";
-    public static final String RECORD_STATUS_DEL = "deleted";
-    public static final String RECORD_HEADER = "header";
-    public static final String RECORD_METADATA = "metadata";
-    public static final String RECORD_DATESTAMP = "datestamp";
-
-    public static final String IDENTIFIER = "identifier";
-    public static final String METADATA_IDENTIFIER = "dc|identifier";
-
-    public static final String DOC_TITLE = "dc|title";
-    public static final String DOC_CREATORS = "dc|creator";
-    public static final String DOC_CONTRIBUTORS = "dc|contributor";
-    public static final String DOC_DESCRIPTIONS = "dc|description";
-
+    public static final String IDENTIFIERS = "dc|identifier";
+    public static final String TITLES = "dc|title";
+    public static final String CREATORS = "dc|creator";
+    public static final String CONTRIBUTORS = "dc|contributor";
+    public static final String DESCRIPTIONS = "dc|description";
     public static final String PUBLISHER = "dc|publisher";
     public static final String SUBJECTS = "dc|subject";
-
-    public static final String METADATA_DATE = "dc|date";
-
+    public static final String DATES = "dc|date";
     public static final String LANG = "dc|language";
     public static final String RES_TYPE = "dc|type";
-
-    public static final String METADATA_FORMATS = "dc|format";
+    public static final String FORMATS = "dc|format";
     public static final String RIGHTS = "dc|rights";
 
-    /**
-     * Private Constructor, because this is a static class.
-     */
-    private DublinCoreStrategyConstants()
-    {
-    }
+    public static final String VIEW_URL_TITLE = "View URL";
+
+    public static final String SCHEMA_URL = "http://www.openarchives.org/OAI/2.0/oai_dc.xsd";
 }
