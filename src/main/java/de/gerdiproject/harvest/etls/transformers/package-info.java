@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 /**
- * This package contains packages and classes used for harvesting
- * OAI-PMH compliant data providers.
+ * This package contains OAI-PMH transformers for the {@linkplain de.gerdiproject.harvest.etls.OaiPmhETL}.
  *
  * @author Robin Weiss
  */
-package de.gerdiproject.harvest.oaipmh;
+package de.gerdiproject.harvest.etls.transformers;

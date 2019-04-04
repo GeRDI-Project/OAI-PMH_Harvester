@@ -15,47 +15,37 @@
  */
 package de.gerdiproject.harvest;
 
-import de.gerdiproject.harvest.config.parameters.AbstractParameter;
-import de.gerdiproject.harvest.config.parameters.StringParameter;
-import de.gerdiproject.harvest.harvester.OaipmhHarvester;
-import de.gerdiproject.harvest.oaipmh.constants.OaiPmhParameterConstants;
-
-import javax.servlet.annotation.WebListener;
-
 import java.util.Arrays;
 import java.util.List;
 
+import javax.servlet.annotation.WebListener;
+
+import de.gerdiproject.harvest.application.ContextListener;
+import de.gerdiproject.harvest.etls.AbstractETL;
+import de.gerdiproject.harvest.etls.OaiPmhETL;
+import de.gerdiproject.harvest.etls.constants.OaiPmhConstants;
+
+
 /**
- * This class initializes the OAI-PMH harvester and a logger.
+ * This class initializes the OAI-PMH harvester service.
  *
- * @author Jan Frömberg
+ * @author Robin Weiss
  */
 @WebListener
-public class OaipmhContextListener extends ContextListener<OaipmhHarvester>
+public class OaipmhContextListener extends ContextListener
 {
     @Override
-    protected List<AbstractParameter<?>> getHarvesterSpecificParameters()
+    protected List<? extends AbstractETL<?, ?>> createETLs()
     {
-        StringParameter propertyFrom = new StringParameter(
-            OaiPmhParameterConstants.DATE_FROM_KEY,
-            OaiPmhParameterConstants.DATE_FROM_DEFAULT);
+        return Arrays.asList(new OaiPmhETL());
+    }
 
-        StringParameter propertyTo = new StringParameter(
-            OaiPmhParameterConstants.DATE_TO_KEY,
-            OaiPmhParameterConstants.DATE_TO_DEFAULT);
 
-        StringParameter propertyHostUrl = new StringParameter(
-            OaiPmhParameterConstants.HOST_URL_KEY,
-            OaiPmhParameterConstants.HOST_URL_DEFAULT);
-
-        StringParameter propertyMetadataPrefix = new StringParameter(
-            OaiPmhParameterConstants.METADATA_PREFIX_KEY,
-            OaiPmhParameterConstants.METADATA_PREFIX_DEFAULT);
-
-        return Arrays.asList(
-                   propertyFrom,
-                   propertyTo,
-                   propertyHostUrl,
-                   propertyMetadataPrefix);
+    @Override
+    protected String getRepositoryName()
+    {
+        // this will be overridden by the OAI-PMH ETL that knows which repository to harvest
+        // by checking its parameters
+        return OaiPmhConstants.UNINITIALIZED_PROVIDER;
     }
 }
