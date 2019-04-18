@@ -343,9 +343,9 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
 
 
     /**
-     * Some OAI-PMH providers have a hard capacity of records that can be harvested via
-     * a resumption token. If such a capacity is reached, the start date of the most recently
-     * harvested batch is used to start over from the point at which the capacity was reached.
+     * Some OAI-PMH providers have a limited capacity of records that can be harvested via
+     * a resumption token. If the download limit is reached, the start date of the most recently
+     * harvested batch is used to be able to continue the record extraction.
      * This method returns such a fallback URL as a {@linkplain String} that must be formatted
      * to replace a placeholder for the start date.
      *
