@@ -18,6 +18,7 @@ package de.gerdiproject.harvest.etls.transformers;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +37,7 @@ import de.gerdiproject.json.datacite.DataCiteJson;
 public class DataCiteFlexTransformer extends AbstractOaiPmhRecordTransformer
 {
     private final static Logger LOGGER = LoggerFactory.getLogger(DataCiteFlexTransformer.class);
-    private final Map<String, AbstractOaiPmhRecordTransformer> transformerMap;
+    private final Map<Integer, AbstractOaiPmhRecordTransformer> transformerMap;
 
 
     /**
@@ -47,21 +48,10 @@ public class DataCiteFlexTransformer extends AbstractOaiPmhRecordTransformer
     {
         super();
 
-        final DataCite2Transformer dataCite2Transformer = new DataCite2Transformer();
-        final DataCite3Transformer dataCite3Transformer = new DataCite3Transformer();
-        final DataCite4Transformer dataCite4Transformer = new DataCite4Transformer();
-
         this.transformerMap = new HashMap<>();
-        transformerMap.put(DataCiteConstants.SCHEMA_2_URL, dataCite2Transformer);
-        transformerMap.put(DataCiteConstants.SCHEMA_2_0_URL, dataCite2Transformer);
-        transformerMap.put(DataCiteConstants.SCHEMA_2_1_URL, dataCite2Transformer);
-        transformerMap.put(DataCiteConstants.SCHEMA_2_2_URL, dataCite2Transformer);
-        transformerMap.put(DataCiteConstants.SCHEMA_3_URL, dataCite3Transformer);
-        transformerMap.put(DataCiteConstants.SCHEMA_3_0_URL, dataCite3Transformer);
-        transformerMap.put(DataCiteConstants.SCHEMA_3_1_URL, dataCite3Transformer);
-        transformerMap.put(DataCiteConstants.SCHEMA_4_URL, dataCite4Transformer);
-        transformerMap.put(DataCiteConstants.SCHEMA_4_0_URL, dataCite4Transformer);
-        transformerMap.put(DataCiteConstants.SCHEMA_4_1_URL, dataCite4Transformer);
+        transformerMap.put(2, new DataCite2Transformer());
+        transformerMap.put(3, new DataCite3Transformer());
+        transformerMap.put(4, new DataCite4Transformer());
     }
 
 
@@ -84,42 +74,91 @@ public class DataCiteFlexTransformer extends AbstractOaiPmhRecordTransformer
     @Override
     protected void setDocumentFieldsFromRecord(DataCiteJson document, Element record)
     {
-        // try to find a fitting transformer for the record
-        final String schemaUrl = getSchemaUrl(record);
-        final AbstractOaiPmhRecordTransformer transformer = transformerMap.get(schemaUrl);
+        // retrieve the schema location attribute which denotes the DataCite schema
+        final String schemaLocation = getSchemaLocation(record);
 
-        // log error if the schema is unknown
-        if (transformer == null)
-            LOGGER.error(String.format(
-                             DataCiteConstants.UNKNOWN_SCHEMA_ERROR,
-                             schemaUrl));
-        else
-            transformer.setDocumentFieldsFromRecord(document, record);
+        // edge case: abort if schema location is not specified at all
+        if (schemaLocation == null) {
+            if (LOGGER.isErrorEnabled()) {
+                LOGGER.error(
+                    getErrorPrefix(record)
+                    + DataCiteConstants.MISSING_SCHEMA_ERROR_SUFFIX);
+            }
+
+            return;
+        }
+
+        // parse schema major version from schema location
+        final int schemaVersion = getSchemaVersion(schemaLocation);
+
+        // try to find a fitting transformer for the record
+        final AbstractOaiPmhRecordTransformer transformer = transformerMap.get(schemaVersion);
+
+        // abort if the no transformer exists for the major version
+        if (transformer == null) {
+            if (LOGGER.isErrorEnabled()) {
+                LOGGER.error(
+                    getErrorPrefix(record)
+                    + String.format(DataCiteConstants.UNKNOWN_SCHEMA_ERROR_SUFFIX, schemaLocation));
+            }
+
+            return;
+        }
+
+        // transform record with the corresponding strategy
+        transformer.setDocumentFieldsFromRecord(document, record);
     }
 
 
     /**
-     * Retrieves the DataCite schema URL of the record.
+     * Retrieves the DataCite schema location of the record.
      *
      * @param record the record that is to be harvested
      *
-     * @return a URL pointing towards a metadata schema
+     * @return the schema location attribute of the record
      */
-    private String getSchemaUrl(Element record)
+    private static String getSchemaLocation(Element record)
     {
         final Element resource = record.selectFirst(DataCiteConstants.RESOURCE_ELEMENT);
+
+        // try to get the xsi:schemaLocation attribute
         String schemaLocation = HtmlUtils.getAttribute(resource, DataCiteConstants.SCHEMA_LOCATION_ATTRIBUTE);
 
-        // try alternative schema attribute
-        if (schemaLocation == null)
-            schemaLocation = HtmlUtils.getAttribute(resource, DataCiteConstants.NO_SCHEMA_LOCATION_ATTRIBUTE);
+        // fallback: try to get any attribute that contains the keyword "schemalocation"
+        if (schemaLocation == null) {
+            for (Attribute a : resource.attributes()) {
+                if (a.getKey().contains(DataCiteConstants.SCHEMA_LOCATION)) {
+                    schemaLocation = a.getValue();
+                    break;
+                }
+            }
+        }
 
-        // if still there is no attribute, abort
-        if (schemaLocation == null)
-            return null;
+        return schemaLocation;
+    }
 
-        // if multiple, space-separated schema URLs exist, choose the last one
-        final String schemaUrl = schemaLocation.substring(schemaLocation.lastIndexOf(' ') + 1);
-        return schemaUrl;
+
+    /**
+     * Retrieves the DataCite schema major version of a specified schema location.
+     *
+     * @param schemaLocation the schemaLocation attribute of the record
+     *
+     * @return the major version of the DataCite schema, or -1 if it could not be retrieved
+     */
+    private static int getSchemaVersion(String schemaLocation)
+    {
+        // retrieve the index of "kernel-" wich is followed by the major version
+        final int kernelIndex = schemaLocation.lastIndexOf(DataCiteConstants.SCHEMA_KERNEL_SUBSTRING)
+                                + DataCiteConstants.SCHEMA_KERNEL_SUBSTRING.length();
+
+        int schemaVersion;
+
+        try {
+            schemaVersion = Integer.parseInt(schemaLocation.substring(kernelIndex, kernelIndex + 1));
+        } catch (NumberFormatException | IndexOutOfBoundsException e) {
+            schemaVersion = -1;
+        }
+
+        return schemaVersion;
     }
 }

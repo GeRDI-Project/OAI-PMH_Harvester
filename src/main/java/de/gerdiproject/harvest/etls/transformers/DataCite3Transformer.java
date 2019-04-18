@@ -22,6 +22,7 @@ import org.jsoup.nodes.Element;
 import de.gerdiproject.harvest.etls.constants.OaiPmhConstants;
 import de.gerdiproject.harvest.etls.transformers.constants.DataCiteConstants;
 import de.gerdiproject.harvest.utils.HtmlUtils;
+import de.gerdiproject.json.DateUtils;
 import de.gerdiproject.json.datacite.Contributor;
 import de.gerdiproject.json.datacite.Creator;
 import de.gerdiproject.json.datacite.DataCiteJson;
@@ -32,6 +33,8 @@ import de.gerdiproject.json.datacite.RelatedIdentifier;
 import de.gerdiproject.json.datacite.Rights;
 import de.gerdiproject.json.datacite.Subject;
 import de.gerdiproject.json.datacite.Title;
+import de.gerdiproject.json.datacite.abstr.AbstractDate;
+import de.gerdiproject.json.datacite.enums.DateType;
 import de.gerdiproject.json.datacite.enums.ResourceTypeGeneral;
 import de.gerdiproject.json.datacite.nested.NameIdentifier;
 import de.gerdiproject.json.geo.GeoJson;
@@ -260,5 +263,15 @@ public class DataCite3Transformer extends DataCite2Transformer
         rights.setUri(rightsURI);
 
         return rights;
+    }
+
+
+    @Override
+    protected AbstractDate parseDate(Element ele)
+    {
+        final String dateString = ele.text();
+        final DateType dateType = HtmlUtils.getEnumAttribute(ele, DataCiteConstants.DATE_TYPE, DateType.class);
+
+        return DateUtils.parseAbstractDate(dateString, dateType);
     }
 }

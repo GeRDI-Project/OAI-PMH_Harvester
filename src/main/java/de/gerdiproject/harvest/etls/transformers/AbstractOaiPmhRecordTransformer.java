@@ -27,6 +27,8 @@ import org.jsoup.select.Elements;
 import de.gerdiproject.harvest.etls.AbstractETL;
 import de.gerdiproject.harvest.etls.OaiPmhETL;
 import de.gerdiproject.harvest.etls.constants.OaiPmhConstants;
+import de.gerdiproject.harvest.etls.transformers.constants.DataCiteConstants;
+import de.gerdiproject.harvest.utils.HtmlUtils;
 import de.gerdiproject.json.datacite.DataCiteJson;
 import de.gerdiproject.json.datacite.Date;
 import de.gerdiproject.json.datacite.DateRange;
@@ -247,5 +249,24 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
         }
 
         return publicationYear;
+    }
+
+
+    /**
+     * Assembles a prefix of an error message.
+     *
+     * @param record the record that caused the error
+     *
+     * @return an error message prefix stating that the record could not be harvested
+     */
+    protected String getErrorPrefix(Element record)
+    {
+        final String identifier = HtmlUtils.getString(record, OaiPmhConstants.HEADER_IDENTIFIER);
+        final String dateStamp = HtmlUtils.getString(record, OaiPmhConstants.HEADER_DATESTAMP);
+
+        return String.format(
+                   DataCiteConstants.RECORD_ERROR_PREFIX,
+                   identifier,
+                   dateStamp);
     }
 }

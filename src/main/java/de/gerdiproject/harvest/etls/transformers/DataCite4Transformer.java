@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.jsoup.nodes.Element;
 
+import de.gerdiproject.harvest.etls.constants.OaiPmhConstants;
 import de.gerdiproject.harvest.etls.transformers.constants.DataCiteConstants;
 import de.gerdiproject.harvest.utils.HtmlUtils;
 import de.gerdiproject.json.datacite.Contributor;
@@ -265,9 +266,12 @@ public class DataCite4Transformer extends DataCite3Transformer
     {
         final AbstractDate date = super.parseDate(ele);
 
-        // in DataCite 4.0, dateinformation is added
-        final String dateInformation = HtmlUtils.getAttribute(ele, DataCiteConstants.DATE_INFORMATION);
-        date.setDateInformation(dateInformation);
+        // check if the retrieved date is valid
+        if (date != null) {
+            // in DataCite 4.0, dateinformation is added
+            final String dateInformation = HtmlUtils.getAttribute(ele, DataCiteConstants.DATE_INFORMATION);
+            date.setDateInformation(dateInformation);
+        }
 
         return date;
     }
@@ -304,7 +308,7 @@ public class DataCite4Transformer extends DataCite3Transformer
         final Rights rights = super.parseRights(ele);
 
         // in DataCite 4.1, language is added
-        final String language = HtmlUtils.getAttribute(ele, DataCiteConstants.LANGUAGE);
+        final String language = HtmlUtils.getAttribute(ele, OaiPmhConstants.LANGUAGE_ATTRIBUTE);
         rights.setLang(language);
 
         return rights;

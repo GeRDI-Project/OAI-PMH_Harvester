@@ -308,26 +308,7 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
      */
     public String getListRecordsUrl() throws IllegalStateException
     {
-        if (hostUrlParam.getValue() == null || hostUrlParam.getValue().isEmpty())
-            throw new IllegalStateException(OaiPmhConstants.NO_HOST_URL_ERROR);
-
-        if (metadataPrefixParam.getValue() == null || metadataPrefixParam.getValue().isEmpty())
-            throw new IllegalStateException(OaiPmhConstants.NO_METADATA_PREFIX_ERROR);
-
-        final StringBuilder queryBuilder = new StringBuilder();
-
-        if (fromParam.getValue() != null && !fromParam.getValue().isEmpty())
-            queryBuilder.append(OaiPmhConstants.DATE_FROM_QUERY).append(fromParam.getValue());
-
-        if (untilParam.getValue() != null && !untilParam.getValue().isEmpty())
-            queryBuilder.append(OaiPmhConstants.DATE_TO_QUERY).append(untilParam.getValue());
-
-        if (setParam.getValue() != null && !setParam.getValue().isEmpty())
-            queryBuilder.append(OaiPmhConstants.SET_QUERY).append(setParam.getValue());
-
-        queryBuilder.append(OaiPmhConstants.METADATA_PREFIX_QUERY).append(metadataPrefixParam.getValue());
-
-        return String.format(OaiPmhConstants.LIST_RECORDS_URL, hostUrlParam.getValue(), queryBuilder.toString());
+        return getListRecordsUrl(fromParam.getValue());
     }
 
 
@@ -349,14 +330,30 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
 
     /**
      * To fully support the OAI-PMH resumption Token for very large data-query
-     * answers, a URL-string has to be compiled with a specific URL and an
-     * automatically generated token.
+     * answers, a URL-string has to be compiled with a specific URL and a
+     * back-end generated token. This method returns this resumption URL with
+     * a {@linkplain String} placeholder for the token.
      *
-     * @return an URL-string to retrieve the next batch of records
+     * @return a URL string that must be formatted to include a resumption token
      */
-    public String getResumptionUrl(String resumptionToken)
+    public String getResumptionUrlFormat()
     {
-        return String.format(OaiPmhConstants.RESUMPTION_URL, hostUrlParam.getValue(), resumptionToken);
+        return String.format(OaiPmhConstants.RESUMPTION_URL, hostUrlParam.getValue());
+    }
+
+
+    /**
+     * Some OAI-PMH providers have a limited capacity of records that can be harvested via
+     * a resumption token. If the download limit is reached, the start date of the most recently
+     * harvested batch is used to be able to continue the record extraction.
+     * This method returns such a fallback URL as a {@linkplain String} that must be formatted
+     * to replace a placeholder for the start date.
+     *
+     * @return a URL string that must be formatted to include the starting date
+     */
+    public String getFallbackResumptionUrlFormat()
+    {
+        return getListRecordsUrl("%s");
     }
 
 
@@ -400,5 +397,57 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
     public String getViewUrl()
     {
         return viewUrlParam.getValue();
+    }
+
+
+    /**
+     * Assembles an OAI-PMH compliant Query-URL for retrieving a record list. Harvester preconfigured parameters
+     * are used, but can also be manually configured via REST.
+     *
+     * @param dateFrom the minimum date stamp of records
+     *
+     * @return a ListRecords URL, e.g. https://ws.pangaea.de/oai/provider?verb=ListRecords&metadataPrefix=datacite3
+     *
+     * @throws IllegalStateException if either the host URL or the metadata prefix is not set
+     */
+    private String getListRecordsUrl(String dateFrom) throws IllegalStateException
+    {
+        if (hostUrlParam.getValue() == null || hostUrlParam.getValue().isEmpty())
+            throw new IllegalStateException(OaiPmhConstants.NO_HOST_URL_ERROR);
+
+        if (metadataPrefixParam.getValue() == null || metadataPrefixParam.getValue().isEmpty())
+            throw new IllegalStateException(OaiPmhConstants.NO_METADATA_PREFIX_ERROR);
+
+        final StringBuilder queryBuilder = new StringBuilder();
+
+        if (dateFrom != null && !dateFrom.isEmpty())
+            queryBuilder.append(OaiPmhConstants.DATE_FROM_QUERY).append(dateFrom);
+
+        if (untilParam.getValue() != null && !untilParam.getValue().isEmpty())
+            queryBuilder.append(OaiPmhConstants.DATE_TO_QUERY).append(untilParam.getValue());
+
+        if (setParam.getValue() != null && !setParam.getValue().isEmpty())
+            queryBuilder.append(OaiPmhConstants.SET_QUERY).append(setParam.getValue());
+
+        queryBuilder.append(OaiPmhConstants.METADATA_PREFIX_QUERY).append(metadataPrefixParam.getValue());
+
+        return String.format(OaiPmhConstants.LIST_RECORDS_URL, hostUrlParam.getValue(), queryBuilder.toString());
+    }
+
+
+    @Override
+    protected void finishHarvestExceptionally(Throwable reason)
+    {
+        super.finishHarvestExceptionally(reason);
+
+        // make sure the extractor was initialized
+        if (extractor != null) {
+            // retrieve the datestamp of the records at which the harvest failed
+            final String lastHarvestedDate = ((OaiPmhRecordsExtractor)extractor).getLastHarvestedDate();
+
+            // log the record date stamp if it was retrieved
+            if (lastHarvestedDate != null)
+                logger.info(String.format(OaiPmhConstants.LAST_DATE_INFO, lastHarvestedDate, getName()));
+        }
     }
 }
