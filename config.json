@@ -1,0 +1,84 @@
+{
+    "AllETLs": {
+        "parameters": [
+            {
+                "key": "concurrentHarvest",
+                "type": "BooleanParameter",
+                "value": "false"
+            },
+            {
+                "key": "forced",
+                "type": "BooleanParameter",
+                "value": "true"
+            }
+        ]
+    },
+    "HttpRequests": {
+        "parameters": [
+            {
+                "key": "readFromDisk",
+                "type": "BooleanParameter",
+                "value": "false"
+            },
+            {
+                "key": "retries",
+                "type": "IntegerParameter",
+                "value": "-1"
+            },
+            {
+                "key": "writeToDisk",
+                "type": "BooleanParameter",
+                "value": "false"
+            }
+        ]
+    },
+    "OaiPmhETL": {
+        "parameters": [
+            {
+                "key": "enabled",
+                "type": "BooleanParameter",
+                "value": "true"
+            },
+            {
+                "key": "from",
+                "type": "StringParameter",
+                "value": ""
+            },
+            {
+                "key": "hostUrl",
+                "type": "StringParameter",
+                "value": ""
+            },
+            {
+                "key": "logoUrl",
+                "type": "StringParameter",
+                "value": ""
+            },
+            {
+                "key": "metadataPrefix",
+                "type": "StringParameter",
+                "value": "datacite"
+            },
+            {
+                "key": "rangeFrom",
+                "type": "IntegerParameter",
+                "value": "0"
+            },
+            {
+                "key": "rangeTo",
+                "type": "IntegerParameter",
+                "value": "-1"
+            },
+            {
+                "key": "set",
+                "type": "StringParameter",
+                "value": ""
+            },
+            {
+                "key": "until",
+                "type": "StringParameter",
+                "value": ""
+            }
+        ]
+    }
+}
