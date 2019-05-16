@@ -45,10 +45,10 @@ import de.gerdiproject.json.datacite.extension.generic.enums.WebLinkType;
 public class DublinCoreTransformer extends AbstractOaiPmhRecordTransformer
 {
     @Override
-    protected void setDocumentFieldsFromRecord(DataCiteJson document, Element record)
+    protected void setDocumentFieldsFromRecord(final DataCiteJson document, final Element record)
     {
         // get header and meta data for each record
-        Element metadata = getMetadata(record);
+        final Element metadata = getMetadata(record);
 
         document.setPublisher(HtmlUtils.getString(metadata, DublinCoreConstants.PUBLISHER));
         document.setLanguage(HtmlUtils.getString(metadata, DublinCoreConstants.LANG));
@@ -56,28 +56,28 @@ public class DublinCoreTransformer extends AbstractOaiPmhRecordTransformer
         document.addFormats(HtmlUtils.getStrings(metadata, DublinCoreConstants.RES_TYPE));
 
         document.setIdentifier(HtmlUtils.getObject(metadata, DublinCoreConstants.IDENTIFIERS,
-                                                   (Element e) -> new Identifier(e.text())));
+                                                   (final Element e) -> new Identifier(e.text())));
 
         document.addDates(HtmlUtils.getObjects(metadata, DublinCoreConstants.DATES,
-                                               (Element e) -> new Date(e.text(), DateType.Issued)));
+                                               (final Element e) -> new Date(e.text(), DateType.Issued)));
 
         document.addCreators(HtmlUtils.getObjects(metadata, DublinCoreConstants.CREATORS,
-                                                  (Element e) -> new Creator(e.text())));
+                                                  (final Element e) -> new Creator(e.text())));
 
         document.addContributors(HtmlUtils.getObjects(metadata, DublinCoreConstants.CONTRIBUTORS,
-                                                      (Element e) -> new Contributor(e.text(), ContributorType.ContactPerson)));
+                                                      (final Element e) -> new Contributor(e.text(), ContributorType.ContactPerson)));
 
         document.addTitles(HtmlUtils.getObjects(metadata, DublinCoreConstants.TITLES,
-                                                (Element e) -> new Title(e.text())));
+                                                (final Element e) -> new Title(e.text())));
 
         document.addDescriptions(HtmlUtils.getObjects(metadata, DublinCoreConstants.DESCRIPTIONS,
-                                                      (Element e) ->new Description(e.text(), DescriptionType.Abstract)));
+                                                      (final Element e) ->new Description(e.text(), DescriptionType.Abstract)));
 
         document.addSubjects(HtmlUtils.getObjects(metadata, DublinCoreConstants.SUBJECTS,
-                                                  (Element e) -> new Subject(e.text())));
+                                                  (final Element e) -> new Subject(e.text())));
 
         document.addRights(HtmlUtils.getObjects(metadata, DublinCoreConstants.RIGHTS,
-                                                (Element e) -> new Rights(e.text())));
+                                                (final Element e) -> new Rights(e.text())));
 
         document.addWebLinks(HtmlUtils.getObjects(metadata, DublinCoreConstants.IDENTIFIERS, this::identifierToWebLink));
 
@@ -92,7 +92,7 @@ public class DublinCoreTransformer extends AbstractOaiPmhRecordTransformer
      *
      * @return a {@linkplain WebLink}
      */
-    private WebLink identifierToWebLink(Element identifier)
+    private WebLink identifierToWebLink(final Element identifier)
     {
         WebLink viewLink;
 
@@ -102,7 +102,7 @@ public class DublinCoreTransformer extends AbstractOaiPmhRecordTransformer
 
             viewLink =  new WebLink(identifier.text(), DublinCoreConstants.VIEW_URL_TITLE, WebLinkType.ViewURL);
 
-        } catch (MalformedURLException ex) {
+        } catch (final MalformedURLException ex) {
             viewLink = null;
         }
 

@@ -75,7 +75,7 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
 
 
     @Override
-    public void init(AbstractETL<?, ?> etl)
+    public void init(final AbstractETL<?, ?> etl)
     {
         super.init(etl);
 
@@ -134,7 +134,7 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
          *
          * @param recordsUrl a URL that leads to OAI-PMH records
          */
-        public OaiPmhRecordsIterator(String recordsUrl)
+        public OaiPmhRecordsIterator(final String recordsUrl)
         {
             this.recordsUrl = recordsUrl;
         }
@@ -170,7 +170,7 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
          * @param isUsingFallbackUrl if true, this is a fallback attempt to retrieve records
          * using an alternative URL
          */
-        private void retrieveRecords(boolean isUsingFallbackUrl)
+        private void retrieveRecords(final boolean isUsingFallbackUrl)
         {
             final Document doc = httpRequester.getHtmlFromUrl(recordsUrl);
 

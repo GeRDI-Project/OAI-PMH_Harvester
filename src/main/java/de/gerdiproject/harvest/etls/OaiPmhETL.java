@@ -158,7 +158,7 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
      *
      * @return the metadataPrefix that was passed as an argument
      */
-    private String mapStringToMetadataPrefix(String metadataPrefix) throws IllegalArgumentException
+    private String mapStringToMetadataPrefix(final String metadataPrefix) throws IllegalArgumentException
     {
         // check for errors
         checkMetadataPrefix(metadataPrefix);
@@ -189,7 +189,7 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
             return OaiPmhParameterConstants.METADATA_SCHEMA_MAP
                    .get(schemaUrl)
                    .get();
-        } catch (RuntimeException e) {
+        } catch (final RuntimeException e) {
             logger.warn(OaiPmhConstants.CANNOT_CREATE_TRANSFORMER, e);
             return null;
         }
@@ -204,7 +204,7 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
      *
      * @throws IllegalArgumentException thrown if the metadataPrefix is not supported
      */
-    private void checkMetadataPrefix(String metadataPrefix) throws IllegalArgumentException
+    private void checkMetadataPrefix(final String metadataPrefix) throws IllegalArgumentException
     {
         final StringBuilder errorMessageBuilder = new StringBuilder();
 
@@ -241,7 +241,7 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
                 // intersect the metadata schema values of schemaUrlMap with the keys of the METADATA_SCHEMA_MAP
                 final String allowedValuesString =
                     schemaUrlMap.keySet().stream()
-                    .filter((String key) -> OaiPmhParameterConstants.METADATA_SCHEMA_MAP.containsKey(schemaUrlMap.get(key)))
+                    .filter((final String key) -> OaiPmhParameterConstants.METADATA_SCHEMA_MAP.containsKey(schemaUrlMap.get(key)))
                     .collect(Collectors.toSet())
                     .toString();
                 errorMessageBuilder.append(' ');
@@ -289,7 +289,7 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
             final Elements schemaElements =
                 schemasDoc.select(OaiPmhConstants.ALL_METADATA_PREFIXES_SELECTION);
 
-            for (Element ele : schemaElements)
+            for (final Element ele : schemaElements)
                 map.put(ele.selectFirst(OaiPmhConstants.METADATA_PREFIX_SELECTION).text(),
                         ele.selectFirst(OaiPmhConstants.METADATA_SCHEMA_SELECTION).text());
 
@@ -369,7 +369,7 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
         final HttpRequester httpRequester = new HttpRequester();
 
         if (hostUrlParam.getValue() != null && !hostUrlParam.getValue().isEmpty()) {
-            Document identifyDoc = httpRequester.getHtmlFromUrl(String.format(OaiPmhConstants.IDENTIFY_URL, hostUrlParam.getValue()));
+            final Document identifyDoc = httpRequester.getHtmlFromUrl(String.format(OaiPmhConstants.IDENTIFY_URL, hostUrlParam.getValue()));
 
             if (identifyDoc != null)
                 return identifyDoc.select(OaiPmhConstants.REPOSITORY_NAME_ELEMENT).first().text();
@@ -412,7 +412,7 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
      *
      * @throws IllegalStateException if either the host URL or the metadata prefix is not set
      */
-    private String getListRecordsUrl(String dateFrom) throws IllegalStateException
+    private String getListRecordsUrl(final String dateFrom) throws IllegalStateException
     {
         if (hostUrlParam.getValue() == null || hostUrlParam.getValue().isEmpty())
             throw new IllegalStateException(OaiPmhConstants.NO_HOST_URL_ERROR);
@@ -438,7 +438,7 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
 
 
     @Override
-    protected void finishHarvestExceptionally(Throwable reason)
+    protected void finishHarvestExceptionally(final Throwable reason)
     {
         super.finishHarvestExceptionally(reason);
 

@@ -54,7 +54,7 @@ public class DataCite4Transformer extends DataCite3Transformer
 {
     @Override
     @SuppressWarnings("CPD-START") // we want to keep duplicates here, because there will be slight changes in other transformers
-    protected void setDocumentFieldsFromRecord(DataCiteJson document, Element record)
+    protected void setDocumentFieldsFromRecord(final DataCiteJson document, final Element record)
     {
         final Element metadata = getMetadata(record);
 
@@ -86,7 +86,7 @@ public class DataCite4Transformer extends DataCite3Transformer
 
 
     @Override
-    protected GeoLocation parseGeoLocation(Element ele)
+    protected GeoLocation parseGeoLocation(final Element ele)
     {
         final GeoLocation geoLocation = super.parseGeoLocation(ele);
 
@@ -105,7 +105,7 @@ public class DataCite4Transformer extends DataCite3Transformer
      *
      * @return the {@linkplain GeoJson} {@linkplain Polygon} represented by the specified HTML element
      */
-    protected GeoJson parseGeoLocationPolygon(Element ele)
+    protected GeoJson parseGeoLocationPolygon(final Element ele)
     {
         final List<Point> polygonPoints = HtmlUtils.elementsToList(ele.select(DataCiteConstants.POLYGON_POINT), this::parseGeoLocationPoint);
 
@@ -116,7 +116,7 @@ public class DataCite4Transformer extends DataCite3Transformer
 
 
     @Override
-    protected Point parseGeoLocationPoint(Element ele)
+    protected Point parseGeoLocationPoint(final Element ele)
     {
         // in DataCite 4.0, longitude and latitude are swapped
         try {
@@ -124,14 +124,14 @@ public class DataCite4Transformer extends DataCite3Transformer
             final double latitude = Double.parseDouble(ele.selectFirst(DataCiteConstants.POINT_LAT).text());
 
             return new Point(longitude, latitude);
-        } catch (NumberFormatException e) {
+        } catch (final NumberFormatException e) {
             return null;
         }
     }
 
 
     @Override
-    protected double[] parseGeoLocationBox(Element ele)
+    protected double[] parseGeoLocationBox(final Element ele)
     {
         // in DataCite 4.0, the order of the box parameters changes
         try {
@@ -157,7 +157,7 @@ public class DataCite4Transformer extends DataCite3Transformer
      * @return the {@linkplain FundingReference} represented by the specified HTML element
      */
     @Override
-    protected FundingReference parseFundingReference(Element ele)
+    protected FundingReference parseFundingReference(final Element ele)
     {
         // in DataCite 4.0, there are dedicated FundingReferences instead of funder-Contributors
         final String funderName = HtmlUtils.getString(ele, DataCiteConstants.FUNDER_NAME);
@@ -181,7 +181,7 @@ public class DataCite4Transformer extends DataCite3Transformer
      *
      * @return the {@linkplain FunderIdentifier} represented by the specified HTML element
      */
-    protected FunderIdentifier parseFunderIdentifier(Element ele)
+    protected FunderIdentifier parseFunderIdentifier(final Element ele)
     {
         final String value = ele.text();
         final FunderIdentifierType funderIdentifierType = HtmlUtils.getEnumAttribute(ele, DataCiteConstants.FUNDER_IDENTIFIER_TYPE, FunderIdentifierType.class);
@@ -198,7 +198,7 @@ public class DataCite4Transformer extends DataCite3Transformer
      *
      * @return the {@linkplain AwardNumber} represented by the specified HTML element
      */
-    protected AwardNumber parseAwardNumber(Element ele)
+    protected AwardNumber parseAwardNumber(final Element ele)
     {
         final String value = ele.text();
         final String awardURI = HtmlUtils.getAttribute(ele, DataCiteConstants.AWARD_URI);
@@ -209,7 +209,7 @@ public class DataCite4Transformer extends DataCite3Transformer
 
 
     @Override
-    protected Contributor parseContributor(Element ele)
+    protected Contributor parseContributor(final Element ele)
     {
         // in DataCite 4.0, there are no "funder" Contributors,
         // so there is no need to check for them anymore
@@ -234,7 +234,7 @@ public class DataCite4Transformer extends DataCite3Transformer
 
 
     @Override
-    protected Creator parseCreator(Element ele)
+    protected Creator parseCreator(final Element ele)
     {
         final Creator creator = super.parseCreator(ele);
 
@@ -249,7 +249,7 @@ public class DataCite4Transformer extends DataCite3Transformer
 
 
     @Override
-    protected Subject parseSubject(Element ele)
+    protected Subject parseSubject(final Element ele)
     {
         final Subject subject = super.parseSubject(ele);
 
@@ -262,7 +262,7 @@ public class DataCite4Transformer extends DataCite3Transformer
 
 
     @Override
-    protected AbstractDate parseDate(Element ele)
+    protected AbstractDate parseDate(final Element ele)
     {
         final AbstractDate date = super.parseDate(ele);
 
@@ -278,7 +278,7 @@ public class DataCite4Transformer extends DataCite3Transformer
 
 
     @Override
-    protected RelatedIdentifier parseRelatedIdentifier(Element ele)
+    protected RelatedIdentifier parseRelatedIdentifier(final Element ele)
     {
         final RelatedIdentifier relatedIdentifier = super.parseRelatedIdentifier(ele);
 
@@ -291,7 +291,7 @@ public class DataCite4Transformer extends DataCite3Transformer
 
 
     @Override
-    protected PersonName parsePersonName(Element ele)
+    protected PersonName parsePersonName(final Element ele)
     {
         final String name = ele.text();
 
@@ -303,7 +303,7 @@ public class DataCite4Transformer extends DataCite3Transformer
 
 
     @Override
-    protected Rights parseRights(Element ele)
+    protected Rights parseRights(final Element ele)
     {
         final Rights rights = super.parseRights(ele);
 

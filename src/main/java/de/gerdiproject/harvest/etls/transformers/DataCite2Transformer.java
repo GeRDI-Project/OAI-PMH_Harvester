@@ -64,7 +64,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
 {
     @Override
     //@SuppressWarnings("CPD-START") // we want to keep duplicates here, because there will be slight changes in other transformers
-    protected void setDocumentFieldsFromRecord(DataCiteJson document, Element record)
+    protected void setDocumentFieldsFromRecord(final DataCiteJson document, final Element record)
     {
         final Element metadata = getMetadata(record);
 
@@ -106,7 +106,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
      *
      * @return the {@linkplain Identifier} represented by the specified HTML element
      */
-    protected Identifier parseIdentifier(Element ele)
+    protected Identifier parseIdentifier(final Element ele)
     {
         final String value = ele.text();
         return new Identifier(value);
@@ -120,7 +120,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
      *
      * @return the {@linkplain Creator} represented by the specified HTML element
      */
-    protected Creator parseCreator(Element ele)
+    protected Creator parseCreator(final Element ele)
     {
         final PersonName creatorName = parsePersonName(ele.selectFirst(DataCiteConstants.CREATOR_NAME));
         final List<NameIdentifier> nameIdentifiers = HtmlUtils.elementsToList(ele.select(DataCiteConstants.NAME_IDENTIFIER), this::parseNameIdentifier);
@@ -139,7 +139,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
      *
      * @return the {@linkplain Contributor} represented by the specified HTML element
      */
-    protected Contributor parseContributor(Element ele)
+    protected Contributor parseContributor(final Element ele)
     {
         final String contributorTypeString = HtmlUtils.getAttribute(ele, DataCiteConstants.CONTRIBUTOR_TYPE);
 
@@ -165,7 +165,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
      *
      * @return the {@linkplain Title} represented by the specified HTML element
      */
-    protected Title parseTitle(Element ele)
+    protected Title parseTitle(final Element ele)
     {
         final String value = ele.text();
         final TitleType titleType = HtmlUtils.getEnumAttribute(ele, DataCiteConstants.TITLE_TYPE, TitleType.class);
@@ -184,7 +184,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
      *
      * @return the {@linkplain ResourceType} represented by the specified HTML element
      */
-    protected ResourceType parseResourceType(Element ele)
+    protected ResourceType parseResourceType(final Element ele)
     {
         final String value = ele.text();
         final ResourceTypeGeneral generalType = parseResourceTypeGeneral(ele);
@@ -200,7 +200,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
      *
      * @return the {@linkplain ResourceTypeGeneral} of the HTML element
      */
-    protected ResourceTypeGeneral parseResourceTypeGeneral(Element ele)
+    protected ResourceTypeGeneral parseResourceTypeGeneral(final Element ele)
     {
         final String rawResType = HtmlUtils.getAttribute(ele, DataCiteConstants.RESOURCE_TYPE_GENERAL);
 
@@ -222,7 +222,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
      *
      * @return the {@linkplain Description} represented by the specified HTML element
      */
-    protected Description parseDescription(Element ele)
+    protected Description parseDescription(final Element ele)
     {
         final String value = ele.text();
         final DescriptionType descriptionType = HtmlUtils.getEnumAttribute(ele, DataCiteConstants.DESCRIPTION_TYPE, DescriptionType.class);
@@ -237,7 +237,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
      *
      * @return the {@linkplain Subject} represented by the specified HTML element
      */
-    protected Subject parseSubject(Element ele)
+    protected Subject parseSubject(final Element ele)
     {
         final String value = ele.text();
         final String subjectScheme = HtmlUtils.getAttribute(ele, DataCiteConstants.SUBJECT_SCHEME);
@@ -255,7 +255,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
      *
      * @return the {@linkplain RelatedIdentifier} represented by the specified HTML element
      */
-    protected RelatedIdentifier parseRelatedIdentifier(Element ele)
+    protected RelatedIdentifier parseRelatedIdentifier(final Element ele)
     {
         final String value = ele.text();
         final RelatedIdentifierType relatedIdentifierType = HtmlUtils.getEnumAttribute(ele, DataCiteConstants.RELATED_IDENTIFIER_TYPE, RelatedIdentifierType.class);
@@ -281,7 +281,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
      *
      * @return the {@linkplain AlternateIdentifier} represented by the specified HTML element
      */
-    protected AlternateIdentifier parseAlternateIdentifier(Element ele)
+    protected AlternateIdentifier parseAlternateIdentifier(final Element ele)
     {
         final String value = ele.text();
         final String alternateIdentifierType = HtmlUtils.getAttribute(ele, DataCiteConstants.ALTERNATE_IDENTIFIER_TYPE);
@@ -298,7 +298,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
      *
      * @return the {@linkplain Rights} represented by the specified HTML element
      */
-    protected Rights parseRights(Element ele)
+    protected Rights parseRights(final Element ele)
     {
         return new Rights(ele.text());
     }
@@ -311,7 +311,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
      *
      * @return a {@linkplain Date} or {@linkplain DateRange} represented by the specified HTML element
      */
-    protected AbstractDate parseDate(Element ele)
+    protected AbstractDate parseDate(final Element ele)
     {
         final String dateString = ele.text();
         final DateType dateType = HtmlUtils.getEnumAttribute(ele, DataCiteConstants.DATE_TYPE, DateType.class);
@@ -330,13 +330,13 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
      *
      * @return a list of {@linkplain WebLink}s
      */
-    protected List<WebLink> createWebLinks(Identifier identifier, List<RelatedIdentifier> relatedIdentifiers)
+    protected List<WebLink> createWebLinks(final Identifier identifier, final List<RelatedIdentifier> relatedIdentifiers)
     {
         final List<WebLink> webLinks = new LinkedList<>();
 
         // get related URLs
         if (relatedIdentifiers != null) {
-            for (RelatedIdentifier ri : relatedIdentifiers) {
+            for (final RelatedIdentifier ri : relatedIdentifiers) {
                 final String relatedUrl;
 
                 switch (ri.getType()) {
@@ -386,7 +386,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
      *
      * @return the publication year or null, if it does not exist
      */
-    protected Integer parsePublicationYear(Element metadata)
+    protected Integer parsePublicationYear(final Element metadata)
     {
         try {
             final String publicationYear = HtmlUtils.getString(metadata, DataCiteConstants.PUBLICATION_YEAR);
@@ -407,7 +407,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
      * @return the {@linkplain FundingReference} represented by the specified HTML element, or null
      * if the contributor is not a funder or cannot be parsed
      */
-    protected FundingReference parseFundingReference(Element ele)
+    protected FundingReference parseFundingReference(final Element ele)
     {
         final String contributorType = HtmlUtils.getAttribute(ele, DataCiteConstants.CONTRIBUTOR_TYPE);
 
@@ -424,7 +424,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
 
             try {
                 funderIdentifierType = FunderIdentifierType.valueOf(nameIdentifier.getNameIdentifierScheme());
-            } catch (IllegalArgumentException e) {
+            } catch (final IllegalArgumentException e) {
                 funderIdentifierType = FunderIdentifierType.Other;
             }
 
@@ -444,7 +444,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
      *
      * @return the {@linkplain NameIdentifier} represented by the specified HTML element
      */
-    protected NameIdentifier parseNameIdentifier(Element ele)
+    protected NameIdentifier parseNameIdentifier(final Element ele)
     {
         final String value = ele.text();
         final String nameIdentifierScheme = HtmlUtils.getAttribute(ele, DataCiteConstants.NAME_IDENTIFIER_SCHEME);
@@ -461,7 +461,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
      *
      * @return the {@linkplain PersonName} represented by the specified HTML element
      */
-    protected PersonName parsePersonName(Element ele)
+    protected PersonName parsePersonName(final Element ele)
     {
         return new PersonName(ele.text());
     }
@@ -476,7 +476,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
      *
      * @return a list of {@linkplain DateRange}s
      */
-    private List<AbstractDate> parseDateRanges(Element metadata)
+    private List<AbstractDate> parseDateRanges(final Element metadata)
     {
         final Element datesParent = metadata.selectFirst(DataCiteConstants.DATES);
 
@@ -491,7 +491,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
         String endDate = null;
 
         // look for dates with datetype "StartDate" and "EndDate"
-        for (Element ele : dateElements) {
+        for (final Element ele : dateElements) {
             final String dateTypeRaw = HtmlUtils.getAttribute(ele, DataCiteConstants.DATE_TYPE);
 
             // memorize start date
