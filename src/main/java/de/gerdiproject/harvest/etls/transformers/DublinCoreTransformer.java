@@ -108,4 +108,11 @@ public class DublinCoreTransformer extends AbstractOaiPmhRecordTransformer
 
         return viewLink;
     }
+
+
+    @Override
+    public void clear()
+    {
+        // nothing to clean up
+    }
 }

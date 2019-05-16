@@ -111,6 +111,13 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
     }
 
 
+    @Override
+    public void clear()
+    {
+        // nothing to clean up
+    }
+
+
     /**
      * An OAI-PMH iterator that iterates through records using the resumption token.
      *

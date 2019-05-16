@@ -221,4 +221,11 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
 
         return researchDataList;
     }
+
+
+    @Override
+    public void clear()
+    {
+        // nothing to clean up
+    }
 }

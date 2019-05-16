@@ -65,7 +65,6 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
     @Override
     public void init(AbstractETL<?, ?> etl)
     {
-        super.init(etl);
         final OaiPmhETL oaiEtl = (OaiPmhETL) etl;
 
         // retrieve info from the ETL

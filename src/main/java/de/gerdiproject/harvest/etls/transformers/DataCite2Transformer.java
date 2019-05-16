@@ -522,4 +522,11 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
 
         return dateList;
     }
+
+
+    @Override
+    public void clear()
+    {
+        // nothing to clean up
+    }
 }
