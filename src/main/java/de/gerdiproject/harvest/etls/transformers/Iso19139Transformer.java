@@ -160,9 +160,9 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
         final DateType dateType = Iso19139Constants.DATE_TYPE_MAP.get(
                                       isoDate.select(Iso19139Constants.DATE_TYPE).text());
 
-        return dateType != null
-               ? new Date(isoDate.select(Iso19139Constants.DATE).text(), dateType)
-               : null;
+        return dateType == null
+               ? null
+               : new Date(isoDate.select(Iso19139Constants.DATE).text(), dateType);
     }
 
 
@@ -190,7 +190,7 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
             else
                 geoLocation.setBox(west, east, south, north);
 
-        } catch (NullPointerException | NumberFormatException e) {
+        } catch (NullPointerException | NumberFormatException e) { // NOPMD NPE is highly unlikely and an edge case
             geoLocation = null;
         }
 

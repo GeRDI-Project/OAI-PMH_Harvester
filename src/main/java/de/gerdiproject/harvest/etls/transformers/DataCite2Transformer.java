@@ -60,6 +60,7 @@ import de.gerdiproject.json.datacite.nested.PersonName;
  *
  * @author Robin Weiss
  */
+@SuppressWarnings("PMD.CouplingBetweenObjects") // caused by the high number of fields required by DataCiteJson
 public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
 {
     @Override
@@ -188,8 +189,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
     {
         final String value = ele.text();
         final ResourceTypeGeneral generalType = parseResourceTypeGeneral(ele);
-        final ResourceType resourceType = new ResourceType(value, generalType);
-        return resourceType;
+        return new ResourceType(value, generalType);
     }
 
 
@@ -286,8 +286,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
         final String value = ele.text();
         final String alternateIdentifierType = HtmlUtils.getAttribute(ele, DataCiteConstants.ALTERNATE_IDENTIFIER_TYPE);
 
-        final AlternateIdentifier alternateIdentifier = new AlternateIdentifier(value, alternateIdentifierType);
-        return alternateIdentifier;
+        return new AlternateIdentifier(value, alternateIdentifierType);
     }
 
 
@@ -316,9 +315,9 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
         final String dateString = ele.text();
         final DateType dateType = HtmlUtils.getEnumAttribute(ele, DataCiteConstants.DATE_TYPE, DateType.class);
 
-        return dateType != null
-               ? DateUtils.parseAbstractDate(dateString, dateType)
-               : null;
+        return dateType == null
+               ? null
+               : DateUtils.parseAbstractDate(dateString, dateType);
     }
 
 
@@ -352,6 +351,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
 
                     default:
                         relatedUrl = null;
+                        break;
                 }
 
                 if (relatedUrl != null) {
@@ -392,7 +392,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
             final String publicationYear = HtmlUtils.getString(metadata, DataCiteConstants.PUBLICATION_YEAR);
             return Integer.parseInt(publicationYear);
 
-        } catch (NumberFormatException | NullPointerException e) {
+        } catch (NumberFormatException e) {
             return null;
         }
     }
@@ -449,8 +449,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
         final String value = ele.text();
         final String nameIdentifierScheme = HtmlUtils.getAttribute(ele, DataCiteConstants.NAME_IDENTIFIER_SCHEME);
 
-        final NameIdentifier nameIdentifier = new NameIdentifier(value, nameIdentifierScheme);
-        return nameIdentifier;
+        return new NameIdentifier(value, nameIdentifierScheme);
     }
 
 

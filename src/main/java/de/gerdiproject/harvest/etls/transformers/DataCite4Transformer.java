@@ -143,7 +143,7 @@ public class DataCite4Transformer extends DataCite3Transformer
             boxParameters[3] = Double.parseDouble(ele.selectFirst(DataCiteConstants.BOX_NORTH_LAT).text());
 
             return boxParameters;
-        } catch (NumberFormatException | NullPointerException e) {
+        } catch (NumberFormatException | NullPointerException e) { // NOPMD NPE is highly unlikely and an edge case
             return null;
         }
     }
@@ -186,8 +186,7 @@ public class DataCite4Transformer extends DataCite3Transformer
         final String value = ele.text();
         final FunderIdentifierType funderIdentifierType = HtmlUtils.getEnumAttribute(ele, DataCiteConstants.FUNDER_IDENTIFIER_TYPE, FunderIdentifierType.class);
 
-        final FunderIdentifier funderIdentifier = new FunderIdentifier(value, funderIdentifierType);
-        return funderIdentifier;
+        return new FunderIdentifier(value, funderIdentifierType);
     }
 
 
@@ -203,8 +202,7 @@ public class DataCite4Transformer extends DataCite3Transformer
         final String value = ele.text();
         final String awardURI = HtmlUtils.getAttribute(ele, DataCiteConstants.AWARD_URI);
 
-        final AwardNumber awardNumber = new AwardNumber(value, awardURI);
-        return awardNumber;
+        return new AwardNumber(value, awardURI);
     }
 
 

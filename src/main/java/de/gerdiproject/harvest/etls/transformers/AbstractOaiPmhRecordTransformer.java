@@ -48,8 +48,8 @@ import de.gerdiproject.json.datacite.extension.generic.enums.WebLinkType;
  */
 public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTransformer<Element, DataCiteJson>
 {
-    protected String repositoryIdentifier = null;
-    protected List<WebLink> defaultLinks = null;
+    protected String repositoryIdentifier;
+    protected List<WebLink> defaultLinks;
 
 
     /**

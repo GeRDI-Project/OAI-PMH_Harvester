@@ -189,7 +189,7 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
             return OaiPmhParameterConstants.METADATA_SCHEMA_MAP
                    .get(schemaUrl)
                    .get();
-        } catch (final RuntimeException e) {
+        } catch (final RuntimeException e) { // NOPMD
             logger.warn(OaiPmhConstants.CANNOT_CREATE_TRANSFORMER, e);
             return null;
         }
@@ -260,10 +260,10 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
         super.onParameterChanged(event);
         final AbstractParameter<?> param = event.getParameter();
 
-        if (param == metadataPrefixParam)
+        if (param == metadataPrefixParam) // NOPMD == intended, because it is the same object instance
             this.transformer = createTransformer();
 
-        else if (param == hostUrlParam) {
+        else if (param == hostUrlParam) { // NOPMD == intended, because it is the same object instance
             this.extractor.init(this);
             this.schemaUrlMap = createSchemaUrlMap();
             this.transformer = createTransformer();
@@ -412,28 +412,36 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
      *
      * @throws IllegalStateException if either the host URL or the metadata prefix is not set
      */
-    private String getListRecordsUrl(final String dateFrom) throws IllegalStateException
+    private String getListRecordsUrl(final String dateFrom) throws IllegalStateException // NOPMD NPath complexity is high due to not adding null values to the query
     {
-        if (hostUrlParam.getValue() == null || hostUrlParam.getValue().isEmpty())
+        final String hostUrl = hostUrlParam.getValue();
+
+        if (hostUrl == null || hostUrl.isEmpty())
             throw new IllegalStateException(OaiPmhConstants.NO_HOST_URL_ERROR);
 
-        if (metadataPrefixParam.getValue() == null || metadataPrefixParam.getValue().isEmpty())
+        final String metadataPrefix = metadataPrefixParam.getValue();
+
+        if (metadataPrefix == null || metadataPrefix.isEmpty())
             throw new IllegalStateException(OaiPmhConstants.NO_METADATA_PREFIX_ERROR);
 
         final StringBuilder queryBuilder = new StringBuilder();
 
+        queryBuilder.append(OaiPmhConstants.METADATA_PREFIX_QUERY).append(metadataPrefix);
+
         if (dateFrom != null && !dateFrom.isEmpty())
             queryBuilder.append(OaiPmhConstants.DATE_FROM_QUERY).append(dateFrom);
 
-        if (untilParam.getValue() != null && !untilParam.getValue().isEmpty())
-            queryBuilder.append(OaiPmhConstants.DATE_TO_QUERY).append(untilParam.getValue());
+        final String dateUntil = untilParam.getValue();
 
-        if (setParam.getValue() != null && !setParam.getValue().isEmpty())
-            queryBuilder.append(OaiPmhConstants.SET_QUERY).append(setParam.getValue());
+        if (dateUntil != null && !dateUntil.isEmpty())
+            queryBuilder.append(OaiPmhConstants.DATE_TO_QUERY).append(dateUntil);
 
-        queryBuilder.append(OaiPmhConstants.METADATA_PREFIX_QUERY).append(metadataPrefixParam.getValue());
+        final String oaiSet = setParam.getValue();
 
-        return String.format(OaiPmhConstants.LIST_RECORDS_URL, hostUrlParam.getValue(), queryBuilder.toString());
+        if (oaiSet != null && !oaiSet.isEmpty())
+            queryBuilder.append(OaiPmhConstants.SET_QUERY).append(oaiSet);
+
+        return String.format(OaiPmhConstants.LIST_RECORDS_URL, hostUrl, queryBuilder.toString());
     }
 
 
