@@ -40,17 +40,16 @@ import de.gerdiproject.harvest.utils.data.HttpRequester;
  */
 public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
 {
-    private final static Logger LOGGER = LoggerFactory.getLogger(OaiPmhRecordsExtractor.class);
+    // protected fields used by the inner class
+    protected final static Logger LOGGER = LoggerFactory.getLogger(OaiPmhRecordsExtractor.class);
+    protected final HttpRequester httpRequester = new HttpRequester();
+    protected String lastHarvestedDate;
+    protected String fallbackUrlFormat;
+    protected String resumptionUrlFormat;
 
-    private final HttpRequester httpRequester = new HttpRequester();
     private String recordsBaseUrl;
-
-    private String resumptionUrlFormat;
-    private String fallbackUrlFormat;
-
-    private String versionString = null;
-    private String lastHarvestedDate = null;
-    private int size = -1;
+    private String versionString;
+    private int recordCount = -1;
 
 
     @Override
@@ -63,7 +62,7 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
     @Override
     public int size()
     {
-        return size;
+        return recordCount;
     }
 
 
@@ -75,7 +74,7 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
 
 
     @Override
-    public void init(AbstractETL<?, ?> etl)
+    public void init(final AbstractETL<?, ?> etl)
     {
         super.init(etl);
 
@@ -88,13 +87,13 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
 
         // retrieve version as first record
         final Document doc = httpRequester.getHtmlFromUrl(recordsBaseUrl);
-        final Element identifier = doc != null ? doc.selectFirst(OaiPmhConstants.HEADER_IDENTIFIER) : null;
-        this.versionString = identifier != null ? identifier.text() : null;
+        final Element identifier = doc == null ? null : doc.selectFirst(OaiPmhConstants.HEADER_IDENTIFIER);
+        this.versionString = identifier == null ? null : identifier.text();
 
         // retrieve number of documents, if known
-        final Element resumptionToken = doc != null ? doc.selectFirst(OaiPmhConstants.RESUMPTION_TOKEN_ELEMENT) : null;
-        final String listSizeString = resumptionToken != null ? resumptionToken.attr(OaiPmhConstants.LIST_SIZE_ATTRIBUTE) : "";
-        this.size = listSizeString.isEmpty() ? -1 : Integer.parseInt(listSizeString);
+        final Element resumptionToken = doc == null ? null : doc.selectFirst(OaiPmhConstants.RESUMPTION_TOKEN_ELEMENT);
+        final String listSizeString = resumptionToken == null ? "" : resumptionToken.attr(OaiPmhConstants.LIST_SIZE_ATTRIBUTE);
+        this.recordCount = listSizeString.isEmpty() ? -1 : Integer.parseInt(listSizeString);
     }
 
 
@@ -111,6 +110,13 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
     }
 
 
+    @Override
+    public void clear()
+    {
+        // nothing to clean up
+    }
+
+
     /**
      * An OAI-PMH iterator that iterates through records using the resumption token.
      *
@@ -118,8 +124,8 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
      */
     private class OaiPmhRecordsIterator implements Iterator<Element>
     {
-        final Queue<Element> records = new LinkedList<>();
-        String recordsUrl;
+        private final Queue<Element> records = new LinkedList<>();
+        private String recordsUrl;
 
 
         /**
@@ -127,7 +133,7 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
          *
          * @param recordsUrl a URL that leads to OAI-PMH records
          */
-        public OaiPmhRecordsIterator(String recordsUrl)
+        public OaiPmhRecordsIterator(final String recordsUrl)
         {
             this.recordsUrl = recordsUrl;
         }
@@ -163,23 +169,16 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
          * @param isUsingFallbackUrl if true, this is a fallback attempt to retrieve records
          * using an alternative URL
          */
-        private void retrieveRecords(boolean isUsingFallbackUrl)
+        private void retrieveRecords(final boolean isUsingFallbackUrl)
         {
             final Document doc = httpRequester.getHtmlFromUrl(recordsUrl);
 
-            final Elements newRecords = doc != null
-                                        ? doc.select(OaiPmhConstants.RECORD_ELEMENT)
-                                        : null;
+            final Elements newRecords = doc == null
+                                        ? null
+                                        : doc.select(OaiPmhConstants.RECORD_ELEMENT);
 
             // make sure the web request returns a set of records
-            if (newRecords != null && !newRecords.isEmpty()) {
-                final Element resumptionToken = doc.selectFirst(OaiPmhConstants.RESUMPTION_TOKEN_ELEMENT);
-
-                this.records.addAll(newRecords);
-                this.recordsUrl = resumptionToken != null && resumptionToken.text() != null && !resumptionToken.text().isEmpty()
-                                  ? String.format(resumptionUrlFormat, resumptionToken.text())
-                                  : null;
-            } else {
+            if (newRecords == null || newRecords.isEmpty()) {
                 // if no records could be retrieved even via the fallback URL, abort
                 if (isUsingFallbackUrl || lastHarvestedDate == null) {
 
@@ -203,6 +202,15 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
                     this.recordsUrl = fallbackUrl;
                     retrieveRecords(true);
                 }
+
+            } else {
+                final Element resumptionToken = doc.selectFirst(OaiPmhConstants.RESUMPTION_TOKEN_ELEMENT);
+                this.records.addAll(newRecords);
+
+                if (resumptionToken == null || resumptionToken.text() == null || resumptionToken.text().isEmpty())
+                    this.recordsUrl = null;
+                else
+                    this.recordsUrl = String.format(resumptionUrlFormat, resumptionToken.text());
             }
         }
     }

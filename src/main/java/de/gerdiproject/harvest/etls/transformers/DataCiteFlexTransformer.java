@@ -56,9 +56,9 @@ public class DataCiteFlexTransformer extends AbstractOaiPmhRecordTransformer
 
 
     @Override
-    public void init(AbstractETL<?, ?> etl)
+    public void init(final AbstractETL<?, ?> etl)
     {
-        for (AbstractOaiPmhRecordTransformer transformer : transformerMap.values())
+        for (final AbstractOaiPmhRecordTransformer transformer : transformerMap.values())
             transformer.init(etl);
     }
 
@@ -66,13 +66,13 @@ public class DataCiteFlexTransformer extends AbstractOaiPmhRecordTransformer
     @Override
     public void clear()
     {
-        for (AbstractOaiPmhRecordTransformer transformer : transformerMap.values())
+        for (final AbstractOaiPmhRecordTransformer transformer : transformerMap.values())
             transformer.clear();
     }
 
 
     @Override
-    protected void setDocumentFieldsFromRecord(DataCiteJson document, Element record)
+    protected void setDocumentFieldsFromRecord(final DataCiteJson document, final Element record)
     {
         // retrieve the schema location attribute which denotes the DataCite schema
         final String schemaLocation = getSchemaLocation(record);
@@ -117,7 +117,7 @@ public class DataCiteFlexTransformer extends AbstractOaiPmhRecordTransformer
      *
      * @return the schema location attribute of the record
      */
-    private static String getSchemaLocation(Element record)
+    private static String getSchemaLocation(final Element record)
     {
         final Element resource = record.selectFirst(DataCiteConstants.RESOURCE_ELEMENT);
 
@@ -126,7 +126,7 @@ public class DataCiteFlexTransformer extends AbstractOaiPmhRecordTransformer
 
         // fallback: try to get any attribute that contains the keyword "schemalocation"
         if (schemaLocation == null) {
-            for (Attribute a : resource.attributes()) {
+            for (final Attribute a : resource.attributes()) {
                 if (a.getKey().contains(DataCiteConstants.SCHEMA_LOCATION)) {
                     schemaLocation = a.getValue();
                     break;
@@ -145,7 +145,7 @@ public class DataCiteFlexTransformer extends AbstractOaiPmhRecordTransformer
      *
      * @return the major version of the DataCite schema, or -1 if it could not be retrieved
      */
-    private static int getSchemaVersion(String schemaLocation)
+    private static int getSchemaVersion(final String schemaLocation)
     {
         // retrieve the index of "kernel-" wich is followed by the major version
         final int kernelIndex = schemaLocation.lastIndexOf(DataCiteConstants.SCHEMA_KERNEL_SUBSTRING)

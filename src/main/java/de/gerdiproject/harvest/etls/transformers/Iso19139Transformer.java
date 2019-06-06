@@ -72,17 +72,17 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
 
 
     @Override
-    protected void setDocumentFieldsFromRecord(DataCiteJson document, Element record)
+    protected void setDocumentFieldsFromRecord(final DataCiteJson document, final Element record)
     {
         final Element metadata = getMetadata(record);
 
         // creators (D2) : use publisher metadata
         document.addCreators(HtmlUtils.getObjectsFromParent(metadata, Iso19139Constants.PUBLISHER,
-                                                            (Element e) -> new Creator(e.text())));
+                                                            (final Element e) -> new Creator(e.text())));
 
         // titles (D3)
         document.addTitles(HtmlUtils.getObjectsFromParent(metadata, Iso19139Constants.TITLE,
-                                                          (Element e) -> new Title(e.text())));
+                                                          (final Element e) -> new Title(e.text())));
 
         // publisher (D4)
         document.setPublisher(HtmlUtils.getString(metadata, Iso19139Constants.PUBLISHER));
@@ -95,11 +95,11 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
 
         // resource type (D10)
         document.setResourceType(HtmlUtils.getObject(metadata, Iso19139Constants.RESOURCE_TYPE,
-                                                     (Element e) -> new ResourceType(e.text(), ResourceTypeGeneral.Dataset)));
+                                                     (final Element e) -> new ResourceType(e.text(), ResourceTypeGeneral.Dataset)));
 
         // descriptions (D17)
         document.addDescriptions(HtmlUtils.getObjectsFromParent(metadata, Iso19139Constants.DESCRIPTIONS,
-                                                                (Element e) -> new Description(e.text(), DescriptionType.Abstract)));
+                                                                (final Element e) -> new Description(e.text(), DescriptionType.Abstract)));
 
         // geolocations (D18)
         document.addGeoLocations(HtmlUtils.getObjectsFromParent(metadata, Iso19139Constants.GEOLOCS, this::parseGeoLocation));
@@ -124,7 +124,7 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
      *
      * @return the publication year or null, if it could not be parsed
      */
-    private Integer parsePublicationYear(Element metadata, Collection<AbstractDate> dateList)
+    private Integer parsePublicationYear(final Element metadata, final Collection<AbstractDate> dateList)
     {
         // first look for the publication year in already harvested dates
         Integer publicationYear = parsePublicationYearFromDates(dateList);
@@ -138,7 +138,7 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
                     final Calendar cal = DatatypeConverter.parseDateTime(datestamp.text());
                     publicationYear = cal.get(Calendar.YEAR);
 
-                } catch (IllegalArgumentException e) {
+                } catch (final IllegalArgumentException e) {
                     LOGGER.debug(Iso19139Constants.DATE_PARSING_FAILED, datestamp.text());
                 }
             }
@@ -155,14 +155,14 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
      *
      * @return a date
      */
-    private AbstractDate parseDate(Element isoDate)
+    private AbstractDate parseDate(final Element isoDate)
     {
         final DateType dateType = Iso19139Constants.DATE_TYPE_MAP.get(
                                       isoDate.select(Iso19139Constants.DATE_TYPE).text());
 
-        return dateType != null
-               ? new Date(isoDate.select(Iso19139Constants.DATE).text(), dateType)
-               : null;
+        return dateType == null
+               ? null
+               : new Date(isoDate.select(Iso19139Constants.DATE).text(), dateType);
     }
 
 
@@ -173,15 +173,15 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
      *
      * @return a geolocation
      */
-    private GeoLocation parseGeoLocation(Element isoGeoLocation)
+    private GeoLocation parseGeoLocation(final Element isoGeoLocation)
     {
         GeoLocation geoLocation;
 
         try {
-            double west = Double.parseDouble(HtmlUtils.getString(isoGeoLocation, Iso19139Constants.GEOLOCS_WEST));
-            double east = Double.parseDouble(HtmlUtils.getString(isoGeoLocation, Iso19139Constants.GEOLOCS_EAST));
-            double south = Double.parseDouble(HtmlUtils.getString(isoGeoLocation, Iso19139Constants.GEOLOCS_SOUTH));
-            double north = Double.parseDouble(HtmlUtils.getString(isoGeoLocation, Iso19139Constants.GEOLOCS_NORTH));
+            final double west = Double.parseDouble(HtmlUtils.getString(isoGeoLocation, Iso19139Constants.GEOLOCS_WEST));
+            final double east = Double.parseDouble(HtmlUtils.getString(isoGeoLocation, Iso19139Constants.GEOLOCS_EAST));
+            final double south = Double.parseDouble(HtmlUtils.getString(isoGeoLocation, Iso19139Constants.GEOLOCS_SOUTH));
+            final double north = Double.parseDouble(HtmlUtils.getString(isoGeoLocation, Iso19139Constants.GEOLOCS_NORTH));
             geoLocation = new GeoLocation();
 
             // is it a point or a polygon?
@@ -190,7 +190,7 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
             else
                 geoLocation.setBox(west, east, south, north);
 
-        } catch (NullPointerException | NumberFormatException e) {
+        } catch (NullPointerException | NumberFormatException e) { // NOPMD NPE is highly unlikely and an edge case
             geoLocation = null;
         }
 
@@ -207,7 +207,7 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
      *
      * @return a list of parsed research data
      */
-    private List<ResearchData> parseResearchData(Element metadata, Collection<Title> titleList)
+    private List<ResearchData> parseResearchData(final Element metadata, final Collection<Title> titleList)
     {
         final List<ResearchData> researchDataList = new LinkedList<>();
 
@@ -220,5 +220,12 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
         }
 
         return researchDataList;
+    }
+
+
+    @Override
+    public void clear()
+    {
+        // nothing to clean up
     }
 }

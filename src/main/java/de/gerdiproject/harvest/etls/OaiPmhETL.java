@@ -26,6 +26,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import de.gerdiproject.harvest.config.Configuration;
+import de.gerdiproject.harvest.config.events.ParameterChangedEvent;
 import de.gerdiproject.harvest.config.parameters.AbstractParameter;
 import de.gerdiproject.harvest.config.parameters.StringParameter;
 import de.gerdiproject.harvest.config.parameters.constants.ParameterConstants;
@@ -157,7 +158,7 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
      *
      * @return the metadataPrefix that was passed as an argument
      */
-    private String mapStringToMetadataPrefix(String metadataPrefix) throws IllegalArgumentException
+    private String mapStringToMetadataPrefix(final String metadataPrefix) throws IllegalArgumentException
     {
         // check for errors
         checkMetadataPrefix(metadataPrefix);
@@ -188,7 +189,7 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
             return OaiPmhParameterConstants.METADATA_SCHEMA_MAP
                    .get(schemaUrl)
                    .get();
-        } catch (RuntimeException e) {
+        } catch (final RuntimeException e) { // NOPMD
             logger.warn(OaiPmhConstants.CANNOT_CREATE_TRANSFORMER, e);
             return null;
         }
@@ -203,7 +204,7 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
      *
      * @throws IllegalArgumentException thrown if the metadataPrefix is not supported
      */
-    private void checkMetadataPrefix(String metadataPrefix) throws IllegalArgumentException
+    private void checkMetadataPrefix(final String metadataPrefix) throws IllegalArgumentException
     {
         final StringBuilder errorMessageBuilder = new StringBuilder();
 
@@ -240,7 +241,7 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
                 // intersect the metadata schema values of schemaUrlMap with the keys of the METADATA_SCHEMA_MAP
                 final String allowedValuesString =
                     schemaUrlMap.keySet().stream()
-                    .filter((String key) -> OaiPmhParameterConstants.METADATA_SCHEMA_MAP.containsKey(schemaUrlMap.get(key)))
+                    .filter((final String key) -> OaiPmhParameterConstants.METADATA_SCHEMA_MAP.containsKey(schemaUrlMap.get(key)))
                     .collect(Collectors.toSet())
                     .toString();
                 errorMessageBuilder.append(' ');
@@ -254,14 +255,15 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
 
 
     @Override
-    protected void onParameterChanged(AbstractParameter<?> param)
+    protected void onParameterChanged(final ParameterChangedEvent event)
     {
-        super.onParameterChanged(param);
+        super.onParameterChanged(event);
+        final AbstractParameter<?> param = event.getParameter();
 
-        if (param == metadataPrefixParam)
+        if (param == metadataPrefixParam) // NOPMD == intended, because it is the same object instance
             this.transformer = createTransformer();
 
-        else if (param == hostUrlParam) {
+        else if (param == hostUrlParam) { // NOPMD == intended, because it is the same object instance
             this.extractor.init(this);
             this.schemaUrlMap = createSchemaUrlMap();
             this.transformer = createTransformer();
@@ -287,7 +289,7 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
             final Elements schemaElements =
                 schemasDoc.select(OaiPmhConstants.ALL_METADATA_PREFIXES_SELECTION);
 
-            for (Element ele : schemaElements)
+            for (final Element ele : schemaElements)
                 map.put(ele.selectFirst(OaiPmhConstants.METADATA_PREFIX_SELECTION).text(),
                         ele.selectFirst(OaiPmhConstants.METADATA_SCHEMA_SELECTION).text());
 
@@ -367,7 +369,7 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
         final HttpRequester httpRequester = new HttpRequester();
 
         if (hostUrlParam.getValue() != null && !hostUrlParam.getValue().isEmpty()) {
-            Document identifyDoc = httpRequester.getHtmlFromUrl(String.format(OaiPmhConstants.IDENTIFY_URL, hostUrlParam.getValue()));
+            final Document identifyDoc = httpRequester.getHtmlFromUrl(String.format(OaiPmhConstants.IDENTIFY_URL, hostUrlParam.getValue()));
 
             if (identifyDoc != null)
                 return identifyDoc.select(OaiPmhConstants.REPOSITORY_NAME_ELEMENT).first().text();
@@ -410,33 +412,41 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
      *
      * @throws IllegalStateException if either the host URL or the metadata prefix is not set
      */
-    private String getListRecordsUrl(String dateFrom) throws IllegalStateException
+    private String getListRecordsUrl(final String dateFrom) throws IllegalStateException // NOPMD NPath complexity is high due to not adding null values to the query
     {
-        if (hostUrlParam.getValue() == null || hostUrlParam.getValue().isEmpty())
+        final String hostUrl = hostUrlParam.getValue();
+
+        if (hostUrl == null || hostUrl.isEmpty())
             throw new IllegalStateException(OaiPmhConstants.NO_HOST_URL_ERROR);
 
-        if (metadataPrefixParam.getValue() == null || metadataPrefixParam.getValue().isEmpty())
+        final String metadataPrefix = metadataPrefixParam.getValue();
+
+        if (metadataPrefix == null || metadataPrefix.isEmpty())
             throw new IllegalStateException(OaiPmhConstants.NO_METADATA_PREFIX_ERROR);
 
         final StringBuilder queryBuilder = new StringBuilder();
 
+        queryBuilder.append(OaiPmhConstants.METADATA_PREFIX_QUERY).append(metadataPrefix);
+
         if (dateFrom != null && !dateFrom.isEmpty())
             queryBuilder.append(OaiPmhConstants.DATE_FROM_QUERY).append(dateFrom);
 
-        if (untilParam.getValue() != null && !untilParam.getValue().isEmpty())
-            queryBuilder.append(OaiPmhConstants.DATE_TO_QUERY).append(untilParam.getValue());
+        final String dateUntil = untilParam.getValue();
 
-        if (setParam.getValue() != null && !setParam.getValue().isEmpty())
-            queryBuilder.append(OaiPmhConstants.SET_QUERY).append(setParam.getValue());
+        if (dateUntil != null && !dateUntil.isEmpty())
+            queryBuilder.append(OaiPmhConstants.DATE_TO_QUERY).append(dateUntil);
 
-        queryBuilder.append(OaiPmhConstants.METADATA_PREFIX_QUERY).append(metadataPrefixParam.getValue());
+        final String oaiSet = setParam.getValue();
 
-        return String.format(OaiPmhConstants.LIST_RECORDS_URL, hostUrlParam.getValue(), queryBuilder.toString());
+        if (oaiSet != null && !oaiSet.isEmpty())
+            queryBuilder.append(OaiPmhConstants.SET_QUERY).append(oaiSet);
+
+        return String.format(OaiPmhConstants.LIST_RECORDS_URL, hostUrl, queryBuilder.toString());
     }
 
 
     @Override
-    protected void finishHarvestExceptionally(Throwable reason)
+    protected void finishHarvestExceptionally(final Throwable reason)
     {
         super.finishHarvestExceptionally(reason);
 
