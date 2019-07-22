@@ -22,6 +22,7 @@ import org.jsoup.nodes.Element;
 import de.gerdiproject.harvest.etls.constants.OaiPmhConstants;
 import de.gerdiproject.harvest.etls.transformers.constants.DataCiteConstants;
 import de.gerdiproject.harvest.utils.HtmlUtils;
+import de.gerdiproject.json.DateUtils;
 import de.gerdiproject.json.datacite.Contributor;
 import de.gerdiproject.json.datacite.Creator;
 import de.gerdiproject.json.datacite.DataCiteJson;
@@ -32,6 +33,8 @@ import de.gerdiproject.json.datacite.RelatedIdentifier;
 import de.gerdiproject.json.datacite.Rights;
 import de.gerdiproject.json.datacite.Subject;
 import de.gerdiproject.json.datacite.Title;
+import de.gerdiproject.json.datacite.abstr.AbstractDate;
+import de.gerdiproject.json.datacite.enums.DateType;
 import de.gerdiproject.json.datacite.enums.ResourceTypeGeneral;
 import de.gerdiproject.json.datacite.nested.NameIdentifier;
 import de.gerdiproject.json.geo.GeoJson;
@@ -47,7 +50,7 @@ public class DataCite3Transformer extends DataCite2Transformer
 {
     @Override
     @SuppressWarnings("CPD-START") // we want to keep duplicates here, because there will be slight changes in other transformers
-    protected void setDocumentFieldsFromRecord(DataCiteJson document, Element record)
+    protected void setDocumentFieldsFromRecord(final DataCiteJson document, final Element record)
     {
         final Element metadata = getMetadata(record);
 
@@ -89,7 +92,7 @@ public class DataCite3Transformer extends DataCite2Transformer
      *
      * @return the {@linkplain GeoLocation} represented by the specified HTML element
      */
-    protected GeoLocation parseGeoLocation(Element ele)
+    protected GeoLocation parseGeoLocation(final Element ele)
     {
         final String geoLocationPlace = HtmlUtils.getString(ele, DataCiteConstants.GEOLOCATION_PLACE);
         final Point geoLocationPoint = HtmlUtils.getObject(ele, DataCiteConstants.GEOLOCATION_POINT, this::parseGeoLocationPoint);
@@ -115,7 +118,7 @@ public class DataCite3Transformer extends DataCite2Transformer
      *
      * @return the {@linkplain Point}  represented by the specified HTML element
      */
-    protected Point parseGeoLocationPoint(Element ele)
+    protected Point parseGeoLocationPoint(final Element ele)
     {
         final String[] values = ele.text().split(" ");
 
@@ -139,7 +142,7 @@ public class DataCite3Transformer extends DataCite2Transformer
      *
      * @return a double array with four elements
      */
-    protected double[] parseGeoLocationBox(Element ele)
+    protected double[] parseGeoLocationBox(final Element ele)
     {
         final String[] values = ele.text().split(" ");
         final double[] boxParameters = new double[4];
@@ -149,7 +152,7 @@ public class DataCite3Transformer extends DataCite2Transformer
             boxParameters[1] = Double.parseDouble(values[3]);
             boxParameters[2] = Double.parseDouble(values[0]);
             boxParameters[3] = Double.parseDouble(values[2]);
-        } catch (NumberFormatException e) {
+        } catch (final NumberFormatException e) {
             return null;
         }
 
@@ -158,7 +161,7 @@ public class DataCite3Transformer extends DataCite2Transformer
 
 
     @Override
-    protected ResourceTypeGeneral parseResourceTypeGeneral(Element ele)
+    protected ResourceTypeGeneral parseResourceTypeGeneral(final Element ele)
     {
         // in DataCite 3.0, the resource type "film" is removed,
         // so there is no need to check for it anymore
@@ -170,7 +173,7 @@ public class DataCite3Transformer extends DataCite2Transformer
 
 
     @Override
-    protected Contributor parseContributor(Element ele)
+    protected Contributor parseContributor(final Element ele)
     {
         final Contributor contributor = super.parseContributor(ele);
 
@@ -183,7 +186,7 @@ public class DataCite3Transformer extends DataCite2Transformer
 
 
     @Override
-    protected Creator parseCreator(Element ele)
+    protected Creator parseCreator(final Element ele)
     {
         final Creator creator = super.parseCreator(ele);
 
@@ -196,7 +199,7 @@ public class DataCite3Transformer extends DataCite2Transformer
 
 
     @Override
-    protected Subject parseSubject(Element ele)
+    protected Subject parseSubject(final Element ele)
     {
         final Subject subject = super.parseSubject(ele);
 
@@ -212,7 +215,7 @@ public class DataCite3Transformer extends DataCite2Transformer
 
 
     @Override
-    protected NameIdentifier parseNameIdentifier(Element ele)
+    protected NameIdentifier parseNameIdentifier(final Element ele)
     {
         final NameIdentifier nameIdentifier = super.parseNameIdentifier(ele);
 
@@ -225,7 +228,7 @@ public class DataCite3Transformer extends DataCite2Transformer
 
 
     @Override
-    protected Title parseTitle(Element ele)
+    protected Title parseTitle(final Element ele)
     {
         final Title title = super.parseTitle(ele);
 
@@ -238,7 +241,7 @@ public class DataCite3Transformer extends DataCite2Transformer
 
 
     @Override
-    protected Description parseDescription(Element ele)
+    protected Description parseDescription(final Element ele)
     {
         final Description description = super.parseDescription(ele);
 
@@ -251,7 +254,7 @@ public class DataCite3Transformer extends DataCite2Transformer
 
 
     @Override
-    protected Rights parseRights(Element ele)
+    protected Rights parseRights(final Element ele)
     {
         final Rights rights = super.parseRights(ele);
 
@@ -260,5 +263,15 @@ public class DataCite3Transformer extends DataCite2Transformer
         rights.setUri(rightsURI);
 
         return rights;
+    }
+
+
+    @Override
+    protected AbstractDate parseDate(final Element ele)
+    {
+        final String dateString = ele.text();
+        final DateType dateType = HtmlUtils.getEnumAttribute(ele, DataCiteConstants.DATE_TYPE, DateType.class);
+
+        return DateUtils.parseAbstractDate(dateString, dateType);
     }
 }

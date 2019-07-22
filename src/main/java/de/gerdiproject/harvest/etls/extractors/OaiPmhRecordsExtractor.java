@@ -23,10 +23,13 @@ import java.util.Queue;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.gerdiproject.harvest.etls.AbstractETL;
 import de.gerdiproject.harvest.etls.OaiPmhETL;
 import de.gerdiproject.harvest.etls.constants.OaiPmhConstants;
+import de.gerdiproject.harvest.utils.HtmlUtils;
 import de.gerdiproject.harvest.utils.data.HttpRequester;
 
 /**
@@ -37,12 +40,16 @@ import de.gerdiproject.harvest.utils.data.HttpRequester;
  */
 public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
 {
-    private final HttpRequester httpRequester = new HttpRequester();
-    private String recordsBaseUrl;
-    private String resumptionUrlFormat;
+    // protected fields used by the inner class
+    protected final static Logger LOGGER = LoggerFactory.getLogger(OaiPmhRecordsExtractor.class);
+    protected final HttpRequester httpRequester = new HttpRequester();
+    protected String lastHarvestedDate;
+    protected String fallbackUrlFormat;
+    protected String resumptionUrlFormat;
 
+    private String recordsBaseUrl;
     private String versionString;
-    private int size = -1;
+    private int recordCount = -1;
 
 
     @Override
@@ -55,7 +62,7 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
     @Override
     public int size()
     {
-        return size;
+        return recordCount;
     }
 
 
@@ -67,23 +74,46 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
 
 
     @Override
-    public void init(AbstractETL<?, ?> etl)
+    public void init(final AbstractETL<?, ?> etl)
     {
         super.init(etl);
 
+        this.lastHarvestedDate = null;
+
         final OaiPmhETL oaiEtl = (OaiPmhETL) etl;
         this.recordsBaseUrl = oaiEtl.getListRecordsUrl();
-        this.resumptionUrlFormat = oaiEtl.getResumptionUrl("%s");
+        this.resumptionUrlFormat = oaiEtl.getResumptionUrlFormat();
+        this.fallbackUrlFormat = oaiEtl.getFallbackResumptionUrlFormat();
 
         // retrieve version as first record
         final Document doc = httpRequester.getHtmlFromUrl(recordsBaseUrl);
-        final Element identifier = doc != null ? doc.selectFirst(OaiPmhConstants.HEADER_IDENTIFIER) : null;
-        this.versionString = identifier != null ? identifier.text() : null;
+        final Element identifier = doc == null ? null : doc.selectFirst(OaiPmhConstants.HEADER_IDENTIFIER);
+        this.versionString = identifier == null ? null : identifier.text();
 
         // retrieve number of documents, if known
-        final Element resumptionToken = doc != null ? doc.selectFirst(OaiPmhConstants.RESUMPTION_TOKEN_ELEMENT) : null;
-        final String listSizeString = resumptionToken != null ? resumptionToken.attr(OaiPmhConstants.LIST_SIZE_ATTRIBUTE) : "";
-        this.size = listSizeString.isEmpty() ? -1 : Integer.parseInt(listSizeString);
+        final Element resumptionToken = doc == null ? null : doc.selectFirst(OaiPmhConstants.RESUMPTION_TOKEN_ELEMENT);
+        final String listSizeString = resumptionToken == null ? "" : resumptionToken.attr(OaiPmhConstants.LIST_SIZE_ATTRIBUTE);
+        this.recordCount = listSizeString.isEmpty() ? -1 : Integer.parseInt(listSizeString);
+    }
+
+
+    /**
+     * Retrieves the date stamp of the most recent extracted batch of records.
+     * This date can be logged if the harvest fails, and can be used to re-attempt
+     * the harvest from where it left off.
+     *
+     * @return the Datestamp header field of the first record of the currently extracted batch
+     */
+    public String getLastHarvestedDate()
+    {
+        return lastHarvestedDate;
+    }
+
+
+    @Override
+    public void clear()
+    {
+        // nothing to clean up
     }
 
 
@@ -94,8 +124,8 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
      */
     private class OaiPmhRecordsIterator implements Iterator<Element>
     {
-        final Queue<Element> records = new LinkedList<>();
-        String recordsUrl;
+        private final Queue<Element> records = new LinkedList<>();
+        private String recordsUrl;
 
 
         /**
@@ -103,7 +133,7 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
          *
          * @param recordsUrl a URL that leads to OAI-PMH records
          */
-        public OaiPmhRecordsIterator(String recordsUrl)
+        public OaiPmhRecordsIterator(final String recordsUrl)
         {
             this.recordsUrl = recordsUrl;
         }
@@ -121,37 +151,67 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
         {
             // if the current records queue is empty, retrieve more via the resumption url
             if (records.isEmpty())
-                retrieveRecords();
+                retrieveRecords(false);
 
-            return records.remove();
+            // retrieve the next record
+            final Element nextRecord = records.remove();
+
+            // memorize the datestamp of the first record, in case the harvest fails
+            lastHarvestedDate = HtmlUtils.getString(nextRecord, OaiPmhConstants.HEADER_DATESTAMP);
+
+            return nextRecord;
         }
 
 
         /**
          * Retrieves records and if possible the resumption URL from the OAI-PMH repository.
+         *
+         * @param isUsingFallbackUrl if true, this is a fallback attempt to retrieve records
+         * using an alternative URL
          */
-        private void retrieveRecords()
+        private void retrieveRecords(final boolean isUsingFallbackUrl)
         {
             final Document doc = httpRequester.getHtmlFromUrl(recordsUrl);
 
-            if (doc == null)
-                throw new ExtractorException(
-                    OaiPmhConstants.CANNOT_HARVEST
-                    + String.format(OaiPmhConstants.NO_RECORDS_ERROR, recordsUrl));
+            final Elements newRecords = doc == null
+                                        ? null
+                                        : doc.select(OaiPmhConstants.RECORD_ELEMENT);
 
-            final Elements newRecords = doc.select(OaiPmhConstants.RECORD_ELEMENT);
+            // make sure the web request returns a set of records
+            if (newRecords == null || newRecords.isEmpty()) {
+                // if no records could be retrieved even via the fallback URL, abort
+                if (isUsingFallbackUrl || lastHarvestedDate == null) {
 
-            if (newRecords.isEmpty())
-                throw new ExtractorException(
-                    OaiPmhConstants.CANNOT_HARVEST
-                    + String.format(OaiPmhConstants.NO_RECORDS_ERROR, recordsUrl));
+                    // display a different error message if this problem occurs in the middle of the harvest
+                    final String errorMessage = lastHarvestedDate == null
+                                                ? OaiPmhConstants.NO_RECORDS_ERROR
+                                                : OaiPmhConstants.NO_RECORDS_RESUMED_ERROR;
 
-            final Element resumptionToken = doc.selectFirst(OaiPmhConstants.RESUMPTION_TOKEN_ELEMENT);
+                    // abort the harvest
+                    throw new ExtractorException(String.format(errorMessage, recordsUrl));
 
-            this.records.addAll(newRecords);
-            this.recordsUrl = resumptionToken != null && resumptionToken.text() != null && !resumptionToken.text().isEmpty()
-                              ? String.format(resumptionUrlFormat, resumptionToken.text())
-                              : null;
+                } else {
+                    // assemble fallback URL, using the date of the last successfully harvested record
+                    final String fallbackUrl = String.format(fallbackUrlFormat, lastHarvestedDate);
+
+                    // log the fallback
+                    if (LOGGER.isInfoEnabled())
+                        LOGGER.info(String.format(OaiPmhConstants.FALLBACK_URL_INFO, recordsUrl, fallbackUrl));
+
+                    // try to retrieve records again, via the fallback URL
+                    this.recordsUrl = fallbackUrl;
+                    retrieveRecords(true);
+                }
+
+            } else {
+                final Element resumptionToken = doc.selectFirst(OaiPmhConstants.RESUMPTION_TOKEN_ELEMENT);
+                this.records.addAll(newRecords);
+
+                if (resumptionToken == null || resumptionToken.text() == null || resumptionToken.text().isEmpty())
+                    this.recordsUrl = null;
+                else
+                    this.recordsUrl = String.format(resumptionUrlFormat, resumptionToken.text());
+            }
         }
     }
 }

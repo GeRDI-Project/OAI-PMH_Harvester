@@ -27,6 +27,8 @@ import org.jsoup.select.Elements;
 import de.gerdiproject.harvest.etls.AbstractETL;
 import de.gerdiproject.harvest.etls.OaiPmhETL;
 import de.gerdiproject.harvest.etls.constants.OaiPmhConstants;
+import de.gerdiproject.harvest.etls.transformers.constants.DataCiteConstants;
+import de.gerdiproject.harvest.utils.HtmlUtils;
 import de.gerdiproject.json.datacite.DataCiteJson;
 import de.gerdiproject.json.datacite.Date;
 import de.gerdiproject.json.datacite.DateRange;
@@ -46,8 +48,8 @@ import de.gerdiproject.json.datacite.extension.generic.enums.WebLinkType;
  */
 public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTransformer<Element, DataCiteJson>
 {
-    protected String repositoryIdentifier = null;
-    protected List<WebLink> defaultLinks = null;
+    protected String repositoryIdentifier;
+    protected List<WebLink> defaultLinks;
 
 
     /**
@@ -61,9 +63,8 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
 
 
     @Override
-    public void init(AbstractETL<?, ?> etl)
+    public void init(final AbstractETL<?, ?> etl)
     {
-        super.init(etl);
         final OaiPmhETL oaiEtl = (OaiPmhETL) etl;
 
         // retrieve info from the ETL
@@ -77,7 +78,7 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
 
 
     @Override
-    protected DataCiteJson transformElement(Element record) throws TransformerException
+    protected DataCiteJson transformElement(final Element record) throws TransformerException
     {
         final Element header = getHeader(record);
         final DataCiteJson document;
@@ -108,7 +109,7 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
      *
      * @return the header element
      */
-    protected Element getHeader(Element record)
+    protected Element getHeader(final Element record)
     {
         return record.selectFirst(OaiPmhConstants.RECORD_HEADER);
 
@@ -122,7 +123,7 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
      *
      * @return the metadata element
      */
-    protected Element getMetadata(Element record)
+    protected Element getMetadata(final Element record)
     {
         return record.selectFirst(OaiPmhConstants.RECORD_METADATA);
     }
@@ -135,7 +136,7 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
      *
      * @return true if the record is marked as deleted
      */
-    protected boolean isRecordDeleted(Element header)
+    protected boolean isRecordDeleted(final Element header)
     {
         final String recordStatus = header.attr(OaiPmhConstants.HEADER_STATUS_ATTRIBUTE);
         return  recordStatus.equals(OaiPmhConstants.HEADER_STATUS_ATTRIBUTE_DELETED);
@@ -149,7 +150,7 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
      *
      * @return a logo {@linkplain WebLink} or null, if the URL is empty
      */
-    protected WebLink createLogoWebLink(String url)
+    protected WebLink createLogoWebLink(final String url)
     {
         WebLink logoLink = null;
 
@@ -172,7 +173,7 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
      *
      * @return a view {@linkplain WebLink} or null, if the URL is empty
      */
-    protected WebLink createViewWebLink(String url)
+    protected WebLink createViewWebLink(final String url)
     {
         WebLink viewLink = null;
 
@@ -194,7 +195,7 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
      *
      * @return the identifier of the record
      */
-    protected String parseIdentifierFromHeader(Element header)
+    protected String parseIdentifierFromHeader(final Element header)
     {
         return header.selectFirst(OaiPmhConstants.HEADER_IDENTIFIER).text();
     }
@@ -208,13 +209,13 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
      *
      * @return a list of "setSpec" {@linkplain Subject}s
      */
-    protected List<Subject> parseSubjectsFromHeader(Element header)
+    protected List<Subject> parseSubjectsFromHeader(final Element header)
     {
         final List<Subject> subjectList = new LinkedList<>();
 
         final Elements setSpecs = header.select(OaiPmhConstants.HEADER_SET_SPEC);
 
-        for (Element s : setSpecs)
+        for (final Element s : setSpecs)
             subjectList.add(new Subject(s.text()));
 
         return subjectList;
@@ -229,12 +230,12 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
      *
      * @return the publication year or null, if no such date exists
      */
-    protected Integer parsePublicationYearFromDates(Collection<AbstractDate> datesList)
+    protected Integer parsePublicationYearFromDates(final Collection<AbstractDate> datesList)
     {
         Integer publicationYear = null;
 
         if (datesList != null) {
-            for (AbstractDate d : datesList) {
+            for (final AbstractDate d : datesList) {
                 if (d.getType() == DateType.Issued) {
                     if (d instanceof Date)
                         publicationYear = ((Date)d).getValueAsDateTime().getYear();
@@ -247,5 +248,24 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
         }
 
         return publicationYear;
+    }
+
+
+    /**
+     * Assembles a prefix of an error message.
+     *
+     * @param record the record that caused the error
+     *
+     * @return an error message prefix stating that the record could not be harvested
+     */
+    protected String getErrorPrefix(final Element record)
+    {
+        final String identifier = HtmlUtils.getString(record, OaiPmhConstants.HEADER_IDENTIFIER);
+        final String dateStamp = HtmlUtils.getString(record, OaiPmhConstants.HEADER_DATESTAMP);
+
+        return String.format(
+                   DataCiteConstants.RECORD_ERROR_PREFIX,
+                   identifier,
+                   dateStamp);
     }
 }
