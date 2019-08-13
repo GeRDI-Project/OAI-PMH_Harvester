@@ -17,6 +17,9 @@ package de.gerdiproject.harvest.etls.transformers;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.function.Function;
 
 import org.jsoup.nodes.Element;
 
@@ -55,31 +58,49 @@ public class DublinCoreTransformer extends AbstractOaiPmhRecordTransformer
         document.addFormats(HtmlUtils.getStrings(metadata, DublinCoreConstants.FORMATS));
         document.addFormats(HtmlUtils.getStrings(metadata, DublinCoreConstants.RES_TYPE));
 
-        document.setIdentifier(HtmlUtils.getObject(metadata, DublinCoreConstants.IDENTIFIERS,
-                                                   (final Element e) -> new Identifier(e.text())));
+        document.addSubjects(parseSeparatedTextElements(
+                                 metadata,
+                                 DublinCoreConstants.SUBJECTS,
+                                 (String s) -> new Subject(s)));
 
-        document.addDates(HtmlUtils.getObjects(metadata, DublinCoreConstants.DATES,
-                                               (final Element e) -> new Date(e.text(), DateType.Issued)));
+        document.setIdentifier(HtmlUtils.getObject(
+                                   metadata,
+                                   DublinCoreConstants.IDENTIFIERS,
+                                   (final Element e) -> new Identifier(e.text())));
 
-        document.addCreators(HtmlUtils.getObjects(metadata, DublinCoreConstants.CREATORS,
-                                                  (final Element e) -> new Creator(e.text())));
+        document.addDates(HtmlUtils.getObjects(
+                              metadata,
+                              DublinCoreConstants.DATES,
+                              (final Element e) -> new Date(e.text(), DateType.Issued)));
 
-        document.addContributors(HtmlUtils.getObjects(metadata, DublinCoreConstants.CONTRIBUTORS,
-                                                      (final Element e) -> new Contributor(e.text(), ContributorType.ContactPerson)));
+        document.addCreators(HtmlUtils.getObjects(
+                                 metadata,
+                                 DublinCoreConstants.CREATORS,
+                                 (final Element e) -> new Creator(e.text())));
 
-        document.addTitles(HtmlUtils.getObjects(metadata, DublinCoreConstants.TITLES,
-                                                (final Element e) -> new Title(e.text())));
+        document.addContributors(HtmlUtils.getObjects(
+                                     metadata,
+                                     DublinCoreConstants.CONTRIBUTORS,
+                                     (final Element e) -> new Contributor(e.text(), ContributorType.ContactPerson)));
 
-        document.addDescriptions(HtmlUtils.getObjects(metadata, DublinCoreConstants.DESCRIPTIONS,
-                                                      (final Element e) ->new Description(e.text(), DescriptionType.Abstract)));
+        document.addTitles(HtmlUtils.getObjects(
+                               metadata,
+                               DublinCoreConstants.TITLES,
+                               (final Element e) -> new Title(e.text())));
 
-        document.addSubjects(HtmlUtils.getObjects(metadata, DublinCoreConstants.SUBJECTS,
-                                                  (final Element e) -> new Subject(e.text())));
+        document.addDescriptions(HtmlUtils.getObjects(
+                                     metadata,
+                                     DublinCoreConstants.DESCRIPTIONS,
+                                     (final Element e) ->new Description(e.text(), DescriptionType.Abstract)));
 
-        document.addRights(HtmlUtils.getObjects(metadata, DublinCoreConstants.RIGHTS,
-                                                (final Element e) -> new Rights(e.text())));
+        document.addRights(HtmlUtils.getObjects(
+                               metadata,
+                               DublinCoreConstants.RIGHTS,
+                               (final Element e) -> new Rights(e.text())));
 
-        document.addWebLinks(HtmlUtils.getObjects(metadata, DublinCoreConstants.IDENTIFIERS, this::identifierToWebLink));
+        document.addWebLinks(HtmlUtils.getObjects(
+                                 metadata,
+                                 DublinCoreConstants.IDENTIFIERS, this::identifierToWebLink));
 
         document.setPublicationYear(parsePublicationYearFromDates(document.getDates()));
     }
@@ -114,5 +135,76 @@ public class DublinCoreTransformer extends AbstractOaiPmhRecordTransformer
     public void clear()
     {
         // nothing to clean up
+    }
+
+
+    /**
+     * This helper function retrieves all HTML elements of a specified name,
+     * splits the text content by commas and semicolons and converts each
+     * split item to specified objects, all of which are returned in a {@linkplain List}.
+     *
+     * @param metadata the HTML element that contains the tags
+     * @param tag the name of the tags that are parsed
+     * @param mappingFunction a function that maps text to the specified type
+     * @param <T> the type of the {@linkplain List} that is to be returned
+     *
+     * @return a {@linkplain List} or null, if nothing was retrieved
+     */
+    private static <T> List<T> parseSeparatedTextElements(final Element metadata, final String tag, final Function<String, T> mappingFunction)
+    {
+        final List<T> outputList = new LinkedList<>();
+
+        final List<Element> textElements = metadata.select(tag);
+
+        for (final Element ele : textElements)
+            outputList.addAll(stringToList(ele.text(), mappingFunction));
+
+        return outputList.isEmpty() ? null : outputList;
+    }
+
+
+    /**
+     * This helper function maps a String that is separated by commas
+     * and/or semicolons to a {@linkplain List} of a specified type.
+     * Spaces are trimmed off of each element that is extracted in that way.
+     *
+     * @param inputString the raw input string
+     * @param mappingFunction a function that maps each separated element to a specified type
+     * @param <T> the type of the returned {@linkplain List}
+     *
+     * @return a {@linkplain List} of all extracted elements
+     */
+    private static <T> List<T> stringToList(final String inputString, final Function<String, T> mappingFunction)
+    {
+        final List<T> list = new LinkedList<>();
+
+        if (inputString != null && !inputString.isEmpty()) {
+            final int len = inputString.length();
+            int lastIndex = 0;
+
+            while (lastIndex < len) {
+                final int commaIndex = inputString.indexOf(',', lastIndex);
+                final int semicolonIndex = inputString.indexOf(';', lastIndex);
+                final int nextIndex;
+
+                if (commaIndex == -1 && semicolonIndex == -1)
+                    nextIndex = len;
+                else if (commaIndex == -1)
+                    nextIndex = semicolonIndex;
+                else if (semicolonIndex == -1)
+                    nextIndex = commaIndex;
+                else
+                    nextIndex = semicolonIndex < commaIndex ? semicolonIndex : commaIndex;
+
+                final String subString = inputString.substring(lastIndex, nextIndex).trim();
+
+                if (!subString.isEmpty())
+                    list.add(mappingFunction.apply(subString));
+
+                lastIndex = nextIndex + 1;
+            }
+        }
+
+        return list;
     }
 }
