@@ -81,7 +81,14 @@ public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
         this.lastHarvestedDate = null;
 
         final OaiPmhETL oaiEtl = (OaiPmhETL) etl;
-        this.recordsBaseUrl = oaiEtl.getListRecordsUrl();
+
+        try {
+            this.recordsBaseUrl = oaiEtl.getListRecordsUrl();
+        } catch (IllegalStateException e) {
+            // edge case: harvesting range was changed, before a host URL was set
+            return;
+        }
+
         this.resumptionUrlFormat = oaiEtl.getResumptionUrlFormat();
         this.fallbackUrlFormat = oaiEtl.getFallbackResumptionUrlFormat();
 
