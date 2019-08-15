@@ -73,7 +73,7 @@ public class OaiPmhConstants
     public static final String NO_HOST_URL_ERROR = "You must set the '" + OaiPmhParameterConstants.HOST_URL_KEY + "'-parameter in the config!";
     public static final String NO_RECORDS_ERROR = "The URL '%s' did not yield any harvestable records! A possible reason for this can be an outage of the harvested repository, or an incorrectly configured harvester.";
     public static final String NO_RECORDS_RESUMED_ERROR = "The resumption URL '%s' did not yield any harvestable records! This can be caused by an outage of the harvested repository.";
-
+    public static final String CANNOT_CREATE_EXTRACTOR = "Cannot initialize the extractor, because a mandatory parameter was not set. Ignore this message if you set multiple parameters in a single request.";
     public static final String LAST_DATE_INFO =
         "The harvest stopped at date stamp: %s%nYou may try to harvest the remaining records by setting the '%s."
         + OaiPmhParameterConstants.FROM_KEY
