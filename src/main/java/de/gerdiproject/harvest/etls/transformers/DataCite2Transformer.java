@@ -53,6 +53,7 @@ import de.gerdiproject.json.datacite.extension.generic.enums.WebLinkType;
 import de.gerdiproject.json.datacite.nested.FunderIdentifier;
 import de.gerdiproject.json.datacite.nested.NameIdentifier;
 import de.gerdiproject.json.datacite.nested.PersonName;
+import de.gerdiproject.json.datacite.nested.Publisher;
 
 /**
  * A transformer for the Datacite2 metadata standard.<br>
@@ -75,7 +76,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
         final List<RelatedIdentifier> relatedIdentifiers = HtmlUtils.getObjectsFromParent(metadata, DataCiteConstants.RELATED_IDENTIFIERS, this::parseRelatedIdentifier);
         document.addRelatedIdentifiers(relatedIdentifiers);
 
-        document.setPublisher(HtmlUtils.getString(metadata, DataCiteConstants.PUBLISHER));
+        document.setPublisher(parsePublisher(metadata));
         document.setLanguage(HtmlUtils.getString(metadata, DataCiteConstants.LANGUAGE));
         document.setVersion(HtmlUtils.getString(metadata, DataCiteConstants.VERSION));
         document.setPublicationYear(parsePublicationYear(metadata));
@@ -97,6 +98,19 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
 
         // to be compliant to DC 4.1, convert contributors with type "funder" to fundingReferences
         document.addFundingReferences(HtmlUtils.getObjectsFromParent(metadata, DataCiteConstants.CONTRIBUTORS, this::parseFundingReference));
+    }
+
+
+    /**
+     * Parses the {@linkplain Publisher} field from the HTML representation thereof.
+     *
+     * @param metadata DataCite record metadata
+     * @return the {@linkplain Publisher} of the record
+     */
+    protected Publisher parsePublisher(final Element metadata)
+    {
+        final String publisherValue = HtmlUtils.getString(metadata, DataCiteConstants.PUBLISHER);
+        return publisherValue == null ? null : new Publisher(publisherValue);
     }
 
 
@@ -243,7 +257,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
         final String subjectScheme = HtmlUtils.getAttribute(ele, DataCiteConstants.SUBJECT_SCHEME);
 
         final Subject subject = new Subject(value);
-        subject.setSubjectScheme(subjectScheme);
+        subject.setScheme(subjectScheme);
         return subject;
     }
 
@@ -423,7 +437,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
             FunderIdentifierType funderIdentifierType;
 
             try {
-                funderIdentifierType = FunderIdentifierType.valueOf(nameIdentifier.getNameIdentifierScheme());
+                funderIdentifierType = FunderIdentifierType.valueOf(nameIdentifier.getScheme());
             } catch (final IllegalArgumentException e) {
                 funderIdentifierType = FunderIdentifierType.Other;
             }

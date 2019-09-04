@@ -110,6 +110,10 @@ public class DataCiteConstants
     public static final String AWARD_NUMBER = "awardNumber, *|awardNumber";
     public static final String AWARD_TITLE = "awardTitle, *|awardTitle";
     public static final String AWARD_URI = "awardURI";
+    public static final String RIGHTS_IDENTIFIER = "rightsIdentifier";
+    public static final String RIGHTS_IDENTIFIER_SCHEME = "rightsIdentifierScheme";
+    public static final String AFFILIATION_IDENTIFIER = "affiliationIdentifier";
+    public static final String AFFILIATION_IDENTIFIER_SCHEME = "affiliationIdentifierScheme";
 
     // Misc
     public static final String URL_PREFIX = "http";
@@ -130,6 +134,8 @@ public class DataCiteConstants
     public static final String SCHEMA_4_URL = "http://schema.datacite.org/meta/kernel-4/metadata.xsd";
     public static final String SCHEMA_4_0_URL = "http://schema.datacite.org/meta/kernel-4.0/metadata.xsd";
     public static final String SCHEMA_4_1_URL = "http://schema.datacite.org/meta/kernel-4.1/metadata.xsd";
+    public static final String SCHEMA_4_2_URL = "http://schema.datacite.org/meta/kernel-4.2/metadata.xsd";
+    public static final String SCHEMA_4_3_URL = "http://schema.datacite.org/meta/kernel-4.3/metadata.xsd";
 
     public static final String OAI_SCHEMA_1_0_URL = "http://schema.datacite.org/oai/oai-1.0/oai.xsd";
     public static final String OAI_SCHEMA_1_1_URL = "http://schema.datacite.org/oai/oai-1.1/oai.xsd";

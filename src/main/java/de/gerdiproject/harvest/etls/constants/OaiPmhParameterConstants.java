@@ -94,6 +94,9 @@ public class OaiPmhParameterConstants
         map.put(DataCiteConstants.SCHEMA_4_URL, () -> dataCite4Transformer);
         map.put(DataCiteConstants.SCHEMA_4_0_URL, () -> dataCite4Transformer);
         map.put(DataCiteConstants.SCHEMA_4_1_URL, () -> dataCite4Transformer);
+        map.put(DataCiteConstants.SCHEMA_4_2_URL, () -> dataCite4Transformer);
+        map.put(DataCiteConstants.SCHEMA_4_3_URL, () -> dataCite4Transformer);
+
         map.put(DataCiteConstants.OAI_SCHEMA_1_0_URL, () -> dataCiteTransformer);
         map.put(DataCiteConstants.OAI_SCHEMA_1_1_URL, () -> dataCiteTransformer);
         map.put(DataCiteConstants.NO_SCHEMA_URL, () -> dataCiteTransformer);

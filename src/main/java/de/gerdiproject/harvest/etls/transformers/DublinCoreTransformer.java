@@ -39,6 +39,7 @@ import de.gerdiproject.json.datacite.enums.DateType;
 import de.gerdiproject.json.datacite.enums.DescriptionType;
 import de.gerdiproject.json.datacite.extension.generic.WebLink;
 import de.gerdiproject.json.datacite.extension.generic.enums.WebLinkType;
+import de.gerdiproject.json.datacite.nested.Publisher;
 
 /**
  * This class is a transformer for OAI-PMH DublinCore records.
@@ -53,7 +54,7 @@ public class DublinCoreTransformer extends AbstractOaiPmhRecordTransformer
         // get header and meta data for each record
         final Element metadata = getMetadata(record);
 
-        document.setPublisher(HtmlUtils.getString(metadata, DublinCoreConstants.PUBLISHER));
+        document.setPublisher(new Publisher(HtmlUtils.getString(metadata, DublinCoreConstants.PUBLISHER)));
         document.setLanguage(HtmlUtils.getString(metadata, DublinCoreConstants.LANG));
         document.addFormats(HtmlUtils.getStrings(metadata, DublinCoreConstants.FORMATS));
         document.addFormats(HtmlUtils.getStrings(metadata, DublinCoreConstants.RES_TYPE));
