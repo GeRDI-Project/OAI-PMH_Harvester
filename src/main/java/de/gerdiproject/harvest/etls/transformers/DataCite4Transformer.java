@@ -147,6 +147,14 @@ public class DataCite4Transformer extends DataCite3Transformer
             coordinates = new Coordinate[polygonPoints.size()];
             polygonPoints.toArray(coordinates);
         }
+
+        // in DataCite 4.1, inPolygonPoint was added
+        // TODO: Not sure how to treat this one, yet
+        // final Point inPolygonPoint = HtmlUtils.getObject(
+        //                                 ele,
+        //                                 DataCiteConstants.IN_POLYGON_POINT,
+        //                                 this::parseGeoLocationPoint);
+
         return geometryFactory.createPolygon(coordinates);
     }
 
@@ -167,8 +175,8 @@ public class DataCite4Transformer extends DataCite3Transformer
     {
         // in DataCite 4.0, longitude and latitude are swapped
         try {
-            final double longitude = Double.parseDouble(ele.selectFirst(DataCiteConstants.POINT_LONG).text());
-            final double latitude = Double.parseDouble(ele.selectFirst(DataCiteConstants.POINT_LAT).text());
+            final double longitude = Double.parseDouble(HtmlUtils.getString(ele, DataCiteConstants.POINT_LONG));
+            final double latitude = Double.parseDouble(HtmlUtils.getString(ele, DataCiteConstants.POINT_LAT));
             return new Coordinate(longitude, latitude);
 
         } catch (final NumberFormatException e) {
@@ -184,10 +192,10 @@ public class DataCite4Transformer extends DataCite3Transformer
         try {
             final double[] boxParameters = new double[4];
 
-            boxParameters[0] = Double.parseDouble(ele.selectFirst(DataCiteConstants.BOX_WEST_LONG).text());
-            boxParameters[1] = Double.parseDouble(ele.selectFirst(DataCiteConstants.BOX_EAST_LONG).text());
-            boxParameters[2] = Double.parseDouble(ele.selectFirst(DataCiteConstants.BOX_SOUTH_LAT).text());
-            boxParameters[3] = Double.parseDouble(ele.selectFirst(DataCiteConstants.BOX_NORTH_LAT).text());
+            boxParameters[0] = Double.parseDouble(HtmlUtils.getString(ele, DataCiteConstants.BOX_WEST_LONG));
+            boxParameters[1] = Double.parseDouble(HtmlUtils.getString(ele, DataCiteConstants.BOX_EAST_LONG));
+            boxParameters[2] = Double.parseDouble(HtmlUtils.getString(ele, DataCiteConstants.BOX_SOUTH_LAT));
+            boxParameters[3] = Double.parseDouble(HtmlUtils.getString(ele, DataCiteConstants.BOX_NORTH_LAT));
 
             return boxParameters;
         } catch (NumberFormatException | NullPointerException e) { // NOPMD NPE is highly unlikely and an edge case
@@ -263,10 +271,10 @@ public class DataCite4Transformer extends DataCite3Transformer
         // in DataCite 4.0, there are no "funder" Contributors,
         // so there is no need to check for them anymore
 
-        final PersonName contributorName = parsePersonName(ele.selectFirst(DataCiteConstants.CONTRIBUTOR_NAME));
+        final PersonName contributorName = HtmlUtils.getObject(ele, DataCiteConstants.CONTRIBUTOR_NAME, this::parsePersonName);
         final ContributorType contributorType = HtmlUtils.getEnumAttribute(ele, DataCiteConstants.CONTRIBUTOR_TYPE, ContributorType.class);
-        final List<NameIdentifier> nameIdentifiers = HtmlUtils.elementsToList(ele.select(DataCiteConstants.NAME_IDENTIFIER), this::parseNameIdentifier);
-        final List<Affiliation> affiliations = HtmlUtils.elementsToList(ele.select(DataCiteConstants.AFFILIATION), this::parseAffiliation);
+        final List<NameIdentifier> nameIdentifiers = HtmlUtils.getObjects(ele, DataCiteConstants.NAME_IDENTIFIER, this::parseNameIdentifier);
+        final List<Affiliation> affiliations = HtmlUtils.getObjects(ele, DataCiteConstants.AFFILIATION, this::parseAffiliation);
 
         final Contributor contributor = new Contributor(contributorName, contributorType);
         contributor.addNameIdentifiers(nameIdentifiers);

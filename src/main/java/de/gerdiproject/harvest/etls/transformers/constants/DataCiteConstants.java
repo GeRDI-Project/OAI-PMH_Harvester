@@ -59,7 +59,6 @@ public class DataCiteConstants
 
     public static final String DATES = "dates, *|dates";
     public static final String DATE_TYPE = "dateType";
-    public static final String DATE_INFORMATION = "dateInformation";
 
     public static final String PUBLISHER = "publisher, *|publisher";
     public static final String LANGUAGE = "language, *|language";
@@ -102,7 +101,7 @@ public class DataCiteConstants
     // DATACITE 3
     public static final String CONTRIBUTOR_TYPE_FUNDER = "funder";
 
-    // DATACITE 4
+    // DATACITE 4.0
     public static final String FUNDING_REFERENCES = "fundingReferences, *|fundingReferences";
     public static final String FUNDER_NAME = "funderName, *|funderName";
     public static final String FUNDER_IDENTIFIER = "funderIdentifier, *|funderIdentifier";
@@ -110,10 +109,19 @@ public class DataCiteConstants
     public static final String AWARD_NUMBER = "awardNumber, *|awardNumber";
     public static final String AWARD_TITLE = "awardTitle, *|awardTitle";
     public static final String AWARD_URI = "awardURI";
+
+    // DATACITE 4.1
+    public static final String IN_POLYGON_POINT = "inPolygonPoint";
+    public static final String DATE_INFORMATION = "dateInformation";
+
+    // DATACITE 4.2
     public static final String RIGHTS_IDENTIFIER = "rightsIdentifier";
     public static final String RIGHTS_IDENTIFIER_SCHEME = "rightsIdentifierScheme";
+
+    // DATACITE 4.3
     public static final String AFFILIATION_IDENTIFIER = "affiliationIdentifier";
     public static final String AFFILIATION_IDENTIFIER_SCHEME = "affiliationIdentifierScheme";
+
 
     // Misc
     public static final String URL_PREFIX = "http";
