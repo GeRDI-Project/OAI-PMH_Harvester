@@ -19,6 +19,11 @@ import java.util.List;
 
 import org.jsoup.nodes.Element;
 
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.Polygon;
+
 import de.gerdiproject.harvest.etls.constants.OaiPmhConstants;
 import de.gerdiproject.harvest.etls.transformers.constants.DataCiteConstants;
 import de.gerdiproject.harvest.utils.HtmlUtils;
@@ -36,13 +41,12 @@ import de.gerdiproject.json.datacite.enums.ContributorType;
 import de.gerdiproject.json.datacite.enums.FunderIdentifierType;
 import de.gerdiproject.json.datacite.enums.NameType;
 import de.gerdiproject.json.datacite.enums.ResourceTypeGeneral;
+import de.gerdiproject.json.datacite.nested.Affiliation;
 import de.gerdiproject.json.datacite.nested.AwardNumber;
 import de.gerdiproject.json.datacite.nested.FunderIdentifier;
 import de.gerdiproject.json.datacite.nested.NameIdentifier;
 import de.gerdiproject.json.datacite.nested.PersonName;
-import de.gerdiproject.json.geo.GeoJson;
-import de.gerdiproject.json.geo.Point;
-import de.gerdiproject.json.geo.Polygon;
+import de.gerdiproject.json.datacite.nested.Publisher;
 
 /**
  * A transformer for records of the Datacite 4.1 metadata standard.<br>
@@ -64,7 +68,7 @@ public class DataCite4Transformer extends DataCite3Transformer
         final List<RelatedIdentifier> relatedIdentifiers = HtmlUtils.getObjectsFromParent(metadata, DataCiteConstants.RELATED_IDENTIFIERS, this::parseRelatedIdentifier);
         document.addRelatedIdentifiers(relatedIdentifiers);
 
-        document.setPublisher(HtmlUtils.getString(metadata, DataCiteConstants.PUBLISHER));
+        document.setPublisher(parsePublisher(metadata));
         document.setLanguage(HtmlUtils.getString(metadata, DataCiteConstants.LANGUAGE));
         document.setVersion(HtmlUtils.getString(metadata, DataCiteConstants.VERSION));
         document.setPublicationYear(parsePublicationYear(metadata));
@@ -86,13 +90,39 @@ public class DataCite4Transformer extends DataCite3Transformer
 
 
     @Override
+    protected Affiliation parseAffiliation(final Element ele)
+    {
+        final Affiliation affiliation = super.parseAffiliation(ele);
+
+        // in DataCite 4.3, affiliationIdentifier, affiliationIdentifierScheme, and schemeURI are added
+        affiliation.setIdentifier(HtmlUtils.getAttribute(ele, DataCiteConstants.AFFILIATION_IDENTIFIER));
+        affiliation.setIdentifierScheme(HtmlUtils.getAttribute(ele, DataCiteConstants.AFFILIATION_IDENTIFIER_SCHEME));
+        affiliation.setSchemeURI(HtmlUtils.getAttribute(ele, DataCiteConstants.SCHEME_URI));
+
+        return affiliation;
+    }
+
+
+    @Override
+    protected Publisher parsePublisher(final Element metadata)
+    {
+        final Publisher publisher = super.parsePublisher(metadata);
+
+        // in DataCite 4.2, a xml:lang attribute is added
+        publisher.setLang(HtmlUtils.getAttribute(metadata, OaiPmhConstants.LANGUAGE_ATTRIBUTE));
+
+        return publisher;
+    }
+
+
+    @Override
     protected GeoLocation parseGeoLocation(final Element ele)
     {
         final GeoLocation geoLocation = super.parseGeoLocation(ele);
 
         // in DataCite 4, polygons were added to GeoLocations
-        final List<GeoJson> geoLocationPolygons = HtmlUtils.elementsToList(ele.select(DataCiteConstants.GEOLOCATION_POLYGON), this::parseGeoLocationPolygon);
-        geoLocation.setPolygons(geoLocationPolygons);
+        final List<Geometry> geoLocationPolygons = HtmlUtils.elementsToList(ele.select(DataCiteConstants.GEOLOCATION_POLYGON), this::parseGeoLocationPolygon);
+        geoLocation.addPolygons(geoLocationPolygons);
 
         return geoLocation;
     }
@@ -105,25 +135,50 @@ public class DataCite4Transformer extends DataCite3Transformer
      *
      * @return the {@linkplain GeoJson} {@linkplain Polygon} represented by the specified HTML element
      */
-    protected GeoJson parseGeoLocationPolygon(final Element ele)
+    protected Geometry parseGeoLocationPolygon(final Element ele)
     {
-        final List<Point> polygonPoints = HtmlUtils.elementsToList(ele.select(DataCiteConstants.POLYGON_POINT), this::parseGeoLocationPoint);
+        final Coordinate[] coordinates;
+        {
+            final List<Coordinate> polygonPoints = HtmlUtils.elementsToList(
+                                                       ele.select(DataCiteConstants.POLYGON_POINT),
+                                                       this::parseGeoLocationCoordinate);
 
-        final Polygon poly = new Polygon(polygonPoints);
+            // convert list to array
+            coordinates = new Coordinate[polygonPoints.size()];
+            polygonPoints.toArray(coordinates);
+        }
 
-        return new GeoJson(poly);
+        // in DataCite 4.1, inPolygonPoint was added
+        // TODO: Not sure how to treat this one, yet
+        // final Point inPolygonPoint = HtmlUtils.getObject(
+        //                                 ele,
+        //                                 DataCiteConstants.IN_POLYGON_POINT,
+        //                                 this::parseGeoLocationPoint);
+
+        return geometryFactory.createPolygon(coordinates);
     }
 
 
     @Override
     protected Point parseGeoLocationPoint(final Element ele)
     {
+        return geometryFactory.createPoint(parseGeoLocationCoordinate(ele));
+    }
+
+
+    /**
+     * Parses the {@linkplain Coordinate} of a {@linkplain Point} or {@linkplain Polygon}.
+     * @param ele the element of which the coordinate is to be retrieved
+     * @return a {@linkplain Coordinate}
+     */
+    protected Coordinate parseGeoLocationCoordinate(final Element ele)
+    {
         // in DataCite 4.0, longitude and latitude are swapped
         try {
-            final double longitude = Double.parseDouble(ele.selectFirst(DataCiteConstants.POINT_LONG).text());
-            final double latitude = Double.parseDouble(ele.selectFirst(DataCiteConstants.POINT_LAT).text());
+            final double longitude = Double.parseDouble(HtmlUtils.getString(ele, DataCiteConstants.POINT_LONG));
+            final double latitude = Double.parseDouble(HtmlUtils.getString(ele, DataCiteConstants.POINT_LAT));
+            return new Coordinate(longitude, latitude);
 
-            return new Point(longitude, latitude);
         } catch (final NumberFormatException e) {
             return null;
         }
@@ -137,10 +192,10 @@ public class DataCite4Transformer extends DataCite3Transformer
         try {
             final double[] boxParameters = new double[4];
 
-            boxParameters[0] = Double.parseDouble(ele.selectFirst(DataCiteConstants.BOX_WEST_LONG).text());
-            boxParameters[1] = Double.parseDouble(ele.selectFirst(DataCiteConstants.BOX_EAST_LONG).text());
-            boxParameters[2] = Double.parseDouble(ele.selectFirst(DataCiteConstants.BOX_SOUTH_LAT).text());
-            boxParameters[3] = Double.parseDouble(ele.selectFirst(DataCiteConstants.BOX_NORTH_LAT).text());
+            boxParameters[0] = Double.parseDouble(HtmlUtils.getString(ele, DataCiteConstants.BOX_WEST_LONG));
+            boxParameters[1] = Double.parseDouble(HtmlUtils.getString(ele, DataCiteConstants.BOX_EAST_LONG));
+            boxParameters[2] = Double.parseDouble(HtmlUtils.getString(ele, DataCiteConstants.BOX_SOUTH_LAT));
+            boxParameters[3] = Double.parseDouble(HtmlUtils.getString(ele, DataCiteConstants.BOX_NORTH_LAT));
 
             return boxParameters;
         } catch (NumberFormatException | NullPointerException e) { // NOPMD NPE is highly unlikely and an edge case
@@ -185,8 +240,12 @@ public class DataCite4Transformer extends DataCite3Transformer
     {
         final String value = ele.text();
         final FunderIdentifierType funderIdentifierType = HtmlUtils.getEnumAttribute(ele, DataCiteConstants.FUNDER_IDENTIFIER_TYPE, FunderIdentifierType.class);
+        final FunderIdentifier funder = new FunderIdentifier(value, funderIdentifierType);
 
-        return new FunderIdentifier(value, funderIdentifierType);
+        // in DataCite 4.3, schemeURI is added
+        funder.setSchemeURI(HtmlUtils.getAttribute(ele, DataCiteConstants.SCHEME_URI));
+
+        return funder;
     }
 
 
@@ -212,10 +271,10 @@ public class DataCite4Transformer extends DataCite3Transformer
         // in DataCite 4.0, there are no "funder" Contributors,
         // so there is no need to check for them anymore
 
-        final PersonName contributorName = parsePersonName(ele.selectFirst(DataCiteConstants.CONTRIBUTOR_NAME));
+        final PersonName contributorName = HtmlUtils.getObject(ele, DataCiteConstants.CONTRIBUTOR_NAME, this::parsePersonName);
         final ContributorType contributorType = HtmlUtils.getEnumAttribute(ele, DataCiteConstants.CONTRIBUTOR_TYPE, ContributorType.class);
-        final List<NameIdentifier> nameIdentifiers = HtmlUtils.elementsToList(ele.select(DataCiteConstants.NAME_IDENTIFIER), this::parseNameIdentifier);
-        final List<String> affiliations = HtmlUtils.elementsToStringList(ele.select(DataCiteConstants.AFFILIATION));
+        final List<NameIdentifier> nameIdentifiers = HtmlUtils.getObjects(ele, DataCiteConstants.NAME_IDENTIFIER, this::parseNameIdentifier);
+        final List<Affiliation> affiliations = HtmlUtils.getObjects(ele, DataCiteConstants.AFFILIATION, this::parseAffiliation);
 
         final Contributor contributor = new Contributor(contributorName, contributorType);
         contributor.addNameIdentifiers(nameIdentifiers);
@@ -268,7 +327,7 @@ public class DataCite4Transformer extends DataCite3Transformer
         if (date != null) {
             // in DataCite 4.0, dateinformation is added
             final String dateInformation = HtmlUtils.getAttribute(ele, DataCiteConstants.DATE_INFORMATION);
-            date.setDateInformation(dateInformation);
+            date.setInformation(dateInformation);
         }
 
         return date;
@@ -296,7 +355,12 @@ public class DataCite4Transformer extends DataCite3Transformer
         // in DataCite 4.1, nameType is added
         final NameType nameType = HtmlUtils.getEnumAttribute(ele, DataCiteConstants.NAME_TYPE, NameType.class);
 
-        return new PersonName(name, nameType);
+        final PersonName personName = new PersonName(name, nameType);
+
+        // in DataCite 4.2, xml:lang is added
+        personName.setLang(HtmlUtils.getAttribute(ele, OaiPmhConstants.LANGUAGE_ATTRIBUTE));
+
+        return personName;
     }
 
 
@@ -308,6 +372,11 @@ public class DataCite4Transformer extends DataCite3Transformer
         // in DataCite 4.1, language is added
         final String language = HtmlUtils.getAttribute(ele, OaiPmhConstants.LANGUAGE_ATTRIBUTE);
         rights.setLang(language);
+
+        // in DataCite 4.2, rightsIdentifier, rightsIdentifierScheme, and schemeUri are added
+        rights.setIdentifier(HtmlUtils.getAttribute(ele, DataCiteConstants.RIGHTS_IDENTIFIER));
+        rights.setIdentifierScheme(HtmlUtils.getAttribute(ele, DataCiteConstants.RIGHTS_IDENTIFIER_SCHEME));
+        rights.setSchemeURI(HtmlUtils.getAttribute(ele, DataCiteConstants.SCHEME_URI));
 
         return rights;
     }

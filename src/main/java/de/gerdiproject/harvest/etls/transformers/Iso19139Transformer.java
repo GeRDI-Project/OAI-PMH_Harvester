@@ -40,8 +40,7 @@ import de.gerdiproject.json.datacite.enums.DateType;
 import de.gerdiproject.json.datacite.enums.DescriptionType;
 import de.gerdiproject.json.datacite.enums.ResourceTypeGeneral;
 import de.gerdiproject.json.datacite.extension.generic.ResearchData;
-import de.gerdiproject.json.geo.GeoJson;
-import de.gerdiproject.json.geo.Point;
+import de.gerdiproject.json.datacite.nested.Publisher;
 
 /**
  * A transformer for the ISO 19139 metadata standard.<br>
@@ -85,7 +84,7 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
                                                           (final Element e) -> new Title(e.text())));
 
         // publisher (D4)
-        document.setPublisher(HtmlUtils.getString(metadata, Iso19139Constants.PUBLISHER));
+        document.setPublisher(new Publisher(HtmlUtils.getString(metadata, Iso19139Constants.PUBLISHER)));
 
         // dates (D8)
         document.addDates(HtmlUtils.getObjectsFromParent(metadata, Iso19139Constants.DATES, this::parseDate));
@@ -186,7 +185,7 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
 
             // is it a point or a polygon?
             if (west == east && south == north)
-                geoLocation.setPoint(new GeoJson(new Point(west, south)));
+                geoLocation.setPoint(west, south);
             else
                 geoLocation.setBox(west, east, south, north);
 

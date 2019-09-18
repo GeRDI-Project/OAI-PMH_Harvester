@@ -1,9 +1,14 @@
 # GeRDI Harvester Image for OAI-PMH Harvesters
 
 FROM jetty:9.4.7-alpine
+
 ENV JETTY_BASE=/var/lib/jetty
+
 # copy war file
 COPY target/*.war $JETTY_BASE/webapps/oaipmh.war
+
+# set Java system variable to indicate how the harvester is executed
+ENV JAVA_OPTIONS="-DDEPLOYMENT_TYPE=docker"
 
 # create log file folder with sufficient permissions
 USER root

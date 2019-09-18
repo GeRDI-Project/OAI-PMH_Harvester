@@ -19,6 +19,10 @@ import java.util.List;
 
 import org.jsoup.nodes.Element;
 
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Point;
+
 import de.gerdiproject.harvest.etls.constants.OaiPmhConstants;
 import de.gerdiproject.harvest.etls.transformers.constants.DataCiteConstants;
 import de.gerdiproject.harvest.utils.HtmlUtils;
@@ -36,9 +40,8 @@ import de.gerdiproject.json.datacite.Title;
 import de.gerdiproject.json.datacite.abstr.AbstractDate;
 import de.gerdiproject.json.datacite.enums.DateType;
 import de.gerdiproject.json.datacite.enums.ResourceTypeGeneral;
+import de.gerdiproject.json.datacite.nested.Affiliation;
 import de.gerdiproject.json.datacite.nested.NameIdentifier;
-import de.gerdiproject.json.geo.GeoJson;
-import de.gerdiproject.json.geo.Point;
 
 /**
  * A transformer for the DataCite 3 metadata standard.<br>
@@ -48,6 +51,8 @@ import de.gerdiproject.json.geo.Point;
  */
 public class DataCite3Transformer extends DataCite2Transformer
 {
+    protected final GeometryFactory geometryFactory = new GeometryFactory();
+
     @Override
     @SuppressWarnings("CPD-START") // we want to keep duplicates here, because there will be slight changes in other transformers
     protected void setDocumentFieldsFromRecord(final DataCiteJson document, final Element record)
@@ -60,7 +65,7 @@ public class DataCite3Transformer extends DataCite2Transformer
         final List<RelatedIdentifier> relatedIdentifiers = HtmlUtils.getObjectsFromParent(metadata, DataCiteConstants.RELATED_IDENTIFIERS, this::parseRelatedIdentifier);
         document.addRelatedIdentifiers(relatedIdentifiers);
 
-        document.setPublisher(HtmlUtils.getString(metadata, DataCiteConstants.PUBLISHER));
+        document.setPublisher(parsePublisher(metadata));
         document.setLanguage(HtmlUtils.getString(metadata, DataCiteConstants.LANGUAGE));
         document.setVersion(HtmlUtils.getString(metadata, DataCiteConstants.VERSION));
         document.setPublicationYear(parsePublicationYear(metadata));
@@ -102,7 +107,7 @@ public class DataCite3Transformer extends DataCite2Transformer
         geoLocation.setPlace(geoLocationPlace);
 
         if (geoLocationPoint != null)
-            geoLocation.setPoint(new GeoJson(geoLocationPoint));
+            geoLocation.setPoint(geoLocationPoint);
 
         if (geoLocationBox != null)
             geoLocation.setBox(geoLocationBox[0], geoLocationBox[1], geoLocationBox[2], geoLocationBox[3]);
@@ -125,11 +130,15 @@ public class DataCite3Transformer extends DataCite2Transformer
         final double latitude = Double.parseDouble(values[0]);
         final double longitude = Double.parseDouble(values[1]);
 
+        final Coordinate coord;
+
         if (values.length == 3) {
             final double elevation = Double.parseDouble(values[2]);
-            return new Point(longitude, latitude, elevation);
+            coord = new Coordinate(longitude, latitude, elevation);
         } else
-            return new Point(longitude, latitude);
+            coord = new Coordinate(longitude, latitude);
+
+        return geometryFactory.createPoint(coord);
     }
 
 
@@ -178,7 +187,7 @@ public class DataCite3Transformer extends DataCite2Transformer
         final Contributor contributor = super.parseContributor(ele);
 
         // in DataCite 3.1, affiliations are added
-        final List<String> affiliations = HtmlUtils.elementsToStringList(ele.select(DataCiteConstants.AFFILIATION));
+        final List<Affiliation> affiliations = HtmlUtils.getObjects(ele, DataCiteConstants.AFFILIATION, this::parseAffiliation);
         contributor.addAffiliations(affiliations);
 
         return contributor;
@@ -191,10 +200,22 @@ public class DataCite3Transformer extends DataCite2Transformer
         final Creator creator = super.parseCreator(ele);
 
         // in DataCite 3.1, affiliations are added
-        final List<String> affiliations = HtmlUtils.elementsToStringList(ele.select(DataCiteConstants.AFFILIATION));
+        final List<Affiliation> affiliations = HtmlUtils.getObjects(ele, DataCiteConstants.AFFILIATION, this::parseAffiliation);
         creator.addAffiliations(affiliations);
 
         return creator;
+    }
+
+
+    /**
+     * Parses an {@linkplain Affiliation} from its HTML representation.
+     * @param ele an affiliation element
+     *
+     * @return an {@linkplain Affiliation}
+     */
+    protected Affiliation parseAffiliation(final Element ele)
+    {
+        return new Affiliation(ele.text());
     }
 
 
