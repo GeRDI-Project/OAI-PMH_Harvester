@@ -147,6 +147,7 @@ public class DataCiteConstants
 
     public static final String OAI_SCHEMA_1_0_URL = "http://schema.datacite.org/oai/oai-1.0/oai.xsd";
     public static final String OAI_SCHEMA_1_1_URL = "http://schema.datacite.org/oai/oai-1.1/oai.xsd";
+    public static final String OAI_SCHEMA_2_0_URL = "http://www.openarchives.org/OAI/2.0/oai_dc.xsd";
     public static final String NO_SCHEMA_URL = "http://schema.datacite.org/meta/nonexistant/nonexistant.xsd";
 
     // Errors

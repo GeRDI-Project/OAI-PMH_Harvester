@@ -35,7 +35,7 @@ import de.gerdiproject.harvest.etls.constants.OaiPmhConstants;
 import de.gerdiproject.harvest.etls.constants.OaiPmhParameterConstants;
 import de.gerdiproject.harvest.etls.events.GetRepositoryNameEvent;
 import de.gerdiproject.harvest.etls.extractors.IExtractor;
-import de.gerdiproject.harvest.etls.extractors.OaiPmhRecordsExtractor;
+import de.gerdiproject.harvest.etls.extractors.OaiPmhRecordExtractor;
 import de.gerdiproject.harvest.etls.transformers.ITransformer;
 import de.gerdiproject.harvest.event.EventSystem;
 import de.gerdiproject.harvest.utils.data.HttpRequester;
@@ -78,7 +78,7 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
     @Override
     protected IExtractor<Iterator<Element>> createExtractor()
     {
-        return new OaiPmhRecordsExtractor();
+        return new OaiPmhRecordExtractor();
     }
 
 
@@ -453,7 +453,7 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
         // make sure the extractor was initialized
         if (extractor != null) {
             // retrieve the datestamp of the records at which the harvest failed
-            final String lastHarvestedDate = ((OaiPmhRecordsExtractor)extractor).getLastHarvestedDate();
+            final String lastHarvestedDate = ((OaiPmhRecordExtractor)extractor).getLastHarvestedDate();
 
             // log the record date stamp if it was retrieved
             if (lastHarvestedDate != null)

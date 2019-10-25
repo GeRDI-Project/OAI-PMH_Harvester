@@ -38,10 +38,10 @@ import de.gerdiproject.harvest.utils.data.HttpRequester;
  *
  * @author Robin Weiss
  */
-public class OaiPmhRecordsExtractor extends AbstractIteratorExtractor<Element>
+public class OaiPmhRecordExtractor extends AbstractIteratorExtractor<Element>
 {
     // protected fields used by the inner class
-    protected final static Logger LOGGER = LoggerFactory.getLogger(OaiPmhRecordsExtractor.class);
+    protected static final Logger LOGGER = LoggerFactory.getLogger(OaiPmhRecordExtractor.class);
     protected final HttpRequester httpRequester = new HttpRequester();
     protected String lastHarvestedDate;
     protected String fallbackUrlFormat;
