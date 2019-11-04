@@ -31,18 +31,29 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Iso19139Constants
 {
+    public static final String DATA_IDENTIFICATION =
+        "identificationInfo > MD_DataIdentification,"
+        + "*|identificationInfo > *|MD_DataIdentification";
+
     public static final String PUBLISHER =
         "CI_ResponsibleParty > organisationName > gco|CharacterString,"
         + "*|CI_ResponsibleParty > *|organisationName > gco|CharacterString";
 
     public static final String TITLE =
-        "citation > CI_Citation > title > gco|CharacterString,"
+        "citation > CI_Citation > title,"
         + "*|citation > *|CI_Citation > *|title > gco|CharacterString";
+
+    public static final String ALTERNATE_TITLE =
+        "citation > CI_Citation > alternateTitle > gco|CharacterString,"
+        + "*|citation > *|CI_Citation > *|alternateTitle > gco|CharacterString";
+
+    public static final String KEYWORDS =
+        " MD_Keywords > keyword > gco|CharacterString,"
+        + "*|MD_Keywords > *|keyword > gco|CharacterString";
 
     public static final String DATESTAMP =
         "dateStamp > gco|DateTime,"
         + "*|dateStamp > gco|DateTime";
-
 
     public static final String RESEARCH_DATA =
         "transferOptions > MD_DigitalTransferOptions > onLine > CI_OnlineResource > linkage > URL,"
@@ -52,14 +63,14 @@ public class Iso19139Constants
         "citation > CI_citation > date > CI_Date,"
         + "*|citation > *|CI_citation > *|date > *|CI_Date";
 
-    public static final String RESOURCE_TYPE = "MD_ScopeCode, *|MD_ScopeCode";
-    public static final String DATE = "date > *, *|date > *";
-    public static final String DATE_TYPE = "CI_DateTypeCode, *|CI_DateTypeCode";
-    public static final String DESCRIPTIONS = "abstract, *|abstract";
-
     public static final String GEO_LOCATION_BOX =
         "extent > EX_Extent > geographicElement > EX_GeographicBoundingBox,"
         + "*|extent > *|EX_Extent > *|geographicElement > *|EX_GeographicBoundingBox";
+
+    public static final String GEO_LOCATION_DESCRIPTION =
+        "extent > EX_Extent > geographicElement > EX_GeographicDescription > geographicIdentifier > MD_Identifier > code > gco|CharacterString,"
+        + "*|extent > *|EX_Extent > *|geographicElement > *|EX_GeographicDescription > *|geographicIdentifier > *|MD_Identifier > *|code > gco|CharacterString";
+
 
     public static final String GEO_LOCATION_WEST =
         "westBoundLongitude > gco|Decimal,"
@@ -77,8 +88,14 @@ public class Iso19139Constants
         "northBoundLatitude > gco|Decimal,"
         + "*|northBoundLatitude > gco|Decimal";
 
-    public static final String DATE_PARSING_FAILED = "Datestamp is not a date: {}";
+    public static final String RESOURCE_TYPE = "MD_ScopeCode, *|MD_ScopeCode";
+    public static final String DATE = "date > *, *|date > *";
+    public static final String DATE_TYPE = "CI_DateTypeCode, *|CI_DateTypeCode";
+    public static final String DESCRIPTIONS = "abstract, *|abstract";
+    public static final String LANGUAGE = "language > LanguageCode, *|language > *|LanguageCode";
+    public static final String CODE_LIST_VALUE = "codeListValue";
 
+    public static final String DATE_PARSING_FAILED = "Datestamp is not a date: {}";
     public static final String SCHEMA_URL = "http://www.isotc211.org/2005/gmd/gmd.xsd";
 
     public static final Map<String, DateType> DATE_TYPE_MAP = createDateTypeMap();

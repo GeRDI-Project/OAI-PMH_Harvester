@@ -15,6 +15,7 @@
  */
 package de.gerdiproject.harvest.etls.transformers;
 
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -34,11 +35,13 @@ import de.gerdiproject.json.datacite.Date;
 import de.gerdiproject.json.datacite.Description;
 import de.gerdiproject.json.datacite.GeoLocation;
 import de.gerdiproject.json.datacite.ResourceType;
+import de.gerdiproject.json.datacite.Subject;
 import de.gerdiproject.json.datacite.Title;
 import de.gerdiproject.json.datacite.abstr.AbstractDate;
 import de.gerdiproject.json.datacite.enums.DateType;
 import de.gerdiproject.json.datacite.enums.DescriptionType;
 import de.gerdiproject.json.datacite.enums.ResourceTypeGeneral;
+import de.gerdiproject.json.datacite.enums.TitleType;
 import de.gerdiproject.json.datacite.extension.generic.ResearchData;
 import de.gerdiproject.json.datacite.nested.Publisher;
 
@@ -64,6 +67,7 @@ import de.gerdiproject.json.datacite.nested.Publisher;
  * see https://wiki.gerdi-project.de/x/8YDmAQ
  *
  * @author Tobias Weber
+ * @author Robin Weiss
  */
 public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
 {
@@ -75,36 +79,93 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
     {
         final Element metadata = getMetadata(record);
 
-        // creators (D2) : use publisher metadata
+        final Title mainTitle = HtmlUtils.getObject(
+                                    metadata,
+                                    Iso19139Constants.TITLE,
+                                    (final Element e) -> new Title(e.text()));
+
+        document.addTitles(Arrays.asList(mainTitle));
+
         document.addCreators(HtmlUtils.getObjects(metadata, Iso19139Constants.PUBLISHER,
                                                   (final Element e) -> new Creator(e.text())));
-
-        // titles (D3)
-        document.addTitles(HtmlUtils.getObjects(metadata, Iso19139Constants.TITLE,
-                                                (final Element e) -> new Title(e.text())));
-
-        // publisher (D4)
         document.setPublisher(new Publisher(HtmlUtils.getString(metadata, Iso19139Constants.PUBLISHER)));
-
-        // dates (D8)
+        document.addSubjects(HtmlUtils.getObjects(metadata, Iso19139Constants.KEYWORDS,
+                                                  (final Element e) -> new Subject(e.text())));
         document.addDates(HtmlUtils.getObjects(metadata, Iso19139Constants.DATES, this::parseDate));
-
-        // publication year (D5)
         document.setPublicationYear(parsePublicationYear(metadata, document.getDates()));
-
-        // resource type (D10)
         document.setResourceType(HtmlUtils.getObject(metadata, Iso19139Constants.RESOURCE_TYPE,
                                                      (final Element e) -> new ResourceType(e.text(), ResourceTypeGeneral.Dataset)));
-
-        // descriptions (D17)
         document.addDescriptions(HtmlUtils.getObjects(metadata, Iso19139Constants.DESCRIPTIONS,
                                                       (final Element e) -> new Description(e.text(), DescriptionType.Abstract)));
+        document.addTitles(HtmlUtils.getObjects(metadata, Iso19139Constants.ALTERNATE_TITLE,
+                                                (final Element e) -> new Title(e.text(), TitleType.AlternativeTitle, null)));
 
-        // geolocations (D18)
-        document.addGeoLocations(HtmlUtils.getObjects(metadata, Iso19139Constants.GEO_LOCATION_BOX, this::parseGeoLocation));
+        document.addGeoLocations(parseGeoLocations(metadata));
+        document.addResearchData(parseResearchData(metadata, mainTitle));
+        document.setLanguage(parseLanguage(metadata));
+    }
 
-        // research data (E3)
-        document.addResearchData(parseResearchData(metadata, document.getTitles()));
+
+    /**
+     * Parses alternative titles from the ISO19139 metadata.
+     *
+     * @param metadata the metadata that is to be parsed
+     *
+     * @return a list of parsed titles
+     */
+    private List<Title> parseAlternateTitles(final Element metadata)
+    {
+        return HtmlUtils.getObjects(
+                   metadata,
+                   Iso19139Constants.ALTERNATE_TITLE,
+                   (final Element e) -> new Title(e.text(), TitleType.AlternativeTitle, null));
+    }
+
+
+    /**
+     * Parses the main- and alternative titles from the ISO19139 metadata.
+     *
+     * @param metadata the metadata that is to be parsed
+     *
+     * @return a list of parsed titles
+     */
+    private List<GeoLocation> parseGeoLocations(final Element metadata)
+    {
+        final List<GeoLocation> geoLocations = new LinkedList<>();
+
+        for (final Element dataSet : metadata.select(Iso19139Constants.DATA_IDENTIFICATION)) {
+            final String geoDescription = HtmlUtils.getString(dataSet, Iso19139Constants.GEO_LOCATION_DESCRIPTION);
+            final Element geoBox = dataSet.selectFirst(Iso19139Constants.GEO_LOCATION_BOX);
+
+            // skip this metadata if it contains nothing related to geography
+            if (geoDescription == null && geoBox == null)
+                continue;
+
+            // add metadata to the geo location
+            final GeoLocation geo = new GeoLocation();
+            geo.setPlace(geoDescription);
+            parseGeoLocationBox(geoBox, geo);
+            geoLocations.add(geo);
+        }
+
+        return geoLocations;
+    }
+
+
+    /**
+     * Retrieves the language from ISO19139 metadata.
+     *
+     * @param metadata the metadata that is to be parsed
+     *
+     * @return the language code if such an element exists, or null
+     */
+    private String parseLanguage(final Element metadata)
+    {
+        final Element langElement = metadata.selectFirst(Iso19139Constants.LANGUAGE);
+
+        return langElement == null
+               ? null
+               : HtmlUtils.getAttribute(langElement, Iso19139Constants.CODE_LIST_VALUE);
     }
 
 
@@ -166,22 +227,20 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
 
 
     /**
-     * Parses a geolocation (D18) from an ISO19139 record geolocation.
+     * Parses box coordinates for a specified {@linkplain GeoLocation} from an ISO19139 extent.
      *
-     * @param isoGeoLocation the geolocation element that is to be parsed
-     *
-     * @return a geolocation
+     * @param isoBox the box coordinates element that is to be parsed
      */
-    private GeoLocation parseGeoLocation(final Element isoGeoLocation)
+    private void parseGeoLocationBox(final Element isoBox, final GeoLocation geoLocation)
     {
-        GeoLocation geoLocation;
+        if (isoBox == null)
+            return;
 
         try {
-            final double west = Double.parseDouble(HtmlUtils.getString(isoGeoLocation, Iso19139Constants.GEO_LOCATION_WEST));
-            final double east = Double.parseDouble(HtmlUtils.getString(isoGeoLocation, Iso19139Constants.GEO_LOCATION_EAST));
-            final double south = Double.parseDouble(HtmlUtils.getString(isoGeoLocation, Iso19139Constants.GEO_LOCATION_SOUTH));
-            final double north = Double.parseDouble(HtmlUtils.getString(isoGeoLocation, Iso19139Constants.GEO_LOCATION_NORTH));
-            geoLocation = new GeoLocation();
+            final double west = Double.parseDouble(HtmlUtils.getString(isoBox, Iso19139Constants.GEO_LOCATION_WEST));
+            final double east = Double.parseDouble(HtmlUtils.getString(isoBox, Iso19139Constants.GEO_LOCATION_EAST));
+            final double south = Double.parseDouble(HtmlUtils.getString(isoBox, Iso19139Constants.GEO_LOCATION_SOUTH));
+            final double north = Double.parseDouble(HtmlUtils.getString(isoBox, Iso19139Constants.GEO_LOCATION_NORTH));
 
             // is it a point or a polygon?
             if (west == east && south == north)
@@ -190,10 +249,8 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
                 geoLocation.setBox(west, east, south, north);
 
         } catch (NullPointerException | NumberFormatException e) { // NOPMD NPE is highly unlikely and an edge case
-            geoLocation = null;
+            // do nothing
         }
-
-        return geoLocation;
     }
 
 
@@ -206,12 +263,12 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
      *
      * @return a list of parsed research data
      */
-    private List<ResearchData> parseResearchData(final Element metadata, final Collection<Title> titleList)
+    private List<ResearchData> parseResearchData(final Element metadata, final Title mainTitle)
     {
         final List<ResearchData> researchDataList = new LinkedList<>();
 
-        if (titleList != null && !titleList.isEmpty()) {
-            final String researchTitle = titleList.iterator().next().getValue();
+        if (mainTitle != null) {
+            final String researchTitle = mainTitle.getValue();
             final String researchDataURL = HtmlUtils.getString(metadata, Iso19139Constants.RESEARCH_DATA);
 
             if (researchDataURL != null)
