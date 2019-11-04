@@ -76,18 +76,18 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
         final Element metadata = getMetadata(record);
 
         // creators (D2) : use publisher metadata
-        document.addCreators(HtmlUtils.getObjectsFromParent(metadata, Iso19139Constants.PUBLISHER,
-                                                            (final Element e) -> new Creator(e.text())));
+        document.addCreators(HtmlUtils.getObjects(metadata, Iso19139Constants.PUBLISHER,
+                                                  (final Element e) -> new Creator(e.text())));
 
         // titles (D3)
-        document.addTitles(HtmlUtils.getObjectsFromParent(metadata, Iso19139Constants.TITLE,
-                                                          (final Element e) -> new Title(e.text())));
+        document.addTitles(HtmlUtils.getObjects(metadata, Iso19139Constants.TITLE,
+                                                (final Element e) -> new Title(e.text())));
 
         // publisher (D4)
         document.setPublisher(new Publisher(HtmlUtils.getString(metadata, Iso19139Constants.PUBLISHER)));
 
         // dates (D8)
-        document.addDates(HtmlUtils.getObjectsFromParent(metadata, Iso19139Constants.DATES, this::parseDate));
+        document.addDates(HtmlUtils.getObjects(metadata, Iso19139Constants.DATES, this::parseDate));
 
         // publication year (D5)
         document.setPublicationYear(parsePublicationYear(metadata, document.getDates()));
@@ -97,11 +97,11 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
                                                      (final Element e) -> new ResourceType(e.text(), ResourceTypeGeneral.Dataset)));
 
         // descriptions (D17)
-        document.addDescriptions(HtmlUtils.getObjectsFromParent(metadata, Iso19139Constants.DESCRIPTIONS,
-                                                                (final Element e) -> new Description(e.text(), DescriptionType.Abstract)));
+        document.addDescriptions(HtmlUtils.getObjects(metadata, Iso19139Constants.DESCRIPTIONS,
+                                                      (final Element e) -> new Description(e.text(), DescriptionType.Abstract)));
 
         // geolocations (D18)
-        document.addGeoLocations(HtmlUtils.getObjectsFromParent(metadata, Iso19139Constants.GEOLOCS, this::parseGeoLocation));
+        document.addGeoLocations(HtmlUtils.getObjects(metadata, Iso19139Constants.GEO_LOCATION_BOX, this::parseGeoLocation));
 
         // research data (E3)
         document.addResearchData(parseResearchData(metadata, document.getTitles()));
@@ -157,11 +157,11 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
     private AbstractDate parseDate(final Element isoDate)
     {
         final DateType dateType = Iso19139Constants.DATE_TYPE_MAP.get(
-                                      isoDate.select(Iso19139Constants.DATE_TYPE).text());
+                                      isoDate.selectFirst(Iso19139Constants.DATE_TYPE).text());
 
         return dateType == null
                ? null
-               : new Date(isoDate.select(Iso19139Constants.DATE).text(), dateType);
+               : new Date(isoDate.selectFirst(Iso19139Constants.DATE).text(), dateType);
     }
 
 
@@ -177,10 +177,10 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
         GeoLocation geoLocation;
 
         try {
-            final double west = Double.parseDouble(HtmlUtils.getString(isoGeoLocation, Iso19139Constants.GEOLOCS_WEST));
-            final double east = Double.parseDouble(HtmlUtils.getString(isoGeoLocation, Iso19139Constants.GEOLOCS_EAST));
-            final double south = Double.parseDouble(HtmlUtils.getString(isoGeoLocation, Iso19139Constants.GEOLOCS_SOUTH));
-            final double north = Double.parseDouble(HtmlUtils.getString(isoGeoLocation, Iso19139Constants.GEOLOCS_NORTH));
+            final double west = Double.parseDouble(HtmlUtils.getString(isoGeoLocation, Iso19139Constants.GEO_LOCATION_WEST));
+            final double east = Double.parseDouble(HtmlUtils.getString(isoGeoLocation, Iso19139Constants.GEO_LOCATION_EAST));
+            final double south = Double.parseDouble(HtmlUtils.getString(isoGeoLocation, Iso19139Constants.GEO_LOCATION_SOUTH));
+            final double north = Double.parseDouble(HtmlUtils.getString(isoGeoLocation, Iso19139Constants.GEO_LOCATION_NORTH));
             geoLocation = new GeoLocation();
 
             // is it a point or a polygon?
