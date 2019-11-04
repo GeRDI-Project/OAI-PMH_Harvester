@@ -1,0 +1,126 @@
+{
+	"identifier" : {
+		"value" : "oai:mo.ck:12345"
+	},
+	"creators" : [
+		{
+			"creatorName" : {
+				"value" : "Mocked Publisher"
+			}
+		}
+	],
+	"titles" : [
+		{
+			"value" : "Mocked Alternative Title 2",
+			"titleType" : "AlternativeTitle"
+		},
+		{
+			"value" : "Mocked Main Title"
+		},
+		{
+			"value" : "Mocked Alternative Title 1",
+			"titleType" : "AlternativeTitle"
+		}
+	],
+	"publisher" : {
+		"value" : "Mocked Publisher"
+	},
+	"publicationYear" : 2001,
+	"resourceType" : {
+		"value" : "Mocked Resource Type",
+		"resourceTypeGeneral" : "Dataset"
+	},
+	"subjects" : [
+		{
+			"value" : "mocked-keyword1"
+		},
+		{
+			"value" : "mocked-spec1"
+		},
+		{
+			"value" : "mocked-keyword2"
+		},
+		{
+			"value" : "mocked-spec2"
+		},
+		{
+			"value" : "mocked-spec3"
+		},
+		{
+			"value" : "mocked-keyword3"
+		}
+	],
+	"dates" : [
+		{
+			"value" : "2001-01-02T03:04:05Z",
+			"dateType" : "Issued"
+		},
+		{
+			"value" : "2000-01-02T00:00:00Z",
+			"dateType" : "Created"
+		},
+		{
+			"value" : "2002-01-02T03:04:05Z",
+			"dateType" : "Updated"
+		}
+	],
+	"language" : "mockedLanguage",
+	"descriptions" : [
+		{
+			"value" : "Mocked Description",
+			"descriptionType" : "Abstract"
+		}
+	],
+	"geoLocations" : [
+		{
+			"geoLocationPlace" : "Mocked Geo Description",
+			"geoLocationBox" : {
+				"type" : "Polygon",
+				"coordinates" : [
+					[
+						[
+							1.0,
+							3.0
+						],
+						[
+							1.0,
+							4.0
+						],
+						[
+							2.0,
+							4.0
+						],
+						[
+							2.0,
+							3.0
+						],
+						[
+							1.0,
+							3.0
+						]
+					]
+				]
+			}
+		}
+	],
+	"repositoryIdentifier" : "Mocked Repository Name",
+	"webLinks" : [
+		{
+			"webLinkURI" : "www.mo.ck/view",
+			"webLinkName" : "Browse Repository",
+			"webLinkType" : "ViewURL"
+		},
+		{
+			"webLinkURI" : "www.mo.ck/logo.png",
+			"webLinkName" : "logo",
+			"webLinkType" : "ProviderLogoURL"
+		}
+	],
+	"researchDataList" : [
+		{
+			"researchDataURL" : "https://www.mo.ck/researchData.zip",
+			"researchDataLabel" : "Mocked Main Title",
+			"researchDataIdentifier" : "-1821655463"
+		}
+	]
+}
