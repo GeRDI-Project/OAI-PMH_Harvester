@@ -53,8 +53,6 @@ public abstract class AbstractOaiPmhTransformerTest extends AbstractIteratorTran
     }
 
 
-
-
     @Override
     protected AbstractIteratorTransformer<Element, DataCiteJson> setUpTestObjects()
     {
@@ -72,8 +70,6 @@ public abstract class AbstractOaiPmhTransformerTest extends AbstractIteratorTran
 
         return super.setUpTestObjects();
     }
-
-
 
 
     @Override

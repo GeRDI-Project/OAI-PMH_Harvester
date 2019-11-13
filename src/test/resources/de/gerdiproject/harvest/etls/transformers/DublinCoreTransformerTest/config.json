@@ -1,0 +1,35 @@
+{ 
+	"HttpRequests" : {
+		"parameters" : [
+			{
+				"key" : "readFromDisk",
+				"value" : "true",
+				"type" : "BooleanParameter"
+			}
+		]
+	},
+	"OaiPmhETL" : {
+		"parameters" : [
+			{
+				"key" : "hostUrl",
+				"value" : "http://www.mo.ck/oai",
+				"type" : "StringParameter"
+			},
+			{
+				"key" : "metadataPrefix",
+				"value" : "oai_dc",
+				"type" : "StringParameter"
+			},
+			{
+				"key" : "viewUrl",
+				"value" : "www.mo.ck/view",
+				"type" : "StringParameter"
+			},
+			{
+				"key" : "logoUrl",
+				"value" : "www.mo.ck/logo.png",
+				"type" : "StringParameter"
+			}
+		]
+	}
+}

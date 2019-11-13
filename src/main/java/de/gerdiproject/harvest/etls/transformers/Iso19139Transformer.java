@@ -107,22 +107,6 @@ public class Iso19139Transformer extends AbstractOaiPmhRecordTransformer
 
 
     /**
-     * Parses alternative titles from the ISO19139 metadata.
-     *
-     * @param metadata the metadata that is to be parsed
-     *
-     * @return a list of parsed titles
-     */
-    private List<Title> parseAlternateTitles(final Element metadata)
-    {
-        return HtmlUtils.getObjects(
-                   metadata,
-                   Iso19139Constants.ALTERNATE_TITLE,
-                   (final Element e) -> new Title(e.text(), TitleType.AlternativeTitle, null));
-    }
-
-
-    /**
      * Parses the main- and alternative titles from the ISO19139 metadata.
      *
      * @param metadata the metadata that is to be parsed
