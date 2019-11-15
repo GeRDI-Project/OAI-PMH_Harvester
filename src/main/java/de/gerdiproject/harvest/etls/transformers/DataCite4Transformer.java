@@ -109,7 +109,11 @@ public class DataCite4Transformer extends DataCite3Transformer
         final Publisher publisher = super.parsePublisher(metadata);
 
         // in DataCite 4.2, a xml:lang attribute is added
-        publisher.setLang(HtmlUtils.getAttribute(metadata, OaiPmhConstants.LANGUAGE_ATTRIBUTE));
+        if (publisher != null) {
+            final Element publisherEle = metadata.selectFirst(DataCiteConstants.PUBLISHER);
+            final String language = HtmlUtils.getAttribute(publisherEle, OaiPmhConstants.LANGUAGE_ATTRIBUTE);
+            publisher.setLang(language);
+        }
 
         return publisher;
     }
