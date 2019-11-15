@@ -121,8 +121,7 @@ public class DataCite4Transformer extends DataCite3Transformer
         final GeoLocation geoLocation = super.parseGeoLocation(ele);
 
         // in DataCite 4, polygons were added to GeoLocations
-        final List<Geometry> geoLocationPolygons = HtmlUtils.elementsToList(ele.select(DataCiteConstants.GEOLOCATION_POLYGON), this::parseGeoLocationPolygon);
-        geoLocation.addPolygons(geoLocationPolygons);
+        geoLocation.addPolygons(HtmlUtils.getObjects(ele, DataCiteConstants.GEOLOCATION_POLYGON, this::parseGeoLocationPolygon));
 
         return geoLocation;
     }
@@ -220,12 +219,11 @@ public class DataCite4Transformer extends DataCite3Transformer
         final AwardNumber awardNumber = HtmlUtils.getObject(ele, DataCiteConstants.AWARD_NUMBER, this::parseAwardNumber);
         final String awardTitle = HtmlUtils.getString(ele, DataCiteConstants.AWARD_TITLE);
 
-        final FundingReference fundingReference = new FundingReference(funderName);
-        fundingReference.setFunderIdentifier(funderIdentifier);
-        fundingReference.setAwardNumber(awardNumber);
-        fundingReference.setAwardTitle(awardTitle);
-
-        return fundingReference;
+        return new FundingReference(
+                   funderName,
+                   funderIdentifier,
+                   awardNumber,
+                   awardTitle);
     }
 
 

@@ -187,8 +187,10 @@ public class DataCite3Transformer extends DataCite2Transformer
         final Contributor contributor = super.parseContributor(ele);
 
         // in DataCite 3.1, affiliations are added
-        final List<Affiliation> affiliations = HtmlUtils.getObjects(ele, DataCiteConstants.AFFILIATION, this::parseAffiliation);
-        contributor.addAffiliations(affiliations);
+        if (contributor != null) {
+            final List<Affiliation> affiliations = HtmlUtils.getObjects(ele, DataCiteConstants.AFFILIATION, this::parseAffiliation);
+            contributor.addAffiliations(affiliations);
+        }
 
         return contributor;
     }

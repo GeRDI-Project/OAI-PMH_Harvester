@@ -27,6 +27,7 @@ import lombok.NoArgsConstructor;
 public class DataCiteConstants
 {
     public static final String IDENTIFIER = "identifier, *|identifier";
+    public static final String IDENTIFIER_TYPE = "identifierType";
     public static final String VERSION = "version, *|version";
     public static final String PUBLICATION_YEAR = "publicationYear, *|publicationYear";
     public static final String SIZES = "sizes, *|sizes";
@@ -93,19 +94,20 @@ public class DataCiteConstants
     public static final String ALTERNATE_IDENTIFIER_TYPE = "alternateIdentifierType";
 
     // DATACITE 2
-    public static final String RESOURCE_TYPE_GENERAL_FILM = "film";
+    public static final String RESOURCE_TYPE_GENERAL_FILM = "Film";
     public static final String RIGHTS = "rights, *|rights";
     public static final String DATE_TYPE_RANGE_START = "StartDate";
     public static final String DATE_TYPE_RANGE_END = "EndDate";
 
     // DATACITE 3
-    public static final String CONTRIBUTOR_TYPE_FUNDER = "funder";
+    public static final String CONTRIBUTOR_TYPE_FUNDER = "Funder";
 
     // DATACITE 4.0
     public static final String FUNDING_REFERENCES = "fundingReferences, *|fundingReferences";
     public static final String FUNDER_NAME = "funderName, *|funderName";
     public static final String FUNDER_IDENTIFIER = "funderIdentifier, *|funderIdentifier";
     public static final String FUNDER_IDENTIFIER_TYPE = "funderIdentifierType";
+    public static final String CROSSREF_FUNDER_ID = "Crossref Funder ID";
     public static final String AWARD_NUMBER = "awardNumber, *|awardNumber";
     public static final String AWARD_TITLE = "awardTitle, *|awardTitle";
     public static final String AWARD_URI = "awardURI";

@@ -124,7 +124,8 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
     protected Identifier parseIdentifier(final Element ele)
     {
         final String value = ele.text();
-        return new Identifier(value);
+        final String identifierType = HtmlUtils.getAttribute(ele, DataCiteConstants.IDENTIFIER_TYPE);
+        return new Identifier(value, identifierType);
     }
 
 
@@ -159,7 +160,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
         final String contributorTypeString = HtmlUtils.getAttribute(ele, DataCiteConstants.CONTRIBUTOR_TYPE);
 
         // to be compliant to DataCite 4.1, the type "funder" must be skipped
-        if (contributorTypeString.equals(DataCiteConstants.CONTRIBUTOR_TYPE_FUNDER))
+        if (contributorTypeString.equalsIgnoreCase(DataCiteConstants.CONTRIBUTOR_TYPE_FUNDER))
             return null;
 
         final PersonName contributorName = parsePersonName(ele.selectFirst(DataCiteConstants.CONTRIBUTOR_NAME));
@@ -218,7 +219,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
     {
         final String rawResType = HtmlUtils.getAttribute(ele, DataCiteConstants.RESOURCE_TYPE_GENERAL);
 
-        if (DataCiteConstants.RESOURCE_TYPE_GENERAL_FILM.equals(rawResType))
+        if (DataCiteConstants.RESOURCE_TYPE_GENERAL_FILM.equalsIgnoreCase(rawResType))
             return ResourceTypeGeneral.Audiovisual;
 
         else
@@ -279,11 +280,14 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
         final String schemeURI = HtmlUtils.getAttribute(ele, DataCiteConstants.SCHEME_URI);
         final String schemeType = HtmlUtils.getAttribute(ele, DataCiteConstants.SCHEME_TYPE);
 
-        final RelatedIdentifier relatedIdentifier = new RelatedIdentifier(value, relatedIdentifierType, relationType);
-        relatedIdentifier.setRelatedMetadataScheme(relatedMetadataScheme);
-        relatedIdentifier.setSchemeURI(schemeURI);
-        relatedIdentifier.setSchemeType(schemeType);
-        return relatedIdentifier;
+        return new RelatedIdentifier(
+                   value,
+                   relatedIdentifierType,
+                   relationType,
+                   null, // resourceTypeGeneral does not exist in DataCite 2 and 3
+                   relatedMetadataScheme,
+                   schemeURI,
+                   schemeType);
     }
 
 
@@ -425,7 +429,7 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
     {
         final String contributorType = HtmlUtils.getAttribute(ele, DataCiteConstants.CONTRIBUTOR_TYPE);
 
-        if (!contributorType.equals(DataCiteConstants.CONTRIBUTOR_TYPE_FUNDER))
+        if (!contributorType.equalsIgnoreCase(DataCiteConstants.CONTRIBUTOR_TYPE_FUNDER))
             return null;
 
         final PersonName contributorName = parsePersonName(ele.selectFirst(DataCiteConstants.CONTRIBUTOR_NAME));
@@ -508,11 +512,11 @@ public class DataCite2Transformer extends AbstractOaiPmhRecordTransformer
             final String dateTypeRaw = HtmlUtils.getAttribute(ele, DataCiteConstants.DATE_TYPE);
 
             // memorize start date
-            if (dateTypeRaw.equals(DataCiteConstants.DATE_TYPE_RANGE_START))
+            if (dateTypeRaw.equalsIgnoreCase(DataCiteConstants.DATE_TYPE_RANGE_START))
                 startDate = ele.text();
 
             // memorize end date
-            else if (dateTypeRaw.equals(DataCiteConstants.DATE_TYPE_RANGE_END))
+            else if (dateTypeRaw.equalsIgnoreCase(DataCiteConstants.DATE_TYPE_RANGE_END))
                 endDate = ele.text();
 
             // skip normal dates
