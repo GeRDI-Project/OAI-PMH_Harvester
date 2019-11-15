@@ -62,10 +62,15 @@ public class DataCite4Transformer extends DataCite3Transformer
     {
         final Element metadata = getMetadata(record);
 
+        // overwrite the identifier parsed from the header
         final Identifier identifier = HtmlUtils.getObject(metadata, DataCiteConstants.IDENTIFIER, this::parseIdentifier);
-        document.setIdentifier(identifier);
 
-        final List<RelatedIdentifier> relatedIdentifiers = HtmlUtils.getObjectsFromParent(metadata, DataCiteConstants.RELATED_IDENTIFIERS, this::parseRelatedIdentifier);
+        if (identifier != null)
+            document.setIdentifier(identifier);
+
+        // parse and cache related identifiers, they are reused in weblink creation
+        final List<RelatedIdentifier> relatedIdentifiers =
+            HtmlUtils.getObjectsFromParent(metadata, DataCiteConstants.RELATED_IDENTIFIERS, this::parseRelatedIdentifier);
         document.addRelatedIdentifiers(relatedIdentifiers);
 
         document.setPublisher(parsePublisher(metadata));

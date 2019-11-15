@@ -58,6 +58,8 @@ public class DataCiteFlexTransformer extends AbstractOaiPmhRecordTransformer
     @Override
     public void init(final AbstractETL<?, ?> etl)
     {
+        super.init(etl);
+
         for (final AbstractOaiPmhRecordTransformer transformer : transformerMap.values())
             transformer.init(etl);
     }
