@@ -1,0 +1,192 @@
+{
+	"identifier" : {
+		"value" : "12.3456/MOCK.7890",
+		"identifierType" : "DOI"
+	},
+	"creators" : [
+		{
+			"creatorName" : {
+				"value" : "Mocked Creator 1"
+			},
+			"nameIdentifiers" : [
+				{
+					"value" : "Mocked Name Identifier 1",
+					"nameIdentifierScheme" : "MockedIdentifierScheme1"
+				},
+				{
+					"value" : "Mocked Name Identifier 2",
+					"nameIdentifierScheme" : "MockedIdentifierScheme2"
+				}
+			]
+		},
+		{
+			"creatorName" : {
+				"value" : "Mocked Creator 2"
+			}
+		}
+	],
+	"titles" : [
+		{
+			"value" : "Mocked Title 2",
+			"titleType" : "AlternativeTitle"
+		},
+		{
+			"value" : "Mocked Title 1"
+		}
+	],
+	"publisher" : {
+		"value" : "Mocked Publisher"
+	},
+	"publicationYear" : 1337,
+	"resourceType" : {
+		"value" : "Mocked Resource Type",
+		"resourceTypeGeneral" : "Audiovisual"
+	},
+	"subjects" : [
+		{
+			"value" : "mocked-spec1"
+		},
+		{
+			"value" : "Mocked Subject 2"
+		},
+		{
+			"value" : "mocked-spec2"
+		},
+		{
+			"value" : "Mocked Subject 1",
+			"subjectScheme" : "MockedSubjectScheme"
+		},
+		{
+			"value" : "mocked-spec3"
+		}
+	],
+	"contributors" : [
+		{
+			"contributorName" : {
+				"value" : "Mocked Contributor 1"
+			},
+			"contributorType" : "Editor",
+			"nameIdentifiers" : [
+				{
+					"value" : "Mocked Name Identifier 1",
+					"nameIdentifierScheme" : "MockedIdentifierScheme1"
+				},
+				{
+					"value" : "Mocked Name Identifier 2",
+					"nameIdentifierScheme" : "MockedIdentifierScheme2"
+				}
+			]
+		},
+		{
+			"contributorName" : {
+				"value" : "Mocked Contributor 2"
+			},
+			"contributorType" : "ContactPerson"
+		}
+	],
+	"dates" : [
+		{
+			"value" : "2000-02-02T02:02:02Z",
+			"dateType" : "Created"
+		},
+		{
+			"value" : "3000-01-01T01:01:01Z/3000-03-03T03:03:03Z",
+			"dateType" : "Other"
+		}
+	],
+	"language" : "eng",
+	"alternateIdentifiers" : [
+		{
+			"value" : "Mocked Alternate Identifier 1",
+			"alternateIdentifierType" : "MockedAlternateIdentifierType1"
+		},
+		{
+			"value" : "Mocked Alternate Identifier 2",
+			"alternateIdentifierType" : "MockedAlternateIdentifierType2"
+		}
+	],
+	"relatedIdentifiers" : [
+		{
+			"value" : "http://www.mo.ck/related",
+			"relatedIdentifierType" : "URL",
+			"relationType" : "IsContinuedBy"
+		},
+		{
+			"value" : "Mocked Related Identifier",
+			"relatedIdentifierType" : "Handle",
+			"relationType" : "IsContinuedBy"
+		},
+		{
+			"value" : "12.3456/RELATED.7890",
+			"relatedIdentifierType" : "DOI",
+			"relationType" : "Continues",
+			"relatedMetadataScheme" : "MockedRelatedScheme",
+			"schemeURI" : "MockedSchemeURI",
+			"schemeType" : "MockedSchemeType"
+		}
+	],
+	"sizes" : [
+		"Mocked Size 2",
+		"Mocked Size 1"
+	],
+	"formats" : [
+		"Mocked Format 1",
+		"Mocked Format 2"
+	],
+	"version" : "Mocked Version",
+	"rightsList" : [
+		{
+			"value" : "Mocked Rights"
+		}
+	],
+	"descriptions" : [
+		{
+			"value" : "Mocked Description",
+			"descriptionType" : "Other"
+		}
+	],
+	"fundingReferences" : [
+		{
+			"funderName" : "Mocked Funder 2",
+			"funderIdentifier" : {
+				"value" : "Mocked Funder Identifier 2",
+				"funderIdentifierType" : "Other"
+			}
+		},
+		{
+			"funderName" : "Mocked Funder 1",
+			"funderIdentifier" : {
+				"value" : "Mocked Funder Identifier 1",
+				"funderIdentifierType" : "ISNI"
+			}
+		}
+	],
+	"repositoryIdentifier" : "Mocked Repository Name",
+	"webLinks" : [
+		{
+			"webLinkURI" : "www.mo.ck/logo.png",
+			"webLinkName" : "logo",
+			"webLinkType" : "ProviderLogoURL"
+		},
+		{
+			"webLinkURI" : "http://www.mo.ck/related",
+			"webLinkName" : "IsContinuedBy",
+			"webLinkType" : "Related"
+		},
+		{
+			"webLinkURI" : "www.mo.ck/view",
+			"webLinkName" : "Browse Repository",
+			"webLinkType" : "ViewURL"
+		},
+		{
+			"webLinkURI" : "https://doi.org/12.3456/RELATED.7890",
+			"webLinkName" : "Continues",
+			"webLinkType" : "Related"
+		},
+		{
+			"webLinkURI" : "https://doi.org/12.3456/MOCK.7890",
+			"webLinkName" : "Resource",
+			"webLinkType" : "ViewURL"
+		}
+	]
+}

@@ -1,0 +1,351 @@
+{
+	"identifier" : {
+		"value" : "12.3456/MOCK.7890",
+		"identifierType" : "DOI"
+	},
+	"creators" : [
+		{
+			"creatorName" : {
+				"value" : "Mockbert van Mock",
+				"nameType" : "Personal",
+				"lang" : "nl"
+			},
+			"givenName" : "Mockbert",
+			"familyName" : "van Mock",
+			"nameIdentifiers" : [
+				{
+					"value" : "Mocked Name Identifier 1",
+					"nameIdentifierScheme" : "MockedIdentifierScheme1",
+					"schemeURI" : "www.mo.ck/scheme/name1"
+				},
+				{
+					"value" : "Mocked Name Identifier 2",
+					"nameIdentifierScheme" : "MockedIdentifierScheme2",
+					"schemeURI" : "www.mo.ck/scheme/name2"
+				}
+			],
+			"affiliation" : [
+				{
+					"value" : "Mocked Affiliation 2"
+				},
+				{
+					"value" : "Mocked Affiliation 1",
+					"affiliationIdentifier" : "MockedAffiliationIdentifier",
+					"affiliationIdentifierScheme" : "MockedAffiliationScheme",
+					"schemeURI" : "http://www.mo.ck/scheme/affiliation"
+				}
+			]
+		},
+		{
+			"creatorName" : {
+				"value" : "Mocked Creator"
+			}
+		},
+		{
+			"creatorName" : {
+				"value" : "Mocked Creator Organisation",
+				"nameType" : "Organisational"
+			}
+		}
+	],
+	"titles" : [
+		{
+			"value" : "Mocked Title 1"
+		},
+		{
+			"value" : "Mocked Title 2",
+			"titleType" : "AlternativeTitle",
+			"lang" : "MockedLang"
+		}
+	],
+	"publisher" : {
+		"value" : "Mocked Publisher",
+		"lang" : "MockedLang"
+	},
+	"publicationYear" : 1337,
+	"resourceType" : {
+		"value" : "Mocked Resource Type",
+		"resourceTypeGeneral" : "Text"
+	},
+	"subjects" : [
+		{
+			"value" : "mocked-spec1"
+		},
+		{
+			"value" : "Mocked Subject 2"
+		},
+		{
+			"value" : "mocked-spec2"
+		},
+		{
+			"value" : "Mocked Subject 1",
+			"lang" : "MockedLang",
+			"subjectScheme" : "MockedSubjectScheme",
+			"schemeURI" : "www.mo.ck/scheme/subject",
+			"valueURI" : "www.mo.ck/value"
+		},
+		{
+			"value" : "mocked-spec3"
+		}
+	],
+	"contributors" : [
+		{
+			"contributorName" : {
+				"value" : "Mocked Contributor Organisation",
+				"nameType" : "Organisational"
+			},
+			"contributorType" : "HostingInstitution"
+		},
+		{
+			"contributorName" : {
+				"value" : "Mocked Contributor 2"
+			},
+			"contributorType" : "ContactPerson"
+		},
+		{
+			"contributorName" : {
+				"value" : "Mockina Mockcía",
+				"nameType" : "Personal",
+				"lang" : "es"
+			},
+			"contributorType" : "Editor",
+			"givenName" : "Mockina",
+			"familyName" : "Mockcía",
+			"nameIdentifiers" : [
+				{
+					"value" : "Mocked Name Identifier 1",
+					"nameIdentifierScheme" : "MockedIdentifierScheme1",
+					"schemeURI" : "www.mo.ck/scheme/name1"
+				},
+				{
+					"value" : "Mocked Name Identifier 2",
+					"nameIdentifierScheme" : "MockedIdentifierScheme2",
+					"schemeURI" : "www.mo.ck/scheme/name2"
+				}
+			],
+			"affiliation" : [
+				{
+					"value" : "Mocked Affiliation 2"
+				},
+				{
+					"value" : "Mocked Affiliation 1",
+					"affiliationIdentifier" : "MockedAffiliationIdentifier",
+					"affiliationIdentifierScheme" : "MockedAffiliationScheme",
+					"schemeURI" : "http://www.mo.ck/scheme/affiliation"
+				}
+			]
+		}
+	],
+	"dates" : [
+		{
+			"value" : "2000-02-02T02:02:02Z",
+			"dateType" : "Created",
+			"dateInformation" : "Mocked Date Info"
+		},
+		{
+			"value" : "3000-01-01T01:01:01Z/3000-03-03T03:03:03Z",
+			"dateType" : "Collected"
+		}
+	],
+	"language" : "eng",
+	"alternateIdentifiers" : [
+		{
+			"value" : "Mocked Alternate Identifier 1",
+			"alternateIdentifierType" : "MockedAlternateIdentifierType1"
+		},
+		{
+			"value" : "Mocked Alternate Identifier 2",
+			"alternateIdentifierType" : "MockedAlternateIdentifierType2"
+		}
+	],
+	"relatedIdentifiers" : [
+		{
+			"value" : "http://www.mo.ck/related",
+			"relatedIdentifierType" : "URL",
+			"relationType" : "IsContinuedBy"
+		},
+		{
+			"value" : "Mocked Related Identifier 2",
+			"relatedIdentifierType" : "Handle",
+			"relationType" : "IsContinuedBy"
+		},
+		{
+			"value" : "12.3456/RELATED.7890",
+			"relatedIdentifierType" : "DOI",
+			"relationType" : "Continues",
+			"resourceTypeGeneral" : "Dataset",
+			"relatedMetadataScheme" : "MockedRelatedScheme",
+			"schemeURI" : "www.mo.ck/scheme/related",
+			"schemeType" : "MockedSchemeType"
+		}
+	],
+	"sizes" : [
+		"Mocked Size 2",
+		"Mocked Size 1"
+	],
+	"formats" : [
+		"Mocked Format 1",
+		"Mocked Format 2"
+	],
+	"version" : "Mocked Version",
+	"rightsList" : [
+		{
+			"value" : "Mocked Rights 1",
+			"lang" : "MockedLang",
+			"rightsURI" : "https://www.mo.ck/rights",
+			"rightsIdentifier" : "MockedRightsIdentifier",
+			"rightsIdentifierScheme" : "MockedRightsIdentifierScheme",
+			"schemeURI" : "http://www.mo.ck/scheme/rights"
+		},
+		{
+			"value" : "Mocked Rights 2"
+		}
+	],
+	"descriptions" : [
+		{
+			"value" : "Mocked Description 1",
+			"descriptionType" : "Abstract",
+			"lang" : "MockedLang"
+		},
+		{
+			"value" : "Mocked Description 2",
+			"descriptionType" : "Other"
+		}
+	],
+	"geoLocations" : [
+		{
+			"geoLocationPlace" : "Mocked Geo Location 2"
+		},
+		{
+			"geoLocationPlace" : "Mocked Geo Location 1",
+			"geoLocationPoint" : {
+				"type" : "Point",
+				"coordinates" : [
+					12.34,
+					56.78
+				]
+			},
+			"geoLocationBox" : {
+				"type" : "Polygon",
+				"coordinates" : [
+					[
+						[
+							12.34,
+							12.34
+						],
+						[
+							12.34,
+							56.78
+						],
+						[
+							56.78,
+							56.78
+						],
+						[
+							56.78,
+							12.34
+						],
+						[
+							12.34,
+							12.34
+						]
+					]
+				]
+			},
+			"geoLocationPolygon" : [
+				{
+					"type" : "Polygon",
+					"coordinates" : [
+						[
+							[
+								5.0,
+								5.0
+							],
+							[
+								8.0,
+								8.0
+							],
+							[
+								10.0,
+								5.0
+							],
+							[
+								5.0,
+								5.0
+							]
+						]
+					]
+				},
+				{
+					"type" : "Polygon",
+					"coordinates" : [
+						[
+							[
+								1.0,
+								1.0
+							],
+							[
+								2.0,
+								2.0
+							],
+							[
+								3.0,
+								1.0
+							],
+							[
+								1.0,
+								1.0
+							]
+						]
+					]
+				}
+			]
+		}
+	],
+	"fundingReferences" : [
+		{
+			"funderName" : "Mocked Funder 2"
+		},
+		{
+			"funderName" : "Mocked Funder 1",
+			"funderIdentifier" : {
+				"value" : "Mocked Funder Identifier",
+				"funderIdentifierType": "Crossref Funder ID",
+				"schemeURI" : "http://mo.ck/scheme/funder"
+			},
+			"awardNumber" : {
+				"value" : "Mocked Award Number",
+				"awardURI" : "http://mo.ck/award/number"
+			},
+			"awardTitle" : "Mocked Award Title"
+		}
+	],
+	"repositoryIdentifier" : "Mocked Repository Name",
+	"webLinks" : [
+		{
+			"webLinkURI" : "www.mo.ck/view",
+			"webLinkName" : "Browse Repository",
+			"webLinkType" : "ViewURL"
+		},
+		{
+			"webLinkURI" : "https://doi.org/12.3456/RELATED.7890",
+			"webLinkName" : "Continues",
+			"webLinkType" : "Related"
+		},
+		{
+			"webLinkURI" : "http://www.mo.ck/related",
+			"webLinkName" : "IsContinuedBy",
+			"webLinkType" : "Related"
+		},
+		{
+			"webLinkURI" : "www.mo.ck/logo.png",
+			"webLinkName" : "logo",
+			"webLinkType" : "ProviderLogoURL"
+		},
+		{
+			"webLinkURI" : "https://doi.org/12.3456/MOCK.7890",
+			"webLinkName" : "Resource",
+			"webLinkType" : "ViewURL"
+		}
+	]
+}
