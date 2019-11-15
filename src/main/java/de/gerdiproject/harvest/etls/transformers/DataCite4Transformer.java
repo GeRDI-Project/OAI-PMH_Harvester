@@ -241,7 +241,15 @@ public class DataCite4Transformer extends DataCite3Transformer
     protected FunderIdentifier parseFunderIdentifier(final Element ele)
     {
         final String value = ele.text();
-        final FunderIdentifierType funderIdentifierType = HtmlUtils.getEnumAttribute(ele, DataCiteConstants.FUNDER_IDENTIFIER_TYPE, FunderIdentifierType.class);
+
+        // handle edge-case FunderIdentifierType: "Crossref Funder ID"
+        final FunderIdentifierType funderIdentifierType;
+
+        if (DataCiteConstants.CROSSREF_FUNDER_ID.equalsIgnoreCase(HtmlUtils.getAttribute(ele, DataCiteConstants.FUNDER_IDENTIFIER_TYPE)))
+            funderIdentifierType = FunderIdentifierType.Crossref_Funder_ID;
+        else
+            funderIdentifierType = HtmlUtils.getEnumAttribute(ele, DataCiteConstants.FUNDER_IDENTIFIER_TYPE, FunderIdentifierType.class);
+
         final FunderIdentifier funder = new FunderIdentifier(value, funderIdentifierType);
 
         // in DataCite 4.3, schemeURI is added
