@@ -18,11 +18,9 @@ package de.gerdiproject.harvest.etls.transformers;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import de.gerdiproject.harvest.etls.AbstractETL;
 import de.gerdiproject.harvest.etls.OaiPmhETL;
@@ -138,8 +136,8 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
      */
     protected boolean isRecordDeleted(final Element header)
     {
-        final String recordStatus = header.attr(OaiPmhConstants.HEADER_STATUS_ATTRIBUTE);
-        return  recordStatus.equals(OaiPmhConstants.HEADER_STATUS_ATTRIBUTE_DELETED);
+        final String recordStatus = HtmlUtils.getAttribute(header, OaiPmhConstants.HEADER_STATUS_ATTRIBUTE);
+        return  OaiPmhConstants.HEADER_STATUS_ATTRIBUTE_DELETED.equalsIgnoreCase(recordStatus);
     }
 
 
@@ -197,7 +195,7 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
      */
     protected String parseIdentifierFromHeader(final Element header)
     {
-        return header.selectFirst(OaiPmhConstants.HEADER_IDENTIFIER).text();
+        return HtmlUtils.getString(header, OaiPmhConstants.HEADER_IDENTIFIER);
     }
 
 
@@ -211,14 +209,11 @@ public abstract class AbstractOaiPmhRecordTransformer extends AbstractIteratorTr
      */
     protected List<Subject> parseSubjectsFromHeader(final Element header)
     {
-        final List<Subject> subjectList = new LinkedList<>();
+        return HtmlUtils.getObjects(
+                   header,
+                   OaiPmhConstants.HEADER_SET_SPEC,
+                   (Element ele) -> new Subject(ele.text()));
 
-        final Elements setSpecs = header.select(OaiPmhConstants.HEADER_SET_SPEC);
-
-        for (final Element s : setSpecs)
-            subjectList.add(new Subject(s.text()));
-
-        return subjectList;
     }
 
 

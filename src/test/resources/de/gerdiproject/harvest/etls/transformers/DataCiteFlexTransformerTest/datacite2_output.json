@@ -1,0 +1,10 @@
+{
+	"identifier" : {
+		"value" : "oai:mo.ck:12345"
+	},
+	"repositoryIdentifier" : "Mocked Repository Name",
+	"resourceType" : {
+		"value" : "Mocked Resource Type",
+		"resourceTypeGeneral" : "Audiovisual"
+	}
+}

@@ -39,11 +39,11 @@ import de.gerdiproject.json.datacite.DataCiteJson;
  */
 public abstract class AbstractOaiPmhTransformerTest extends AbstractIteratorTransformerTest<Element, DataCiteJson>
 {
+    private static final String MOCKED_HTTP_RESPONSES_RESOURCE = "mockedHttpResponses";
     private static final String INPUT_RESOURCE = "input.html";
     private static final String OUTPUT_RESOURCE = "output.json";
-    private static final String MOCKED_HTTP_RESPONSES_RESOURCE = "mockedHttpResponses";
 
-    private final DiskIO diskReader = new DiskIO(GsonUtils.createGerdiDocumentGsonBuilder().create(), StandardCharsets.UTF_8);
+    protected final DiskIO diskReader = new DiskIO(GsonUtils.createGerdiDocumentGsonBuilder().create(), StandardCharsets.UTF_8);
 
 
     @Override
