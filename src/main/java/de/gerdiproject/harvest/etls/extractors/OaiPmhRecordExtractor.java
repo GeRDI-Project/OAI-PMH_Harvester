@@ -187,18 +187,15 @@ public class OaiPmhRecordExtractor extends AbstractIteratorExtractor<Element>
 
             // make sure the web request returns a set of records
             if (newRecords == null || newRecords.isEmpty()) {
+
                 // if no records could be retrieved even via the fallback URL, abort
-                if (isUsingFallbackUrl || lastHarvestedDate == null) {
+                if (isUsingFallbackUrl)
+                    throw new ExtractorException(String.format(OaiPmhConstants.NO_RECORDS_RESUMED_ERROR, recordsUrl));
 
-                    // display a different error message if this problem occurs in the middle of the harvest
-                    final String errorMessage = lastHarvestedDate == null
-                                                ? OaiPmhConstants.NO_RECORDS_ERROR
-                                                : OaiPmhConstants.NO_RECORDS_RESUMED_ERROR;
+                else if (lastHarvestedDate == null)
+                    throw new ExtractorException(String.format(OaiPmhConstants.NO_RECORDS_ERROR, recordsUrl));
 
-                    // abort the harvest
-                    throw new ExtractorException(String.format(errorMessage, recordsUrl));
-
-                } else {
+                else {
                     // assemble fallback URL, using the date of the last successfully harvested record
                     final String fallbackUrl = String.format(fallbackUrlFormat, lastHarvestedDate);
 
@@ -212,8 +209,9 @@ public class OaiPmhRecordExtractor extends AbstractIteratorExtractor<Element>
                 }
 
             } else {
-                final Element resumptionToken = doc.selectFirst(OaiPmhConstants.RESUMPTION_TOKEN_ELEMENT);
                 this.records.addAll(newRecords);
+
+                final Element resumptionToken = doc.selectFirst(OaiPmhConstants.RESUMPTION_TOKEN_ELEMENT);
 
                 if (resumptionToken == null || resumptionToken.text() == null || resumptionToken.text().isEmpty())
                     this.recordsUrl = null;
