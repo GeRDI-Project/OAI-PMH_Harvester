@@ -71,6 +71,7 @@ public class OaiPmhETL extends AbstractIteratorETL<Element, DataCiteJson>
     @Override
     public void removeEventListeners()
     {
+        super.removeEventListeners();
         EventSystem.removeSynchronousListener(GetRepositoryNameEvent.class);
     }
 
