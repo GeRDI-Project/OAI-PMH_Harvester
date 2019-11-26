@@ -1,0 +1,17 @@
+{ 
+	"identifier" : {
+		"value" : "oai:mo.ck:12345"
+	},
+	"repositoryIdentifier" : "Mocked Repository Name",
+	"geoLocations" : [
+		{
+			"geoLocationPoint" : {  
+				"type" : "Point",
+				"coordinates" : [
+					2.0,
+					1.0
+				]
+			}
+		}
+	]
+}

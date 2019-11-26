@@ -1,0 +1,135 @@
+{
+	"identifier" : {
+		"value" : "Mocked Identifier"
+	},
+	"creators" : [
+		{
+			"creatorName" : {
+				"value" : "Mocked Creator 1"
+			}
+		},
+		{
+			"creatorName" : {
+				"value" : "Mocked Creator 2"
+			}
+		},
+		{
+			"creatorName" : {
+				"value" : "Mocked Creator 3"
+			}
+		}
+	],
+	"titles" : [
+		{
+			"value" : "Mocked Title 2"
+		},
+		{
+			"value" : "Mocked Title 1"
+		},
+		{
+			"value" : "Mocked Title 3"
+		}
+	],
+	"publisher" : {
+		"value" : "Mocked Publisher"
+	},
+	"publicationYear" : 3000,
+	"subjects" : [
+		{
+			"value" : "Mocked Subject 1"
+		},
+		{
+			"value" : "Mocked Subject 3"
+		},
+		{
+			"value" : "mocked-spec1"
+		},
+		{
+			"value" : "Mocked Subject 2"
+		},
+		{
+			"value" : "mocked-spec2"
+		},
+		{
+			"value" : "mocked-spec3"
+		}
+	],
+	"contributors" : [
+		{
+			"contributorName" : {
+				"value" : "Mocked Contributor 2"
+			},
+			"contributorType" : "ContactPerson"
+		},
+		{
+			"contributorName" : {
+				"value" : "Mocked Contributor 1"
+			},
+			"contributorType" : "ContactPerson"
+		},
+		{
+			"contributorName" : {
+				"value" : "Mocked Contributor 3"
+			},
+			"contributorType" : "ContactPerson"
+		}
+	],
+	"dates" : [
+		{
+			"value" : "3000-03-03T00:00:00Z",
+			"dateType" : "Issued"
+		}
+	],
+	"language" : "Mocked Language",
+	"formats" : [
+		"Mocked Type 3",
+		"Mocked Format 1",
+		"Mocked Type 1",
+		"Mocked Type 2",
+		"Mocked Format 3",
+		"Mocked Format 2"
+	],
+	"rightsList" : [
+		{
+			"value" : "Mocked Rights 2"
+		},
+		{
+			"value" : "Mocked Rights 1"
+		},
+		{
+			"value" : "Mocked Rights 3"
+		}
+	],
+	"descriptions" : [
+		{
+			"value" : "Mocked Description 2",
+			"descriptionType" : "Abstract"
+		},
+		{
+			"value" : "Mocked Description 3",
+			"descriptionType" : "Abstract"
+		},
+		{
+			"value" : "Mocked Description 1",
+			"descriptionType" : "Abstract"
+		}
+	],
+	"repositoryIdentifier" : "Mocked Repository Name",
+	"webLinks" : [
+		{
+			"webLinkURI" : "www.mo.ck/logo.png",
+			"webLinkName" : "logo",
+			"webLinkType" : "ProviderLogoURL"
+		},
+		{
+			"webLinkURI" : "www.mo.ck/view",
+			"webLinkName" : "Browse Repository",
+			"webLinkType" : "ViewURL"
+		},
+		{
+			"webLinkURI" : "http://www.mo.ck/identifier",
+			"webLinkName" : "View URL",
+			"webLinkType" : "ViewURL"
+		}
+	]
+}

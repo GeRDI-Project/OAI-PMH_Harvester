@@ -32,7 +32,7 @@ import de.gerdiproject.harvest.etls.constants.OaiPmhConstants;
  * @author Robin Weiss
  */
 @WebListener
-public class OaipmhContextListener extends ContextListener
+public class OaiPmhContextListener extends ContextListener
 {
     @Override
     protected List<? extends AbstractETL<?, ?>> createETLs()

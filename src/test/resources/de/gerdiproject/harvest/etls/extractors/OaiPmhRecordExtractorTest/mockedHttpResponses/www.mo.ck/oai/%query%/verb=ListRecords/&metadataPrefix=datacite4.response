@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<?xml-stylesheet type="text/xsl" href="/static/xsl/oai2.xsl"?>
+<OAI-PMH
+	xmlns="http://www.openarchives.org/OAI/2.0/"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+	<responseDate>2000-01-02T01:23:45Z</responseDate>
+	<request verb="ListRecords" metadataPrefix="datacite4">https://www.mo.ck/oai</request>
+	<ListRecords>
+		<record>
+			<header>
+				<identifier>oai:mo.ck:12345</identifier>
+			</header>
+			<metadata>
+				<identifier identifierType="DOI">44.4444/MOCK.444</identifier>
+			</metadata>
+		</record>
+		<resumptionToken expirationDate="3000-03-03T03:03:03Z" cursor="0" completeListSize="1">MockedResumptionToken</resumptionToken>
+	</ListRecords>
+</OAI-PMH>

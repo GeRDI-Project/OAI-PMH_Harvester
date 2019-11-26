@@ -62,10 +62,15 @@ public class DataCite4Transformer extends DataCite3Transformer
     {
         final Element metadata = getMetadata(record);
 
+        // overwrite the identifier parsed from the header
         final Identifier identifier = HtmlUtils.getObject(metadata, DataCiteConstants.IDENTIFIER, this::parseIdentifier);
-        document.setIdentifier(identifier);
 
-        final List<RelatedIdentifier> relatedIdentifiers = HtmlUtils.getObjectsFromParent(metadata, DataCiteConstants.RELATED_IDENTIFIERS, this::parseRelatedIdentifier);
+        if (identifier != null)
+            document.setIdentifier(identifier);
+
+        // parse and cache related identifiers, they are reused in weblink creation
+        final List<RelatedIdentifier> relatedIdentifiers =
+            HtmlUtils.getObjectsFromParent(metadata, DataCiteConstants.RELATED_IDENTIFIERS, this::parseRelatedIdentifier);
         document.addRelatedIdentifiers(relatedIdentifiers);
 
         document.setPublisher(parsePublisher(metadata));
@@ -109,7 +114,11 @@ public class DataCite4Transformer extends DataCite3Transformer
         final Publisher publisher = super.parsePublisher(metadata);
 
         // in DataCite 4.2, a xml:lang attribute is added
-        publisher.setLang(HtmlUtils.getAttribute(metadata, OaiPmhConstants.LANGUAGE_ATTRIBUTE));
+        if (publisher != null) {
+            final Element publisherEle = metadata.selectFirst(DataCiteConstants.PUBLISHER);
+            final String language = HtmlUtils.getAttribute(publisherEle, OaiPmhConstants.LANGUAGE_ATTRIBUTE);
+            publisher.setLang(language);
+        }
 
         return publisher;
     }
@@ -121,8 +130,7 @@ public class DataCite4Transformer extends DataCite3Transformer
         final GeoLocation geoLocation = super.parseGeoLocation(ele);
 
         // in DataCite 4, polygons were added to GeoLocations
-        final List<Geometry> geoLocationPolygons = HtmlUtils.elementsToList(ele.select(DataCiteConstants.GEOLOCATION_POLYGON), this::parseGeoLocationPolygon);
-        geoLocation.addPolygons(geoLocationPolygons);
+        geoLocation.addPolygons(HtmlUtils.getObjects(ele, DataCiteConstants.GEOLOCATION_POLYGON, this::parseGeoLocationPolygon));
 
         return geoLocation;
     }
@@ -220,12 +228,11 @@ public class DataCite4Transformer extends DataCite3Transformer
         final AwardNumber awardNumber = HtmlUtils.getObject(ele, DataCiteConstants.AWARD_NUMBER, this::parseAwardNumber);
         final String awardTitle = HtmlUtils.getString(ele, DataCiteConstants.AWARD_TITLE);
 
-        final FundingReference fundingReference = new FundingReference(funderName);
-        fundingReference.setFunderIdentifier(funderIdentifier);
-        fundingReference.setAwardNumber(awardNumber);
-        fundingReference.setAwardTitle(awardTitle);
-
-        return fundingReference;
+        return new FundingReference(
+                   funderName,
+                   funderIdentifier,
+                   awardNumber,
+                   awardTitle);
     }
 
 
@@ -239,7 +246,15 @@ public class DataCite4Transformer extends DataCite3Transformer
     protected FunderIdentifier parseFunderIdentifier(final Element ele)
     {
         final String value = ele.text();
-        final FunderIdentifierType funderIdentifierType = HtmlUtils.getEnumAttribute(ele, DataCiteConstants.FUNDER_IDENTIFIER_TYPE, FunderIdentifierType.class);
+
+        // handle edge-case FunderIdentifierType: "Crossref Funder ID"
+        final FunderIdentifierType funderIdentifierType;
+
+        if (DataCiteConstants.CROSSREF_FUNDER_ID.equalsIgnoreCase(HtmlUtils.getAttribute(ele, DataCiteConstants.FUNDER_IDENTIFIER_TYPE)))
+            funderIdentifierType = FunderIdentifierType.Crossref_Funder_ID;
+        else
+            funderIdentifierType = HtmlUtils.getEnumAttribute(ele, DataCiteConstants.FUNDER_IDENTIFIER_TYPE, FunderIdentifierType.class);
+
         final FunderIdentifier funder = new FunderIdentifier(value, funderIdentifierType);
 
         // in DataCite 4.3, schemeURI is added
